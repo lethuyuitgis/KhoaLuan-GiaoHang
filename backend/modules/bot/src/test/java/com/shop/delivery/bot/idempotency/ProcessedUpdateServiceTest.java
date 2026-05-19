@@ -20,7 +20,8 @@ class ProcessedUpdateServiceTest {
 
     @Test
     void markProcessedShouldReturnTrueForNewUpdate() {
-        when(repo.save(any(ProcessedUpdate.class))).thenReturn(new ProcessedUpdate(1L));
+        when(repo.existsById(1L)).thenReturn(false);
+        when(repo.saveAndFlush(any(ProcessedUpdate.class))).thenReturn(new ProcessedUpdate(1L));
 
         boolean result = service.markIfNew(1L);
 
@@ -28,8 +29,20 @@ class ProcessedUpdateServiceTest {
     }
 
     @Test
-    void markProcessedShouldReturnFalseForDuplicate() {
-        when(repo.save(any(ProcessedUpdate.class)))
+    void markProcessedShouldReturnFalseForDuplicateDetectedByExistsById() {
+        when(repo.existsById(1L)).thenReturn(true);
+
+        boolean result = service.markIfNew(1L);
+
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void markProcessedShouldReturnFalseForRaceConditionDuplicate() {
+        // existsById says "not there" but a concurrent insert wins the race
+        // and saveAndFlush throws DataIntegrityViolationException
+        when(repo.existsById(1L)).thenReturn(false);
+        when(repo.saveAndFlush(any(ProcessedUpdate.class)))
             .thenThrow(new DataIntegrityViolationException("duplicate key"));
 
         boolean result = service.markIfNew(1L);
