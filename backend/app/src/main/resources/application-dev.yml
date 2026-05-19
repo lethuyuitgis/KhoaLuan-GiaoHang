@@ -25,3 +25,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+bot:
+  token: ${BOT_TOKEN:dev-token-not-set}
+  username: ${BOT_USERNAME:DevBot}
+  mode: polling

@@ -45,3 +45,7 @@ info:
   app:
     name: ${spring.application.name}
     version: 0.1.0-SNAPSHOT
+
+bot:
+  # token + username MUST be set via env vars or profile-specific config
+  mode: polling

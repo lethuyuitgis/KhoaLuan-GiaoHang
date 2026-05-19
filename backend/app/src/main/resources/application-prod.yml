@@ -22,3 +22,10 @@ server:
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/plain
+
+bot:
+  token: ${BOT_TOKEN}
+  username: ${BOT_USERNAME}
+  mode: webhook
+  webhook-url: ${BOT_WEBHOOK_URL}
+  webhook-secret: ${BOT_WEBHOOK_SECRET}
