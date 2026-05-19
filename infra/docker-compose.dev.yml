@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: shop_delivery_postgres_dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: shop_delivery
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app_dev_password
+      TZ: UTC
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d shop_delivery"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata_dev:
