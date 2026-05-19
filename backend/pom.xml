@@ -42,6 +42,8 @@
         <!-- Tracked versions (Spring Boot manages most) -->
         <testcontainers.version>1.20.4</testcontainers.version>
         <logstash-logback.version>8.0</logstash-logback.version>
+        <!-- ByteBuddy >= 1.17.x required for full JDK 25 (class file 69) support -->
+        <byte-buddy.version>1.17.7</byte-buddy.version>
     </properties>
 
     <dependencyManagement>
@@ -125,7 +127,10 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
                     <configuration>
-                        <argLine>-Xshare:off</argLine>
+                        <!-- -javaagent enables Mockito's inline mock maker on JDK 21+
+                             without "Dynamic loading of agents will be disallowed" warnings,
+                             and allows ByteBuddy to retransform concrete classes for @Mock. -->
+                        <argLine>-Xshare:off -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
                     </configuration>
                 </plugin>
                 <plugin>
