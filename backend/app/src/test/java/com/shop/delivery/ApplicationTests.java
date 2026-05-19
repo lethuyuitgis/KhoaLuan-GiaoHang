@@ -1,10 +1,13 @@
 package com.shop.delivery;
 
+import com.shop.delivery.support.PostgresTestContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-class ApplicationTests {
+@ActiveProfiles("test")
+class ApplicationTests extends PostgresTestContainer {
 
     @Test
     void contextLoads() {

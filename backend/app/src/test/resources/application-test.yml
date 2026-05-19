@@ -1,0 +1,18 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  flyway:
+    enabled: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: WARN
+    com.shop.delivery: INFO
+    org.testcontainers: INFO
