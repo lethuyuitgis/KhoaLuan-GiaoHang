@@ -16,3 +16,9 @@ logging:
     root: WARN
     com.shop.delivery: INFO
     org.testcontainers: INFO
+
+bot:
+  token: test-token-not-real
+  username: TestBot
+  mode: webhook
+  webhook-secret: test-webhook-secret
