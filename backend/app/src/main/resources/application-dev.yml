@@ -30,3 +30,13 @@ bot:
   token: ${BOT_TOKEN:dev-token-not-set}
   username: ${BOT_USERNAME:DevBot}
   mode: polling
+
+shop:
+  pickup:
+    lat: 21.0285        # Hoàn Kiếm, HN
+    lng: 105.8542
+    address: "123 Lê Lợi, Hoàn Kiếm, HN"
+  fee:
+    base: 15000
+    per-km: 5000
+    free-km: 1.0

@@ -49,3 +49,13 @@ info:
 bot:
   # token + username MUST be set via env vars or profile-specific config
   mode: polling
+
+shop:
+  pickup:
+    lat: 21.0285
+    lng: 105.8542
+    address: "Shop default"
+  fee:
+    base: 15000
+    per-km: 5000
+    free-km: 0

@@ -22,3 +22,13 @@ bot:
   username: TestBot
   mode: webhook
   webhook-secret: test-webhook-secret
+
+shop:
+  pickup:
+    lat: 21.0285
+    lng: 105.8542
+    address: "Test Shop"
+  fee:
+    base: 15000
+    per-km: 5000
+    free-km: 0

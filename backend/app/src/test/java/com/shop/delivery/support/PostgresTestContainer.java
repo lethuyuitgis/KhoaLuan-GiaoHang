@@ -3,22 +3,24 @@ package com.shop.delivery.support;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Test base class providing a single shared Postgres container for all tests.
- * Extend this class to get a working DB without manual setup.
+ * Uses a JVM-wide singleton pattern (manual start, no @Testcontainers lifecycle)
+ * so the container survives across test classes and Spring's context cache.
  */
-@Testcontainers
 public abstract class PostgresTestContainer {
 
-    @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("shop_delivery_test")
-            .withUsername("test")
-            .withPassword("test")
-            .withReuse(true);
+    static final PostgreSQLContainer<?> POSTGRES;
+
+    static {
+        POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+                .withDatabaseName("shop_delivery_test")
+                .withUsername("test")
+                .withPassword("test")
+                .withReuse(true);
+        POSTGRES.start();
+    }
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

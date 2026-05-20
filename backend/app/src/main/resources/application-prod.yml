@@ -29,3 +29,13 @@ bot:
   mode: webhook
   webhook-url: ${BOT_WEBHOOK_URL}
   webhook-secret: ${BOT_WEBHOOK_SECRET}
+
+shop:
+  pickup:
+    lat: ${SHOP_PICKUP_LAT}
+    lng: ${SHOP_PICKUP_LNG}
+    address: ${SHOP_PICKUP_ADDRESS}
+  fee:
+    base: ${SHOP_FEE_BASE:15000}
+    per-km: ${SHOP_FEE_PER_KM:5000}
+    free-km: ${SHOP_FEE_FREE_KM:1.0}
