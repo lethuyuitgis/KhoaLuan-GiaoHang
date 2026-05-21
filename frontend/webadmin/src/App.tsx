@@ -6,6 +6,8 @@ import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { OrderDetailPage } from './pages/OrderDetailPage';
 
 export default function App() {
   return (
@@ -17,6 +19,8 @@ export default function App() {
             <Route element={<AuthGuard />}>
               <Route element={<Layout />}>
                 <Route index element={<DashboardPage />} />
+                <Route path="orders" element={<OrdersPage />} />
+                <Route path="orders/:id" element={<OrderDetailPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>
