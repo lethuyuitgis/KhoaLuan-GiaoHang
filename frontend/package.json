@@ -5,6 +5,8 @@
   "scripts": {
     "miniapp:dev": "pnpm --filter @shop/miniapp dev",
     "miniapp:build": "pnpm --filter @shop/miniapp build",
+    "webadmin:dev": "pnpm --filter @shop/webadmin dev",
+    "webadmin:build": "pnpm --filter @shop/webadmin build",
     "shared:check": "pnpm --filter @shop/shared type-check",
     "type-check": "pnpm -r run type-check"
   },
