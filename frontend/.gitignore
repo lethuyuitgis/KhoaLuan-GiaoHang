@@ -4,3 +4,10 @@ dist/
 .turbo/
 *.tsbuildinfo
 .DS_Store
+
+# tsc -b emit artifacts for composite config files
+miniapp/vite.config.js
+miniapp/vite.config.d.ts
+miniapp/tailwind.config.js
+miniapp/tailwind.config.d.ts
+miniapp/postcss.config.d.ts
