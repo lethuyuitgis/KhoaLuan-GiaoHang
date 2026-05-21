@@ -8,6 +8,8 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
+import { ProductsPage } from './pages/ProductsPage';
+import { ProductFormPage } from './pages/ProductFormPage';
 
 export default function App() {
   return (
@@ -21,6 +23,9 @@ export default function App() {
                 <Route index element={<DashboardPage />} />
                 <Route path="orders" element={<OrdersPage />} />
                 <Route path="orders/:id" element={<OrderDetailPage />} />
+                <Route path="products" element={<ProductsPage />} />
+                <Route path="products/new" element={<ProductFormPage />} />
+                <Route path="products/:id/edit" element={<ProductFormPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>
