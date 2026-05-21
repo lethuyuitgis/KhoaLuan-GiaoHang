@@ -32,3 +32,6 @@ shop:
     base: 15000
     per-km: 5000
     free-km: 0
+
+jwt:
+  secret: test-jwt-secret-must-be-at-least-256-bits-long-padding-padding-padding

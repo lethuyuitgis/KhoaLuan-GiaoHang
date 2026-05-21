@@ -39,3 +39,6 @@ shop:
     base: ${SHOP_FEE_BASE:15000}
     per-km: ${SHOP_FEE_PER_KM:5000}
     free-km: ${SHOP_FEE_FREE_KM:1.0}
+
+jwt:
+  secret: ${JWT_SECRET}

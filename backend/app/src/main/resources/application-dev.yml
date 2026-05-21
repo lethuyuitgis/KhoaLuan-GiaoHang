@@ -40,3 +40,6 @@ shop:
     base: 15000
     per-km: 5000
     free-km: 1.0
+
+jwt:
+  secret: dev-jwt-secret-please-change-in-prod-must-be-256-bits-long-yes
