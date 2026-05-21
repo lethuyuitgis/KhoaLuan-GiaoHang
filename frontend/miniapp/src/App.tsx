@@ -6,6 +6,7 @@ import { Layout } from './components/Layout';
 import { SplashPage } from './pages/SplashPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { CatalogPage } from './pages/CatalogPage';
+import { CartPage } from './pages/CartPage';
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
               <Route element={<Layout />}>
                 <Route index element={<SplashPage />} />
                 <Route path="customer/shop" element={<CatalogPage />} />
+                <Route path="customer/cart" element={<CartPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
