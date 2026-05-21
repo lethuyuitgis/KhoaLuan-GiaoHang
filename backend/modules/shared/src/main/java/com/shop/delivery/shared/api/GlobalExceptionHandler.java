@@ -1,5 +1,6 @@
 package com.shop.delivery.shared.api;
 
+import com.shop.delivery.shared.exception.AuthenticationException;
 import com.shop.delivery.shared.exception.BusinessRuleException;
 import com.shop.delivery.shared.exception.ConflictException;
 import com.shop.delivery.shared.exception.DomainException;
@@ -31,6 +32,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(NotFoundException e) {
         return status(HttpStatus.NOT_FOUND, e);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ApiError> handleAuth(AuthenticationException e) {
+        return status(HttpStatus.UNAUTHORIZED, e);
     }
 
     @ExceptionHandler(ValidationException.class)

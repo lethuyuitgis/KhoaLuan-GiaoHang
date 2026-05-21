@@ -1,5 +1,6 @@
 package com.shop.delivery.shared.api;
 
+import com.shop.delivery.shared.exception.AuthenticationException;
 import com.shop.delivery.shared.exception.BusinessRuleException;
 import com.shop.delivery.shared.exception.ConflictException;
 import com.shop.delivery.shared.exception.ExternalServiceException;
@@ -63,5 +64,13 @@ class GlobalExceptionHandlerTest {
         // Don't leak internal message to client
         assertThat(resp.getBody().message()).isNotEqualTo("oops");
         assertThat(resp.getBody().traceId()).isNotBlank();
+    }
+
+    @Test
+    void authenticationShouldReturn401() {
+        ResponseEntity<ApiError> resp = handler.handleAuth(
+            new AuthenticationException("UNAUTHENTICATED", "Need Telegram auth"));
+        assertThat(resp.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(resp.getBody().code()).isEqualTo("UNAUTHENTICATED");
     }
 }
