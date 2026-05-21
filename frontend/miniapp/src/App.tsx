@@ -7,6 +7,7 @@ import { SplashPage } from './pages/SplashPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { CatalogPage } from './pages/CatalogPage';
 import { CartPage } from './pages/CartPage';
+import { CheckoutPage } from './pages/CheckoutPage';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
                 <Route index element={<SplashPage />} />
                 <Route path="customer/shop" element={<CatalogPage />} />
                 <Route path="customer/cart" element={<CartPage />} />
+                <Route path="customer/checkout" element={<CheckoutPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
