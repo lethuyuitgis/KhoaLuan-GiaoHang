@@ -8,6 +8,8 @@ import { NotFoundPage } from './pages/NotFoundPage';
 import { CatalogPage } from './pages/CatalogPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { OrderDetailPage } from './pages/OrderDetailPage';
 
 export default function App() {
   return (
@@ -21,6 +23,8 @@ export default function App() {
                 <Route path="customer/shop" element={<CatalogPage />} />
                 <Route path="customer/cart" element={<CartPage />} />
                 <Route path="customer/checkout" element={<CheckoutPage />} />
+                <Route path="customer/orders" element={<OrdersPage />} />
+                <Route path="customer/orders/:id" element={<OrderDetailPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
