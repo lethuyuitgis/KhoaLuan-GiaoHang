@@ -2,6 +2,7 @@ package com.shop.delivery;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.shop.delivery.support.PostgresTestContainer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -34,8 +37,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 class OrderFlowIT extends PostgresTestContainer {
 
     @Autowired TestRestTemplate rest;
+    @Autowired JdbcTemplate jdbc;
+    @Autowired PasswordEncoder encoder;
 
     @Value("${bot.token}") String botToken;
+
+    @BeforeEach
+    void seedTestAdmin() {
+        String hash = encoder.encode("flowtest123");
+        jdbc.update("INSERT INTO admin_user(email, password_hash, full_name, is_active) " +
+            "VALUES (?, ?, ?, true) ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash",
+            "flow-admin@shop.local", hash, "Flow Admin");
+    }
 
     private HttpHeaders customerHeaders() {
         HttpHeaders h = new HttpHeaders();
@@ -47,6 +60,20 @@ class OrderFlowIT extends PostgresTestContainer {
     private HttpHeaders jsonHeaders() {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
+        return h;
+    }
+
+    private HttpHeaders adminHeaders() {
+        HttpHeaders loginH = jsonHeaders();
+        ResponseEntity<JsonNode> loginResp = rest.exchange("/api/admin/auth/login", HttpMethod.POST,
+            new HttpEntity<>(Map.of("email", "flow-admin@shop.local", "password", "flowtest123"), loginH),
+            JsonNode.class);
+        if (!loginResp.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Test admin login failed: " + loginResp.getBody());
+        }
+        String token = loginResp.getBody().get("accessToken").asText();
+        HttpHeaders h = jsonHeaders();
+        h.add("Authorization", "Bearer " + token);
         return h;
     }
 
@@ -88,7 +115,7 @@ class OrderFlowIT extends PostgresTestContainer {
 
         ResponseEntity<JsonNode> confirmed = rest.exchange(
             "/api/admin/orders/" + orderId + "/confirm", HttpMethod.POST,
-            new HttpEntity<>(Map.of("note", "auto-confirm in test"), jsonHeaders()),
+            new HttpEntity<>(Map.of("note", "auto-confirm in test"), adminHeaders()),
             JsonNode.class);
 
         assertThat(confirmed.getStatusCode().is2xxSuccessful()).isTrue();
