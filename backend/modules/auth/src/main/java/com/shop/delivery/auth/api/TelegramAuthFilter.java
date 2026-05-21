@@ -44,15 +44,22 @@ public class TelegramAuthFilter extends OncePerRequestFilter {
         String initData = request.getHeader(HEADER_INIT_DATA);
         if (initData != null && !initData.isBlank()) {
             verifier.tryVerify(initData).ifPresent(verified -> {
-                TelegramUser user = userService.registerOrUpdate(new TelegramUserUpsertCommand(
-                    verified.userId(),
-                    verified.username(),
-                    verified.firstName(),
-                    verified.lastName(),
-                    verified.languageCode()
-                ));
-                request.setAttribute(ATTRIBUTE_CURRENT_USER, user);
-                log.debug("Auth OK userId={}", user.getId());
+                try {
+                    TelegramUser user = userService.registerOrUpdate(new TelegramUserUpsertCommand(
+                        verified.userId(),
+                        verified.username(),
+                        verified.firstName(),
+                        verified.lastName(),
+                        verified.languageCode()
+                    ));
+                    request.setAttribute(ATTRIBUTE_CURRENT_USER, user);
+                    log.debug("Auth OK userId={}", user.getId());
+                } catch (Exception ex) {
+                    // DB upsert failed (transient connection issue, race, etc.).
+                    // Treat as no-auth: leave attribute unset → @CurrentUser will return 401.
+                    // Better than letting the exception break the filter chain and surface as 500.
+                    log.warn("Auth upsert failed for userId={}: {}", verified.userId(), ex.getMessage());
+                }
             });
         }
         chain.doFilter(request, response);
