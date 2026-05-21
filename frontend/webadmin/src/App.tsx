@@ -5,15 +5,7 @@ import { AuthGuard } from './components/AuthGuard';
 import { Layout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-
-function DashboardStub() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <p className="text-gray-600 mt-2">P4.TASK 12 sẽ thêm KPI cards</p>
-    </div>
-  );
-}
+import { DashboardPage } from './pages/DashboardPage';
 
 export default function App() {
   return (
@@ -24,7 +16,7 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route element={<AuthGuard />}>
               <Route element={<Layout />}>
-                <Route index element={<DashboardStub />} />
+                <Route index element={<DashboardPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>
