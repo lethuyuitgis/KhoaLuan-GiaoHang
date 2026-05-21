@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.shop.delivery.support.PostgresTestContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
@@ -14,8 +15,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,10 +35,12 @@ class OrderFlowIT extends PostgresTestContainer {
 
     @Autowired TestRestTemplate rest;
 
+    @Value("${bot.token}") String botToken;
+
     private HttpHeaders customerHeaders() {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
-        h.add("X-Customer-Id", "5555");
+        h.add("X-Telegram-Init-Data", buildInitDataFor(5555L, "Test", "User", "testuser"));
         return h;
     }
 
@@ -44,12 +52,10 @@ class OrderFlowIT extends PostgresTestContainer {
 
     @Test
     void shouldCreateOrderViaRestAndAdminConfirm() {
-        // 1. Find a product
         ResponseEntity<JsonNode> productList = rest.getForEntity("/api/products", JsonNode.class);
         assertThat(productList.getStatusCode().is2xxSuccessful()).isTrue();
         Long productId = productList.getBody().get("content").get(0).get("id").asLong();
 
-        // 2. Create order
         Map<String, Object> body = Map.of(
             "customerName", "Test Customer",
             "customerPhone", "+84900111222",
@@ -74,14 +80,12 @@ class OrderFlowIT extends PostgresTestContainer {
 
         String orderId = order.get("id").asText();
 
-        // 3. Check /api/orders/mine
         ResponseEntity<JsonNode> mine = rest.exchange(
             "/api/orders/mine", HttpMethod.GET,
             new HttpEntity<>(customerHeaders()), JsonNode.class);
         assertThat(mine.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(mine.getBody().get("content").size()).isGreaterThanOrEqualTo(1);
 
-        // 4. Admin confirms
         ResponseEntity<JsonNode> confirmed = rest.exchange(
             "/api/admin/orders/" + orderId + "/confirm", HttpMethod.POST,
             new HttpEntity<>(Map.of("note", "auto-confirm in test"), jsonHeaders()),
@@ -89,5 +93,57 @@ class OrderFlowIT extends PostgresTestContainer {
 
         assertThat(confirmed.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(confirmed.getBody().get("status").asText()).isEqualTo("CONFIRMED");
+    }
+
+    @Test
+    void unauthorizedRequestShouldReturn401() {
+        ResponseEntity<JsonNode> resp = rest.getForEntity("/api/orders/mine", JsonNode.class);
+        assertThat(resp.getStatusCode().value()).isEqualTo(401);
+    }
+
+    private String buildInitDataFor(long userId, String firstName, String lastName, String username) {
+        String userJson = String.format(
+            "{\"id\":%d,\"first_name\":\"%s\",\"last_name\":\"%s\",\"username\":\"%s\",\"language_code\":\"vi\"}",
+            userId, firstName, lastName, username);
+
+        TreeMap<String, String> params = new TreeMap<>();
+        params.put("auth_date", String.valueOf(System.currentTimeMillis() / 1000));
+        params.put("query_id", "AAH" + System.nanoTime());
+        params.put("user", userJson);
+
+        StringBuilder checkString = new StringBuilder();
+        boolean first = true;
+        for (var e : params.entrySet()) {
+            if (!first) checkString.append('\n');
+            checkString.append(e.getKey()).append('=').append(e.getValue());
+            first = false;
+        }
+        byte[] secretKey = hmacSha256("WebAppData".getBytes(StandardCharsets.UTF_8),
+            botToken.getBytes(StandardCharsets.UTF_8));
+        byte[] hashBytes = hmacSha256(secretKey, checkString.toString().getBytes(StandardCharsets.UTF_8));
+        String hash = toHex(hashBytes);
+
+        StringBuilder qs = new StringBuilder();
+        for (var e : params.entrySet()) {
+            if (qs.length() > 0) qs.append('&');
+            qs.append(URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8))
+              .append('=').append(URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8));
+        }
+        qs.append("&hash=").append(hash);
+        return qs.toString();
+    }
+
+    private static byte[] hmacSha256(byte[] key, byte[] data) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(key, "HmacSHA256"));
+            return mac.doFinal(data);
+        } catch (Exception ex) { throw new RuntimeException(ex); }
+    }
+
+    private static String toHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) sb.append(String.format("%02x", b));
+        return sb.toString();
     }
 }
