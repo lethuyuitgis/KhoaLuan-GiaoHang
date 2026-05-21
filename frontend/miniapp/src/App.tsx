@@ -1,10 +1,26 @@
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { TelegramProvider } from './providers/TelegramProvider';
+import { QueryProvider } from './providers/QueryProvider';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Layout } from './components/Layout';
+import { SplashPage } from './pages/SplashPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+
 export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-tg-bg text-tg-text">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">Shop Giao Hàng</h1>
-        <p className="text-tg-hint mt-2">Mini App đang khởi tạo...</p>
-      </div>
-    </div>
+    <ErrorBoundary>
+      <QueryProvider>
+        <TelegramProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route index element={<SplashPage />} />
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </TelegramProvider>
+      </QueryProvider>
+    </ErrorBoundary>
   );
 }
