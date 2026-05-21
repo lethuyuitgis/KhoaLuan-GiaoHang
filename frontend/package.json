@@ -1,0 +1,12 @@
+{
+  "name": "shop-delivery-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "miniapp:dev": "pnpm --filter @shop/miniapp dev",
+    "miniapp:build": "pnpm --filter @shop/miniapp build",
+    "shared:check": "pnpm --filter @shop/shared type-check",
+    "type-check": "pnpm -r run type-check"
+  },
+  "packageManager": "pnpm@9.12.0"
+}
