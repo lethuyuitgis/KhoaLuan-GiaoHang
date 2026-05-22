@@ -19,6 +19,8 @@ export interface OrderResponse {
   customerId: number;
   customerName: string | null;
   customerPhone: string | null;
+  pickupLat: string;
+  pickupLng: string;
   deliveryAddress: string;
   deliveryLat: string;
   deliveryLng: string;
