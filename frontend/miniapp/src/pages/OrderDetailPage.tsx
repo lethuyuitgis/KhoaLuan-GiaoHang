@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getOrder, cancelOrder, formatVnd, formatDateTime } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { OrderTrackingMap } from '@/features/tracking/OrderTrackingMap';
 import { tg } from '@/lib/telegram';
 
 const CANCELLABLE = new Set(['PENDING', 'CONFIRMED']);
@@ -65,6 +66,16 @@ export function OrderDetailPage() {
         </div>
         <OrderStatusBadge status={order.status} />
       </div>
+
+      {order.status === 'DELIVERING' && (
+        <OrderTrackingMap
+          orderId={order.id}
+          pickupLat={order.pickupLat}
+          pickupLng={order.pickupLng}
+          deliveryLat={order.deliveryLat}
+          deliveryLng={order.deliveryLng}
+        />
+      )}
 
       <div className="bg-tg-secondaryBg rounded-lg p-4 mb-4">
         <h2 className="font-semibold mb-2">Sản phẩm</h2>
