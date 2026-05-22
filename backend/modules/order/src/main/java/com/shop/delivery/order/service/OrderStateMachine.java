@@ -17,7 +17,8 @@ public class OrderStateMachine {
     static {
         ALLOWED.put(OrderStatus.PENDING, EnumSet.of(OrderStatus.CONFIRMED, OrderStatus.CANCELLED));
         ALLOWED.put(OrderStatus.CONFIRMED, EnumSet.of(OrderStatus.ASSIGNED, OrderStatus.CANCELLED));
-        ALLOWED.put(OrderStatus.ASSIGNED, EnumSet.of(OrderStatus.DELIVERING, OrderStatus.CANCELLED));
+        // ASSIGNED → CONFIRMED: shipper rejected, order needs re-assignment
+        ALLOWED.put(OrderStatus.ASSIGNED, EnumSet.of(OrderStatus.DELIVERING, OrderStatus.CONFIRMED, OrderStatus.CANCELLED));
         ALLOWED.put(OrderStatus.DELIVERING, EnumSet.of(OrderStatus.DELIVERED, OrderStatus.RETURNED));
         ALLOWED.put(OrderStatus.DELIVERED, EnumSet.noneOf(OrderStatus.class));
         ALLOWED.put(OrderStatus.CANCELLED, EnumSet.noneOf(OrderStatus.class));

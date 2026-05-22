@@ -32,6 +32,12 @@ class OrderStateMachineTest {
     }
 
     @Test
+    void assignedToConfirmedShouldBeAllowed() {
+        // Shipper rejected — order must be allowed back to CONFIRMED so admin can re-assign
+        assertThat(sm.isAllowed(OrderStatus.ASSIGNED, OrderStatus.CONFIRMED)).isTrue();
+    }
+
+    @Test
     void deliveringToDeliveredShouldBeAllowed() {
         assertThat(sm.isAllowed(OrderStatus.DELIVERING, OrderStatus.DELIVERED)).isTrue();
     }
