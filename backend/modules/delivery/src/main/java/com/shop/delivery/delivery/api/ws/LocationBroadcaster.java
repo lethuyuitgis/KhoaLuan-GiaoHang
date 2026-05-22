@@ -34,11 +34,16 @@ public class LocationBroadcaster {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onPingReceived(LocationPingReceivedEvent e) {
-        String topic = "/topic/order/" + e.orderId() + "/location";
+        // Send to the order's customer only — `/user/{customerId}/queue/order/{orderId}/location`.
+        // Spring resolves the principal-name from the STOMP session, so subscribers on a different
+        // user principal cannot receive this message even if they SUBSCRIBE to the same orderId path.
+        String destination = "/queue/order/" + e.orderId() + "/location";
+        String userName = String.valueOf(e.customerId());
         LocationMessage payload = new LocationMessage(
             e.orderId(), e.lat(), e.lng(), e.accuracy(), e.heading(), e.recordedAt()
         );
-        ws.convertAndSend(topic, payload);
-        log.debug("Broadcast location to {}: lat={}, lng={}", topic, e.lat(), e.lng());
+        ws.convertAndSendToUser(userName, destination, payload);
+        log.debug("Broadcast location to user={} dest={}: lat={}, lng={}",
+            userName, destination, e.lat(), e.lng());
     }
 }

@@ -53,7 +53,7 @@ class LocationPingServiceTest {
         o.setId(orderId);
         o.setCustomerId(5555L);
 
-        when(assignmentRepo.findAllByShipperIdAndStatusIn(eq(8888L), any())).thenReturn(List.of(a));
+        when(assignmentRepo.findAllByShipperIdAndStatusInOrderByAssignedAtDesc(eq(8888L), any())).thenReturn(List.of(a));
         when(orderService.findById(orderId)).thenReturn(o);
         when(pingRepo.save(any(LocationPing.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -72,7 +72,7 @@ class LocationPingServiceTest {
     @Test
     void savePingForShipperWithNoActiveAssignmentShouldIgnore() {
         LocationPingService service = newService();
-        when(assignmentRepo.findAllByShipperIdAndStatusIn(eq(8888L), any())).thenReturn(List.of());
+        when(assignmentRepo.findAllByShipperIdAndStatusInOrderByAssignedAtDesc(eq(8888L), any())).thenReturn(List.of());
 
         service.savePingForShipper(8888L,
             new BigDecimal("21.0"), new BigDecimal("105.8"), null, null);

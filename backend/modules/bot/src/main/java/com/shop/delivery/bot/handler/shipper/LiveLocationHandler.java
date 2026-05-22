@@ -38,6 +38,12 @@ public class LiveLocationHandler implements UpdateHandler {
     public void handle(Update update) {
         Message msg = extractMessageWithLocation(update);
         if (msg == null) return;
+        if (msg.getFrom() == null) {
+            // Channel posts / anonymous group admins carry the location without a `from` user.
+            // We can't attribute the ping to a shipper, so skip it.
+            log.debug("Ignoring location update without from-user (channel/anonymous)");
+            return;
+        }
 
         Long userId = msg.getFrom().getId();
         Location loc = msg.getLocation();
@@ -55,10 +61,14 @@ public class LiveLocationHandler implements UpdateHandler {
     }
 
     private Message extractMessageWithLocation(Update update) {
-        if (update.hasMessage() && update.getMessage().getLocation() != null) {
+        if (update.hasMessage()
+                && update.getMessage().getLocation() != null
+                && update.getMessage().getFrom() != null) {
             return update.getMessage();
         }
-        if (update.hasEditedMessage() && update.getEditedMessage().getLocation() != null) {
+        if (update.hasEditedMessage()
+                && update.getEditedMessage().getLocation() != null
+                && update.getEditedMessage().getFrom() != null) {
             return update.getEditedMessage();
         }
         return null;

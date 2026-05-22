@@ -76,6 +76,19 @@ class LiveLocationHandlerTest {
     }
 
     @Test
+    void canHandleShouldReturnFalseForLocationMessageWithoutFromUser() {
+        // Channel posts / anonymous group admins send location with from=null.
+        Update u = new Update();
+        Message m = new Message();
+        Location loc = new Location();
+        loc.setLatitude(21.0);
+        loc.setLongitude(105.0);
+        m.setLocation(loc); // no setFrom()
+        u.setMessage(m);
+        assertThat(handler.canHandle(u)).isFalse();
+    }
+
+    @Test
     void handleShouldDoNothingIfNoLocation() {
         Update u = new Update();
         Message m = new Message();

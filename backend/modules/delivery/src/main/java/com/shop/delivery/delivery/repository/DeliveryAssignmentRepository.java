@@ -18,4 +18,7 @@ public interface DeliveryAssignmentRepository extends JpaRepository<DeliveryAssi
         Long shipperId, List<AssignmentStatus> statuses, Pageable pageable);
 
     List<DeliveryAssignment> findAllByShipperIdAndStatusIn(Long shipperId, List<AssignmentStatus> statuses);
+
+    List<DeliveryAssignment> findAllByShipperIdAndStatusInOrderByAssignedAtDesc(
+        Long shipperId, List<AssignmentStatus> statuses);
 }

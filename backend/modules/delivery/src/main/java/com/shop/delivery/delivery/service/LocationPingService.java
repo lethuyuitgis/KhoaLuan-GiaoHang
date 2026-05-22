@@ -44,11 +44,18 @@ public class LocationPingService {
     public void savePingForShipper(Long shipperId,
                                    BigDecimal lat, BigDecimal lng,
                                    BigDecimal accuracy, BigDecimal heading) {
-        List<DeliveryAssignment> active = assignmentRepo.findAllByShipperIdAndStatusIn(
+        List<DeliveryAssignment> active = assignmentRepo.findAllByShipperIdAndStatusInOrderByAssignedAtDesc(
             shipperId, List.of(AssignmentStatus.STARTED));
         if (active.isEmpty()) {
             log.debug("No active delivery for shipper {} — ignoring location ping", shipperId);
             return;
+        }
+        if (active.size() > 1) {
+            // Invariant violation: a shipper should have at most one STARTED assignment.
+            // Migration V8 enforces this with a partial unique index, but log defensively in case
+            // dev data predates the constraint. Most-recent assignment wins.
+            log.warn("Shipper {} has {} STARTED assignments; routing ping to most recent",
+                shipperId, active.size());
         }
         DeliveryAssignment a = active.get(0);
         Order order = orderService.findById(a.getOrderId());
