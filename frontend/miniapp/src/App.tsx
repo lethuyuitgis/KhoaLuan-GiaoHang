@@ -10,6 +10,8 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
+import { ShipperAssignmentsPage } from './pages/ShipperAssignmentsPage';
+import { ShipperAssignmentDetailPage } from './pages/ShipperAssignmentDetailPage';
 
 export default function App() {
   return (
@@ -25,6 +27,8 @@ export default function App() {
                 <Route path="customer/checkout" element={<CheckoutPage />} />
                 <Route path="customer/orders" element={<OrdersPage />} />
                 <Route path="customer/orders/:id" element={<OrderDetailPage />} />
+                <Route path="shipper/assignments" element={<ShipperAssignmentsPage />} />
+                <Route path="shipper/assignments/:id" element={<ShipperAssignmentDetailPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
