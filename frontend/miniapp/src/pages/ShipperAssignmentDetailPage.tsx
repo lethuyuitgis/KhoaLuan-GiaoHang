@@ -88,6 +88,18 @@ export function ShipperAssignmentDetailPage() {
         </div>
       </div>
 
+      {assignment.status === 'STARTED' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 text-sm">
+          <p className="font-semibold mb-2">📍 Hãy chia sẻ vị trí real-time</p>
+          <ol className="list-decimal list-inside space-y-1 text-blue-900">
+            <li>Quay lại chat với bot</li>
+            <li>Bấm biểu tượng 📎 → "Vị trí" → "Chia sẻ vị trí trực tiếp"</li>
+            <li>Chọn thời lượng (15 phút / 1 giờ / 8 giờ)</li>
+            <li>Khách sẽ thấy vị trí của bạn trên map realtime</li>
+          </ol>
+        </div>
+      )}
+
       {assignment.status === 'ACCEPTED' && (
         <button onClick={() => startMut.mutate()} disabled={startMut.isPending}
           className="w-full py-3 bg-tg-button text-tg-buttonText rounded-lg font-medium disabled:opacity-50">
