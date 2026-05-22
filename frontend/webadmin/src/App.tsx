@@ -10,6 +10,7 @@ import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProductFormPage } from './pages/ProductFormPage';
+import { ShippersPage } from './pages/ShippersPage';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
                 <Route path="products" element={<ProductsPage />} />
                 <Route path="products/new" element={<ProductFormPage />} />
                 <Route path="products/:id/edit" element={<ProductFormPage />} />
+                <Route path="shippers" element={<ShippersPage />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>

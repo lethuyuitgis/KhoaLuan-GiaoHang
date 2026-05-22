@@ -5,6 +5,7 @@ const ITEMS = [
   { to: '/', label: 'Dashboard', icon: '📊' },
   { to: '/orders', label: 'Đơn hàng', icon: '📦' },
   { to: '/products', label: 'Sản phẩm', icon: '🛍️' },
+  { to: '/shippers', label: 'Shipper', icon: '🚴' },
 ];
 
 export function Sidebar() {

@@ -1,13 +1,16 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { formatVnd, formatDateTime, type OrderResponse } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { AssignShipperModal } from '@/components/AssignShipperModal';
 
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [showAssign, setShowAssign] = useState(false);
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['admin', 'order', id],
@@ -99,7 +102,7 @@ export function OrderDetailPage() {
             <div className="flex justify-between mt-1"><span className="text-gray-600">Trạng thái thanh toán</span><span>{order.paymentStatus}</span></div>
           </div>
 
-          {(canConfirm || canCancel) && (
+          {(canConfirm || canCancel || order.status === 'CONFIRMED') && (
             <div className="bg-white rounded-lg shadow p-4 space-y-2">
               {canConfirm && (
                 <button
@@ -108,6 +111,14 @@ export function OrderDetailPage() {
                   className="w-full py-2 bg-brand-600 text-white rounded-md hover:bg-brand-700 disabled:opacity-50"
                 >
                   {confirmMut.isPending ? 'Đang xác nhận...' : 'Xác nhận đơn'}
+                </button>
+              )}
+              {order.status === 'CONFIRMED' && (
+                <button
+                  onClick={() => setShowAssign(true)}
+                  className="w-full py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                >
+                  Gán shipper
                 </button>
               )}
               {canCancel && (
@@ -119,11 +130,13 @@ export function OrderDetailPage() {
                   {cancelMut.isPending ? 'Đang hủy...' : 'Hủy đơn'}
                 </button>
               )}
-              <p className="text-xs text-gray-500 mt-2">Assign shipper sẽ ở P5</p>
             </div>
           )}
         </div>
       </div>
+      {showAssign && (
+        <AssignShipperModal orderId={order.id} orderCode={order.code} onClose={() => setShowAssign(false)} />
+      )}
     </div>
   );
 }
