@@ -49,6 +49,18 @@ export function OrderTrackingMap({
   const destination: [number, number] = [Number(deliveryLat), Number(deliveryLng)];
   const shipper: [number, number] | null = location ? [location.lat, location.lng] : null;
 
+  // Leaflet throws "Invalid LatLng object" on NaN — bail out before mounting MapContainer.
+  const coordsValid =
+    Number.isFinite(pickup[0]) && Number.isFinite(pickup[1]) &&
+    Number.isFinite(destination[0]) && Number.isFinite(destination[1]);
+  if (!coordsValid) {
+    return (
+      <div className="w-full h-64 rounded-lg overflow-hidden mb-3 bg-tg-secondaryBg flex items-center justify-center text-sm text-tg-hint italic">
+        Không có dữ liệu bản đồ.
+      </div>
+    );
+  }
+
   const center: [number, number] = [
     (pickup[0] + destination[0]) / 2,
     (pickup[1] + destination[1]) / 2,

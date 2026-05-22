@@ -31,7 +31,9 @@ export function subscribeOrderLocation(
   orderId: string,
   cb: LocationCallback
 ): () => void {
-  const sub = client.subscribe(`/topic/order/${orderId}/location`, (msg: IMessage) => {
+  // `/user/queue/...` is Spring's per-user destination — the broker routes only the messages
+  // that the backend `convertAndSendToUser(customerId, ...)` addressed to this STOMP session.
+  const sub = client.subscribe(`/user/queue/order/${orderId}/location`, (msg: IMessage) => {
     try {
       const payload = JSON.parse(msg.body) as LocationMessage;
       cb(payload);

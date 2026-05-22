@@ -73,7 +73,7 @@ export function ShipperAssignmentDetailPage() {
           Khoảng cách: {assignment.distanceKm}km
         </p>
         <p className="text-xs text-tg-hint">
-          📍 {assignment.deliveryLat}, {assignment.deliveryLng} (P6 sẽ có map)
+          📍 {assignment.deliveryLat}, {assignment.deliveryLng}
         </p>
       </div>
 

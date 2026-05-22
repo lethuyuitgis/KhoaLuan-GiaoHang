@@ -23,6 +23,14 @@ build/
 .next/
 .vite/
 
+# TS build artifacts at config-file level (e.g. tsc emits *.d.ts / *.js next to vite.config.ts)
+frontend/*/vite.config.js
+frontend/*/vite.config.d.ts
+frontend/*/tailwind.config.js
+frontend/*/tailwind.config.d.ts
+frontend/*/postcss.config.js
+frontend/*/postcss.config.d.ts
+
 # Env / Secrets
 .env
 .env.local

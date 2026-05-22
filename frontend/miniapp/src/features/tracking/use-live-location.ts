@@ -50,11 +50,18 @@ export function useLiveLocation(orderId: string | undefined, enabled: boolean): 
   useEffect(() => {
     if (!orderId || !enabled || !tg.isInTelegram()) return;
 
+    let alive = true;
+    let unsub: (() => void) | null = null;
     const client = createStompClient();
 
     client.onConnect = () => {
+      if (!alive) return;
       setIsConnected(true);
-      subscribeOrderLocation(client, orderId, (msg: LocationMessage) => {
+      // Replace any previous subscription before creating a new one — STOMP auto-reconnect
+      // can fire onConnect multiple times on the same client.
+      unsub?.();
+      unsub = subscribeOrderLocation(client, orderId, (msg: LocationMessage) => {
+        if (!alive) return;
         setLocation({
           lat: Number(msg.lat),
           lng: Number(msg.lng),
@@ -62,17 +69,20 @@ export function useLiveLocation(orderId: string | undefined, enabled: boolean): 
         });
       });
     };
-    client.onDisconnect = () => setIsConnected(false);
+    client.onDisconnect = () => {
+      if (alive) setIsConnected(false);
+    };
     client.onStompError = (frame) => {
       console.error('STOMP error', frame);
-      setIsConnected(false);
+      if (alive) setIsConnected(false);
     };
 
     client.activate();
 
     return () => {
+      alive = false;
+      unsub?.();
       client.deactivate();
-      setIsConnected(false);
     };
   }, [orderId, enabled]);
 
