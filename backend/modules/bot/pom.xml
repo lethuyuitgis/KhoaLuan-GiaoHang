@@ -29,6 +29,10 @@
             <groupId>com.shop.delivery</groupId>
             <artifactId>auth</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.shop.delivery</groupId>
+            <artifactId>delivery</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
