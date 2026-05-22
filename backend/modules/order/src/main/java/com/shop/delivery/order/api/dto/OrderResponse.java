@@ -15,6 +15,8 @@ public record OrderResponse(
     Long customerId,
     String customerName,
     String customerPhone,
+    BigDecimal pickupLat,
+    BigDecimal pickupLng,
     String deliveryAddress,
     BigDecimal deliveryLat,
     BigDecimal deliveryLng,
