@@ -309,27 +309,45 @@ Create `backend/modules/payment/src/main/java/com/shop/delivery/payment/package-
 package com.shop.delivery.payment;
 ```
 
-- [ ] **Step 3: Verify module compiles (no Java sources yet, just structure)**
+- [ ] **Step 3: Add `payment` as a dependency of `backend/app/pom.xml`**
+
+`app` is the executable jar that aggregates every module's beans via `scanBasePackages = "com.shop.delivery"`. Without this dep, `VnpayController` and friends never get on the classpath (and TASK 9's IT in `app/src/test/...` won't compile because it imports `com.shop.delivery.payment.*`).
+
+Open `backend/app/pom.xml` and add inside `<dependencies>`:
+
+```xml
+<dependency>
+    <groupId>com.shop.delivery</groupId>
+    <artifactId>payment</artifactId>
+</dependency>
+```
+
+Place it next to the existing module deps (`shared`, `auth`, `order`, `delivery`, `bot`) to keep alphabetical-ish order.
+
+- [ ] **Step 4: Verify module compiles (no Java sources yet, just structure)**
 
 ```bash
 cd /Users/lethitranthuy/Documents/KhoaLuan-GiaoHang/backend
 ./mvnw -q -pl modules/payment -am compile
+./mvnw -q -pl app -am compile
 ```
 
-Expected: BUILD SUCCESS. Module produces `payment-0.1.0-SNAPSHOT.jar` (empty classes dir, just `package-info.class`).
+Expected: BUILD SUCCESS. Module produces `payment-0.1.0-SNAPSHOT.jar` (empty classes dir, just `package-info.class`). `app` still compiles with the new dep.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 5: Commit**
 
 ```bash
 git add backend/modules/payment/pom.xml \
+        backend/app/pom.xml \
         backend/modules/payment/src/main/java/com/shop/delivery/payment/package-info.java
 git rm  backend/modules/payment/src/main/java/com/shop/delivery/payment/.gitkeep
-git commit -m "build(payment): add module deps + package skeleton"
+git commit -m "build(payment): add module deps + register in app pom + package skeleton"
 ```
 
 **Acceptance:**
 - `mvn -q -pl modules/payment -am compile` exits 0
-- `payment` artifact is in the build reactor
+- `mvn -q -pl app -am compile` exits 0
+- `payment` artifact is in the build reactor AND listed in `app/pom.xml`'s `<dependencies>`
 - No `.gitkeep` file remains under `payment/src/main/java/com/shop/delivery/payment/`
 
 ---
@@ -1995,7 +2013,8 @@ class VnpayPaymentServiceTest {
         assertThat(rr.success()).isTrue();
         assertThat(rr.redirectUrl())
             .startsWith("/payment-success.html?")
-            .contains("orderCode=" + payment.getVnpTxnRef().split("-")[0])
+            .contains("orderCode=" + payment.getVnpTxnRef()
+                .substring(0, payment.getVnpTxnRef().lastIndexOf('-')))
             .contains("amount=250000");
         // Return URL does NOT write DB
         verify(paymentRepo, never()).save(any());
@@ -2071,7 +2090,8 @@ class VnpayPaymentServiceTest {
         params.put("vnp_BankCode",         "NCB");
         params.put("vnp_BankTranNo",       "VNP" + txNo);
         params.put("vnp_CardType",         "ATM");
-        params.put("vnp_OrderInfo",        "Thanh toan don hang " + p.getVnpTxnRef().split("-")[0]);
+        params.put("vnp_OrderInfo",        "Thanh toan don hang " + p.getVnpTxnRef()
+                                              .substring(0, p.getVnpTxnRef().lastIndexOf('-')));
         params.put("vnp_PayDate",          "20260522170000");
         params.put("vnp_ResponseCode",     responseCode);
         params.put("vnp_TransactionNo",    txNo);
@@ -2414,8 +2434,8 @@ Create `backend/modules/payment/src/main/java/com/shop/delivery/payment/api/Vnpa
 ```java
 package com.shop.delivery.payment.api;
 
-import com.shop.delivery.auth.security.CurrentUser;
-import com.shop.delivery.auth.security.TelegramPrincipal;
+import com.shop.delivery.auth.api.CurrentUser;
+import com.shop.delivery.auth.entity.TelegramUser;
 import com.shop.delivery.payment.api.dto.CreatePaymentRequest;
 import com.shop.delivery.payment.api.dto.CreatePaymentResponse;
 import com.shop.delivery.payment.api.dto.IpnResponse;
@@ -2462,10 +2482,10 @@ public class VnpayController {
 
     @PostMapping(value = "/create", consumes = MediaType.APPLICATION_JSON_VALUE)
     public CreatePaymentResponse create(@Valid @RequestBody CreatePaymentRequest req,
-                                        @CurrentUser TelegramPrincipal user,
+                                        @CurrentUser TelegramUser user,
                                         HttpServletRequest http) {
         String ip = resolveClientIp(http);
-        return svc.createPayment(req.orderId(), user.id(), ip);
+        return svc.createPayment(req.orderId(), user.getId(), ip);
     }
 
     @GetMapping("/return")
