@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/admin/auth/login", "/api/admin/auth/refresh").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/bot/webhook").permitAll()
+                .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("SHOP_OWNER")
                 // Customer / shipper paths use TelegramAuthFilter — let through here, @CurrentUser handles 401
