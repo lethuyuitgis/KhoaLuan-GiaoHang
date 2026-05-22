@@ -133,15 +133,16 @@ public class OrderService {
 
     @Transactional
     public Order confirm(UUID id, Long actorUserId, String note) {
-        return transition(id, OrderStatus.CONFIRMED, actorUserId, note);
+        return transitionStatus(id, OrderStatus.CONFIRMED, actorUserId, note);
     }
 
     @Transactional
     public Order cancel(UUID id, Long actorUserId, String reason) {
-        return transition(id, OrderStatus.CANCELLED, actorUserId, reason);
+        return transitionStatus(id, OrderStatus.CANCELLED, actorUserId, reason);
     }
 
-    private Order transition(UUID id, OrderStatus to, Long actorUserId, String note) {
+    @Transactional
+    public Order transitionStatus(UUID id, OrderStatus to, Long actorUserId, String note) {
         Order order = findById(id);
         stateMachine.requireAllowed(order.getStatus(), to);
         OrderStatus from = order.getStatus();
