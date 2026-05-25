@@ -39,6 +39,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/admin/auth/login", "/api/admin/auth/refresh").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
                 .requestMatchers("/api/bot/webhook").permitAll()
+                .requestMatchers("/api/payment/vnpay/return", "/api/payment/vnpay/ipn").permitAll()
+                .requestMatchers("/payment-success.html", "/payment-failed.html").permitAll()
                 .requestMatchers("/ws/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("SHOP_OWNER")
