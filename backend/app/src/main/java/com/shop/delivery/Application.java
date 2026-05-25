@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.time.Clock;
 
@@ -13,6 +14,7 @@ import java.time.Clock;
 @EntityScan(basePackages = "com.shop.delivery")
 @EnableJpaRepositories(basePackages = "com.shop.delivery")
 @ConfigurationPropertiesScan(basePackages = "com.shop.delivery")
+@EnableScheduling
 public class Application {
 
     public static void main(String[] args) {
