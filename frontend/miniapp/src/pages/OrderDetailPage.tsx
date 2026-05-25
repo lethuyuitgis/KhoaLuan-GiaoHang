@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getOrder, cancelOrder, formatVnd, formatDateTime } from '@shop/shared';
@@ -7,17 +8,35 @@ import { OrderTrackingMap } from '@/features/tracking/OrderTrackingMap';
 import { tg } from '@/lib/telegram';
 
 const CANCELLABLE = new Set(['PENDING', 'CONFIRMED']);
+const POLL_MS = 3000;
+const POLL_TIMEOUT_MS = 60_000;
 
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const [pollingExpired, setPollingExpired] = useState(false);
 
   const { data: order, isLoading, error } = useQuery({
     queryKey: ['order', id],
     queryFn: () => getOrder(api, id!),
     enabled: !!id,
+    refetchInterval: query => {
+      const o = query.state.data;
+      if (!o) return false;
+      if (pollingExpired) return false;
+      const shouldPoll = o.paymentMethod === 'VNPAY' && o.paymentStatus === 'PENDING';
+      return shouldPoll ? POLL_MS : false;
+    },
   });
+
+  // Stop polling after 60s so we don't ping forever if IPN never arrives.
+  useEffect(() => {
+    if (order?.paymentMethod === 'VNPAY' && order?.paymentStatus === 'PENDING') {
+      const t = setTimeout(() => setPollingExpired(true), POLL_TIMEOUT_MS);
+      return () => clearTimeout(t);
+    }
+  }, [order?.paymentMethod, order?.paymentStatus]);
 
   const cancelMut = useMutation({
     mutationFn: (reason: string) => cancelOrder(api, id!, reason),
@@ -115,12 +134,23 @@ export function OrderDetailPage() {
       <div className="bg-tg-secondaryBg rounded-lg p-4 mb-4 text-sm">
         <div className="flex justify-between">
           <span className="text-tg-hint">Thanh toán</span>
-          <span>{order.paymentMethod}</span>
+          <span>{order.paymentMethod === 'VNPAY' ? 'VNPay' : 'COD'}</span>
         </div>
-        <div className="flex justify-between mt-1">
+        <div className="flex justify-between mt-1 items-center">
           <span className="text-tg-hint">Trạng thái thanh toán</span>
-          <span>{order.paymentStatus}</span>
+          <PaymentStatusInline status={order.paymentStatus} />
         </div>
+        {order.paymentMethod === 'VNPAY' && order.paymentStatus === 'PENDING' && !pollingExpired && (
+          <p className="text-xs text-tg-hint mt-2">
+            ⏳ Đang chờ xác nhận từ VNPay... (tự động cập nhật mỗi 3 giây)
+          </p>
+        )}
+        {order.paymentMethod === 'VNPAY' && order.paymentStatus === 'PENDING' && pollingExpired && (
+          <p className="text-xs text-amber-500 mt-2">
+            Chưa nhận được xác nhận thanh toán. Vui lòng tải lại trang sau ít phút,
+            hoặc liên hệ shop nếu bạn đã thanh toán xong.
+          </p>
+        )}
       </div>
 
       {CANCELLABLE.has(order.status) && (
@@ -134,4 +164,15 @@ export function OrderDetailPage() {
       )}
     </div>
   );
+}
+
+function PaymentStatusInline({ status }: { status: string }) {
+  const labelMap: Record<string, { text: string; cls: string }> = {
+    PENDING:  { text: 'Đang chờ thanh toán', cls: 'text-tg-hint' },
+    SUCCESS:  { text: 'Đã thanh toán',       cls: 'text-green-500 font-medium' },
+    FAILED:   { text: 'Thanh toán thất bại', cls: 'text-red-500 font-medium' },
+    REFUNDED: { text: 'Đã hoàn tiền',        cls: 'text-amber-500 font-medium' },
+  };
+  const { text, cls } = labelMap[status] ?? { text: status, cls: '' };
+  return <span className={cls}>{text}</span>;
 }
