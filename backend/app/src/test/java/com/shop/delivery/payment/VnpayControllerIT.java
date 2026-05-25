@@ -71,11 +71,15 @@ class VnpayControllerIT extends PostgresTestContainer {
         assertThat(refreshed.getPaidAt()).isNotNull();
 
         // Assert order eventually confirms (AFTER_COMMIT listener fires in a separate TX,
-        // so we Await rather than asserting immediately).
+        // so we Await rather than asserting immediately). Query via JDBC to bypass
+        // the test thread's JPA session cache (OSIV would otherwise return stale data).
         await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
-            Order o = orderRepo.findById(order.getId()).orElseThrow();
-            assertThat(o.getStatus()).isEqualTo(OrderStatus.CONFIRMED);
-            assertThat(o.getPaymentStatus()).isEqualTo(PaymentStatus.SUCCESS);
+            String status = jdbc.queryForObject(
+                "SELECT status FROM orders WHERE id = ?", String.class, order.getId());
+            String paymentStatus = jdbc.queryForObject(
+                "SELECT payment_status FROM orders WHERE id = ?", String.class, order.getId());
+            assertThat(status).isEqualTo(OrderStatus.CONFIRMED.name());
+            assertThat(paymentStatus).isEqualTo(PaymentStatus.SUCCESS.name());
         });
     }
 

@@ -11,11 +11,17 @@ import com.shop.delivery.order.repository.OrderRepository;
 import com.shop.delivery.order.repository.StatusHistoryRepository;
 import com.shop.delivery.order.service.command.CreateOrderCommand;
 import com.shop.delivery.order.service.command.OrderLineCommand;
+import com.shop.delivery.order.domain.PaymentStatus;
+import com.shop.delivery.shared.event.OrderConfirmedEvent;
 import com.shop.delivery.shared.exception.NotFoundException;
 import com.shop.delivery.shared.exception.ValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -27,6 +33,8 @@ import java.util.UUID;
 @Service
 public class OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
     private final OrderRepository orderRepo;
     private final OrderItemRepository orderItemRepo;
     private final StatusHistoryRepository statusHistoryRepo;
@@ -36,13 +44,15 @@ public class OrderService {
     private final FeeCalculator fee;
     private final OrderStateMachine stateMachine;
     private final OrderCodeGenerator codeGen;
+    private final ApplicationEventPublisher events;
 
     public OrderService(OrderRepository orderRepo, OrderItemRepository orderItemRepo,
                         StatusHistoryRepository statusHistoryRepo,
                         ProductService productService,
                         ShopConfigProperties shopProps,
                         DistanceCalculator distance, FeeCalculator fee,
-                        OrderStateMachine stateMachine, OrderCodeGenerator codeGen) {
+                        OrderStateMachine stateMachine, OrderCodeGenerator codeGen,
+                        ApplicationEventPublisher events) {
         this.orderRepo = orderRepo;
         this.orderItemRepo = orderItemRepo;
         this.statusHistoryRepo = statusHistoryRepo;
@@ -52,6 +62,7 @@ public class OrderService {
         this.fee = fee;
         this.stateMachine = stateMachine;
         this.codeGen = codeGen;
+        this.events = events;
     }
 
     @Transactional
@@ -134,6 +145,49 @@ public class OrderService {
     @Transactional
     public Order confirm(UUID id, Long actorUserId, String note) {
         return transitionStatus(id, OrderStatus.CONFIRMED, actorUserId, note);
+    }
+
+    /**
+     * Called by {@link com.shop.delivery.order.listener.PaymentEventListener} after a
+     * VNPay payment succeeds. Idempotent — repeated calls are safe.
+     *
+     * <p>Always sets {@code paymentStatus = SUCCESS}. If current {@code status == PENDING},
+     * also transitions to {@code CONFIRMED} via the state machine and publishes
+     * {@link OrderConfirmedEvent}. If the order is already CONFIRMED, only the
+     * payment status update is persisted (no duplicate event). If the order is in
+     * a terminal/cancelled state, only the payment_status flag is updated so
+     * audit/reporting stays accurate.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void confirmAfterPayment(UUID orderId) {
+        Order order = orderRepo.findById(orderId)
+            .orElseThrow(() -> new NotFoundException("ORDER_NOT_FOUND",
+                "Đơn " + orderId + " không tồn tại khi xử lý xác nhận thanh toán"));
+
+        boolean shouldTransition = order.getStatus() == OrderStatus.PENDING;
+        boolean isCancelled = order.getStatus() == OrderStatus.CANCELLED
+                           || order.getStatus() == OrderStatus.RETURNED;
+
+        // Always mark payment as SUCCESS (denormalised from payment table)
+        order.setPaymentStatus(PaymentStatus.SUCCESS);
+
+        if (shouldTransition) {
+            stateMachine.requireAllowed(order.getStatus(), OrderStatus.CONFIRMED);
+            OrderStatus from = order.getStatus();
+            order.setStatus(OrderStatus.CONFIRMED);
+            Order saved = orderRepo.save(order);
+            recordTransition(saved.getId(), from, OrderStatus.CONFIRMED, null,
+                "Đơn được xác nhận sau khi thanh toán VNPay");
+            events.publishEvent(new OrderConfirmedEvent(
+                saved.getId(), saved.getCode(), saved.getPaymentMethod().name()));
+            log.info("confirmAfterPayment: order {} transitioned PENDING→CONFIRMED", saved.getCode());
+        } else if (!isCancelled) {
+            // Already CONFIRMED/ASSIGNED/DELIVERING — just persist the payment_status flip
+            orderRepo.save(order);
+        } else {
+            // CANCELLED/RETURNED — payment came late; flip flag for audit but no event/state change
+            orderRepo.save(order);
+        }
     }
 
     @Transactional

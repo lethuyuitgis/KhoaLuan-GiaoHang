@@ -20,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -39,6 +40,7 @@ class OrderServiceTest {
     @Mock OrderItemRepository orderItemRepo;
     @Mock StatusHistoryRepository statusHistoryRepo;
     @Mock ProductService productService;
+    @Mock ApplicationEventPublisher events;
 
     OrderService service;
     ShopConfigProperties shopProps;
@@ -62,7 +64,7 @@ class OrderServiceTest {
         codeGen = new OrderCodeGenerator();
 
         service = new OrderService(orderRepo, orderItemRepo, statusHistoryRepo,
-            productService, shopProps, distance, fee, sm, codeGen);
+            productService, shopProps, distance, fee, sm, codeGen, events);
     }
 
     @Test
