@@ -5,6 +5,7 @@ import { createOrder, formatVnd, type CreateOrderRequest, type PaymentMethod } f
 import { api } from '@/lib/api';
 import { useCart } from '@/features/cart/use-cart';
 import { tg } from '@/lib/telegram';
+import { usePayWithVnpay } from '@/features/payment/use-pay-with-vnpay';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -18,11 +19,21 @@ export function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [note, setNote] = useState('');
 
+  const payWithVnpay = usePayWithVnpay();
+
   const placeOrder = useMutation({
     mutationFn: (req: CreateOrderRequest) => createOrder(api, req),
     onSuccess: order => {
       cart.clear();
-      navigate(`/customer/orders/${order.id}`, { replace: true });
+      if (order.paymentMethod === 'VNPAY') {
+        // 1. Navigate to detail page first — when the overlay closes,
+        //    the user lands on the order detail with polling active.
+        navigate(`/customer/orders/${order.id}`, { replace: true });
+        // 2. Fire-and-forget: open VNPay in Telegram overlay
+        payWithVnpay.mutate(order.id);
+      } else {
+        navigate(`/customer/orders/${order.id}`, { replace: true });
+      }
     },
     onError: async (err: any) => {
       const msg = err.response?.data?.message ?? 'Đặt đơn thất bại';
@@ -122,9 +133,15 @@ export function CheckoutPage() {
             />
             <span>💰 Thanh toán khi nhận hàng (COD)</span>
           </label>
-          <label className="flex items-center gap-2 py-2 opacity-50">
-            <input type="radio" name="payment" value="VNPAY" disabled />
-            <span>💳 VNPay (sắp có — P7)</span>
+          <label className="flex items-center gap-2 py-2">
+            <input
+              type="radio"
+              name="payment"
+              value="VNPAY"
+              checked={paymentMethod === 'VNPAY'}
+              onChange={() => setPaymentMethod('VNPAY')}
+            />
+            <span>💳 Thanh toán qua VNPay (sandbox)</span>
           </label>
         </fieldset>
 
