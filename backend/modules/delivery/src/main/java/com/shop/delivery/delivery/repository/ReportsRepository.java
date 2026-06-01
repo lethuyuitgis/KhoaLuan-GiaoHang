@@ -13,7 +13,7 @@ import java.util.List;
  * Native-SQL repository for admin dashboard + reports endpoints.
  * Uses interface projections (Spring Data idiom) — no @SqlResultSetMapping ceremony.
  *
- * <p>All "in this window" predicates use {@code created_at >= :from AND created_at < :to + INTERVAL '1 day'}
+ * <p>All "in this window" predicates use {@code created_at >= :from AND created_at < CAST(:to AS date) + INTERVAL '1 day'}
  * to make {@code to} inclusive at the day level (research Pitfall 1).
  *
  * <p>{@code groupBy} bucket is whitelisted by the controller to {@code 'day'|'week'} BEFORE
@@ -104,10 +104,10 @@ public interface ReportsRepository extends JpaRepository<Order, java.util.UUID> 
             COUNT(*) AS order_count
         FROM orders o
         WHERE o.created_at >= :from
-          AND o.created_at <  :to + INTERVAL '1 day'
+          AND o.created_at <  CAST(:to AS date) + INTERVAL '1 day'
           AND o.status = 'DELIVERED'
-        GROUP BY DATE_TRUNC(:bucket, o.created_at)
-        ORDER BY DATE_TRUNC(:bucket, o.created_at)
+        GROUP BY 1
+        ORDER BY 1
         """, nativeQuery = true)
     List<RevenuePointRow> revenueSeries(@Param("from") LocalDate from,
                                         @Param("to")   LocalDate to,
@@ -132,7 +132,7 @@ public interface ReportsRepository extends JpaRepository<Order, java.util.UUID> 
                ON a.shipper_id = sp.user_id
               AND a.status = 'COMPLETED'
               AND a.delivered_at >= :from
-              AND a.delivered_at <  :to + INTERVAL '1 day'
+              AND a.delivered_at <  CAST(:to AS date) + INTERVAL '1 day'
         LEFT JOIN orders o
                ON o.id = a.order_id
               AND o.status = 'DELIVERED'
@@ -164,7 +164,7 @@ public interface ReportsRepository extends JpaRepository<Order, java.util.UUID> 
             COUNT(*) FILTER (WHERE status = 'CANCELLED')   AS cancelled_count
         FROM orders
         WHERE created_at >= :from
-          AND created_at <  :to + INTERVAL '1 day'
+          AND created_at <  CAST(:to AS date) + INTERVAL '1 day'
         """, nativeQuery = true)
     CancellationTotals cancellationTotals(@Param("from") LocalDate from,
                                           @Param("to")   LocalDate to);
@@ -182,7 +182,7 @@ public interface ReportsRepository extends JpaRepository<Order, java.util.UUID> 
         JOIN orders o ON o.id = sh.order_id
         WHERE sh.to_status = 'CANCELLED'
           AND o.created_at >= :from
-          AND o.created_at <  :to + INTERVAL '1 day'
+          AND o.created_at <  CAST(:to AS date) + INTERVAL '1 day'
         GROUP BY 1
         ORDER BY cnt DESC
         LIMIT 10
