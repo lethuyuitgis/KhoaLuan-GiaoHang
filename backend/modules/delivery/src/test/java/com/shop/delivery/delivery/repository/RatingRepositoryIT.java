@@ -1,6 +1,6 @@
 package com.shop.delivery.delivery.repository;
 
-import com.shop.delivery.delivery.DeliveryTestConfig;
+import com.shop.delivery.delivery.testconfig.DeliveryTestConfig;
 import com.shop.delivery.delivery.entity.Rating;
 import com.shop.delivery.delivery.support.DeliveryTestcontainerBase;
 import org.junit.jupiter.api.Test;
@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -21,7 +21,7 @@ import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTest
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = NONE)
-@Import(DeliveryTestConfig.class)
+@ContextConfiguration(classes = DeliveryTestConfig.class)
 @ActiveProfiles("test")
 class RatingRepositoryIT extends DeliveryTestcontainerBase {
 
