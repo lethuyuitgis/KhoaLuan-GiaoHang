@@ -1,0 +1,48 @@
+# Backend Dockerfile context excludes
+# (paths are relative to backend/, which is the COPY context root)
+
+# Maven build artefacts
+target/
+**/target/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Test outputs / reports
+*.log
+**/surefire-reports/
+**/failsafe-reports/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Git internals (jar build doesn't need them; keeps image deterministic)
+.git/
+.gitignore
+.gitattributes
+
+# Documentation (kept in repo but not copied into builder)
+README.md
+*.md
+docs/
+
+# Planning / agentic-worker meta dirs (not present in backend/ but defensive)
+.planning/
+.claude/
+.agents/
+.cursor/
+
+# Sibling dirs (compose context is the repo root for ../backend, but we keep
+# this list defensive in case someone moves the Dockerfile)
+infra/
+frontend/
+
+# Local env overrides (would leak secrets)
+.env
+.env.*
+!.env.example
