@@ -200,6 +200,25 @@ class VnpayPaymentServiceTest {
     }
 
     @Test
+    void ipn_badSignature_withKnownTxnRef_stillAudits() {
+        // CR-01 regression: an attacker probing the public IPN endpoint with a known txnRef
+        // and a tampered hash must leave evidence in the audit trail.
+        Payment payment = pendingPayment(new BigDecimal("250000.00"));
+        when(paymentRepo.findByVnpTxnRef(payment.getVnpTxnRef())).thenReturn(Optional.of(payment));
+
+        Map<String, String> params = signedIpnParams(payment, "00", "00", "14123456");
+        params.put("vnp_SecureHash", "f".repeat(128));
+
+        IpnResponse resp = svc.handleIpn(params);
+
+        assertThat(resp.rspCode()).isEqualTo("97");
+        verify(paymentRepo, never()).save(any());
+        verify(events, never()).publishEvent(any());
+        verify(audit).record(eq(payment.getId()),
+            eq(com.shop.delivery.payment.domain.PaymentEventType.IPN), any());
+    }
+
+    @Test
     void ipn_unknownTxnRef_returns01() {
         when(paymentRepo.findByVnpTxnRef(any())).thenReturn(Optional.empty());
 

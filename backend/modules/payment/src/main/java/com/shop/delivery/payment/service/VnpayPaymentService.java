@@ -154,14 +154,21 @@ public class VnpayPaymentService {
 
     @Transactional
     public IpnResponse handleIpn(Map<String, String> params) {
+        String txnRef = params.get("vnp_TxnRef");
+        Optional<Payment> maybe = (txnRef != null && !txnRef.isBlank())
+            ? paymentRepo.findByVnpTxnRef(txnRef)
+            : Optional.empty();
+
+        // Audit every IPN attempt where we can match a Payment row — including bad-signature
+        // probes — so we have evidence of probing attempts. We can't audit when the txnRef is
+        // unknown because `payment_transaction.payment_id` has a NOT NULL FK (V9 schema).
+        maybe.ifPresent(p -> audit.record(p.getId(), PaymentEventType.IPN, params));
+
         String receivedHash = params.get("vnp_SecureHash");
         if (!sig.verify(params, receivedHash)) {
-            log.warn("VNPay IPN: invalid checksum (txnRef={})", params.get("vnp_TxnRef"));
+            log.warn("VNPay IPN: invalid checksum (txnRef={})", txnRef);
             return IpnResponse.invalidChecksum();
         }
-
-        String txnRef = params.get("vnp_TxnRef");
-        Optional<Payment> maybe = paymentRepo.findByVnpTxnRef(txnRef);
         if (maybe.isEmpty()) {
             log.warn("VNPay IPN: unknown txnRef={}", txnRef);
             return IpnResponse.orderNotFound();
@@ -171,23 +178,33 @@ public class VnpayPaymentService {
         // Idempotency — design §10.3 step 3
         if (payment.getStatus() != PaymentStatus.PENDING) {
             log.info("VNPay IPN replay: txnRef={} status={}", txnRef, payment.getStatus());
-            audit.record(payment.getId(), PaymentEventType.IPN, params);
             return IpnResponse.alreadyConfirmed();
         }
 
         // Amount check — design §10.3 step 4
-        long expected = payment.getAmount().multiply(BigDecimal.valueOf(100)).longValueExact();
+        long expected;
+        try {
+            expected = payment.getAmount().multiply(BigDecimal.valueOf(100)).longValueExact();
+        } catch (ArithmeticException ae) {
+            // Defensive: NUMERIC(12,2) × 100 should always be integral. If it isn't,
+            // something corrupted the row — fail closed rather than throwing 500.
+            log.error("Payment {} has non-integer amount in VND-cents: {}",
+                payment.getId(), payment.getAmount());
+            return IpnResponse.invalidAmount();
+        }
+        String rawAmount = params.get("vnp_Amount");
+        if (rawAmount == null || rawAmount.isBlank()) {
+            return IpnResponse.invalidAmount();
+        }
         long received;
         try {
-            received = Long.parseLong(params.get("vnp_Amount"));
+            received = Long.parseLong(rawAmount);
         } catch (NumberFormatException nfe) {
-            audit.record(payment.getId(), PaymentEventType.IPN, params);
             return IpnResponse.invalidAmount();
         }
         if (expected != received) {
             log.warn("VNPay IPN amount mismatch: txnRef={} expected={} received={}",
                 txnRef, expected, received);
-            audit.record(payment.getId(), PaymentEventType.IPN, params);
             return IpnResponse.invalidAmount();
         }
 
@@ -203,15 +220,14 @@ public class VnpayPaymentService {
             paymentRepo.save(payment);
             events.publishEvent(new PaymentSucceededEvent(
                 payment.getOrderId(), payment.getId(), payment.getAmount(), payment.getVnpTxnRef()));
-        } else {
-            payment.setStatus(PaymentStatus.FAILED);
-            payment.setVnpResponseCode(responseCode);
-            paymentRepo.save(payment);
-            events.publishEvent(new PaymentFailedEvent(
-                payment.getOrderId(), payment.getId(), payment.getVnpTxnRef(), responseCode));
+            return IpnResponse.ok();
         }
 
-        audit.record(payment.getId(), PaymentEventType.IPN, params);
+        payment.setStatus(PaymentStatus.FAILED);
+        payment.setVnpResponseCode(responseCode);
+        paymentRepo.save(payment);
+        events.publishEvent(new PaymentFailedEvent(
+            payment.getOrderId(), payment.getId(), payment.getVnpTxnRef(), responseCode));
         return IpnResponse.ok();
     }
 

@@ -118,9 +118,11 @@ public class VnpaySignatureService {
 
         String expected = hmacSHA512(props.hashSecret(), hashData.toString());
         // Constant-time compare — V6 ASVS L1 requires this for any crypto MAC check.
+        // Locale.ROOT on toLowerCase guards against the Turkish-I locale issue (defensive — hex
+        // chars are unaffected but it's a one-line cheap insurance against future input).
         return MessageDigest.isEqual(
             expected.getBytes(StandardCharsets.US_ASCII),
-            receivedHash.toLowerCase().getBytes(StandardCharsets.US_ASCII)
+            receivedHash.toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.US_ASCII)
         );
     }
 
