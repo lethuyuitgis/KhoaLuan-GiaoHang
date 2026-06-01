@@ -2,8 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
+  // In dev: served from /. In prod build: served behind nginx at /miniapp/.
+  base: mode === 'production' ? '/miniapp/' : '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -24,4 +26,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
