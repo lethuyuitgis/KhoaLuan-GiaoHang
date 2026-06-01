@@ -321,10 +321,40 @@ git commit -m "feat(rating): add V10 migration for rating table"
 ## TASK 2: Rating entity + RatingRepository + DeliveryTestcontainerBase + RatingRepositoryIT (TDD, 1 commit)
 
 **Files:**
+- Modify: `backend/modules/delivery/pom.xml`  *(add test-scope deps for ITs in this phase)*
 - Create: `backend/modules/delivery/src/main/java/com/shop/delivery/delivery/entity/Rating.java`
 - Create: `backend/modules/delivery/src/main/java/com/shop/delivery/delivery/repository/RatingRepository.java`
 - Create: `backend/modules/delivery/src/test/java/com/shop/delivery/delivery/support/DeliveryTestcontainerBase.java`
 - Create: `backend/modules/delivery/src/test/java/com/shop/delivery/delivery/repository/RatingRepositoryIT.java`
+
+- [ ] **Step 0: Add test-scope deps to `backend/modules/delivery/pom.xml`** *(BLOCKER fix from plan-checker)*
+
+The `delivery` module currently only has `spring-boot-starter-test`. P8 introduces Testcontainers ITs and `@WithMockUser` controller tests — those classes are NOT on the test classpath yet. Mirror what `backend/modules/bot/pom.xml` already does. Add inside `<dependencies>`:
+
+```xml
+<dependency>
+    <groupId>org.springframework.security</groupId>
+    <artifactId>spring-security-test</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.testcontainers</groupId>
+    <artifactId>junit-jupiter</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.testcontainers</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>test</scope>
+</dependency>
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+Add `backend/modules/delivery/pom.xml` to the `git add` line in Step 5 (commit) of this task.
 
 - [ ] **Step 1: Write failing IT first (RED)**
 
@@ -1022,10 +1052,10 @@ import com.shop.delivery.shared.exception.ConflictException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import com.shop.delivery.auth.entity.TelegramUser;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
@@ -1047,7 +1077,6 @@ class RatingControllerTest {
     @MockBean RatingService ratingService;
 
     @Test
-    @WithMockUser(username = "1001", roles = "CUSTOMER")
     void post_validRequest_returns200WithRating() throws Exception {
         UUID orderId = UUID.randomUUID();
         Rating r = new Rating();
@@ -1067,7 +1096,6 @@ class RatingControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "1001", roles = "CUSTOMER")
     void post_starsOutOfRange_returns400() throws Exception {
         mvc.perform(post("/api/orders/{id}/rating", UUID.randomUUID())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -1085,7 +1113,6 @@ class RatingControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "1001", roles = "CUSTOMER")
     void post_orderNotDelivered_returns422() throws Exception {
         when(ratingService.rate(any(), any(), anyInt(), any()))
             .thenThrow(new BusinessRuleException("ORDER_NOT_RATEABLE", "Chỉ đánh giá được sau khi đơn đã giao"));
@@ -1100,7 +1127,6 @@ class RatingControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "1001", roles = "CUSTOMER")
     void post_alreadyRated_returns409() throws Exception {
         when(ratingService.rate(any(), any(), anyInt(), any()))
             .thenThrow(new ConflictException("ALREADY_RATED", "Đơn đã được đánh giá rồi"));
@@ -1145,14 +1171,13 @@ Create `backend/modules/delivery/src/main/java/com/shop/delivery/delivery/api/cu
 ```java
 package com.shop.delivery.delivery.api.customer;
 
+import com.shop.delivery.auth.api.CurrentUser;
+import com.shop.delivery.auth.entity.TelegramUser;
 import com.shop.delivery.delivery.api.customer.dto.RateOrderRequest;
 import com.shop.delivery.delivery.entity.Rating;
 import com.shop.delivery.delivery.service.RatingService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -1172,20 +1197,20 @@ public class RatingController {
     }
 
     @PostMapping("/{id}/rating")
-    @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<Rating> rate(
         @PathVariable("id") UUID orderId,
         @Valid @RequestBody RateOrderRequest body,
-        @AuthenticationPrincipal UserDetails principal
+        @CurrentUser TelegramUser user
     ) {
-        Long customerId = Long.parseLong(principal.getUsername());
-        Rating r = ratingService.rate(orderId, customerId, body.stars(), body.comment());
+        Rating r = ratingService.rate(orderId, user.getId(), body.stars(), body.comment());
         return ResponseEntity.ok(r);
     }
 }
 ```
 
-> **Note on auth principal:** existing customer endpoints use `principal.getUsername()` to recover `telegram_user.id` (the auth flow stores `id.toString()` as username). Verify in `frontend/miniapp` how existing protected endpoints extract `customerId` — match that pattern. If the codebase uses a different principal type (e.g., `JwtAuthenticationToken`), adjust accordingly without changing the route or DTO contract.
+> **Note on auth principal:** matches the existing pattern used by `OrderController.create` in the `order` module. `TelegramAuthFilter` sets `currentUser` as a request attribute (a `TelegramUser` entity), NOT a Spring Security `Authentication`. `@AuthenticationPrincipal UserDetails` would resolve to `null` at runtime — even though `@WithMockUser` tests pass. `@CurrentUser` reads the request attribute and throws 401 if missing.
+>
+> **Test impact:** `RatingControllerTest` (Step 1) must inject the `TelegramUser` via the request attribute, not via `@WithMockUser`. Replace each `mvc.perform(...)` call's `with(user(...))` (if any) with `.requestAttr("currentUser", testUser)`, where `testUser` is a minimal `TelegramUser` with `id = 1001L`. The 200/400/422/409 status assertions stay the same — only the principal-injection mechanism changes. Reference: how `OrderControllerTest` (if present) or the bot module's controller tests handle this.
 
 - [ ] **Step 4: Run test — expect GREEN**
 
@@ -2575,7 +2600,12 @@ class UpdateRouterOrderIT {
         assertThat(idxMiddle).isLessThan(idxLast);
     }
 
-    @Configuration
+    // WARNING fix from plan-checker: `@SpringBootTest(classes = TestConfig.class)` requires a
+    // @SpringBootConfiguration (or @SpringBootApplication) on the target — a bare @Configuration
+    // is rejected with "Unable to find a @SpringBootConfiguration". Matches the pattern used by
+    // ProcessedUpdateServiceIT in this module.
+    @org.springframework.boot.SpringBootConfiguration
+    @org.springframework.boot.autoconfigure.EnableAutoConfiguration
     static class TestConfig {
         @Bean @Order(0)   UpdateHandler firstHandler()  { return new FirstHandler();  }
         @Bean @Order(50)  UpdateHandler middleHandler() { return new MiddleHandler(); }
@@ -3473,9 +3503,11 @@ git commit -m "test(reports): add @WebMvcTest for AdminDashboard + AdminReports 
 **Files:**
 - Create: `backend/modules/delivery/src/test/java/com/shop/delivery/delivery/repository/ReportsRepositoryIT.java`
 
-> **Pragmatic scope:** This IT seeds a minimal set of `orders`, `delivery_assignment`, `shipper_profile`, `telegram_user`, `status_history` rows directly via `TestEntityManager` and asserts the SQL returns the expected shape. We are NOT replaying full Flyway migrations (Testcontainers base disables Flyway and uses `ddl-auto=create-drop`) — instead, since native SQL queries depend on column names matching production, we set `ddl-auto=create-drop` to materialize the JPA entities, and rely on the existing entity-table mappings to produce compatible columns.
+> **Pragmatic scope:** This IT seeds a minimal set of `orders`, `delivery_assignment`, `shipper_profile`, `telegram_user`, `status_history` rows directly via `TestEntityManager` and asserts the SQL returns the expected shape. We are NOT replaying full Flyway migrations — instead we let Hibernate `ddl-auto=create-drop` materialize ALL JPA entities from the entire `com.shop.delivery` tree, and rely on the existing entity-table mappings to produce compatible columns.
 >
-> If column mismatches surface (e.g., `status_history.note` may not have a JPA entity in `delivery` module), prefer to bring in the relevant entities as classpath imports rather than writing raw DDL.
+> **BLOCKER fix from plan-checker:** `@DataJpaTest` only scans entities in the test class's package, so it won't materialize cross-module tables (`orders`, `telegram_user`, `user_role`, `status_history`, `delivery_assignment`). Use `@SpringBootTest` with an explicit `@SpringBootConfiguration + @EntityScan(basePackages = "com.shop.delivery") + @EnableJpaRepositories(basePackages = "com.shop.delivery")` inner config (matches the `ProcessedUpdateServiceIT` pattern in the bot module). This way Hibernate generates `Order`, `TelegramUser`, `UserRole`, `StatusHistory`, `DeliveryAssignment`, `ShipperProfile`, `LocationPing`, `Rating`, and `ConversationState` from their JPA entities, and `em.persist(o)` for an `Order` instance works without an explicit table-of-tables migration.
+>
+> The Testcontainers config (`POSTGRES`, `@DynamicPropertySource`) does NOT live in `DeliveryTestcontainerBase` for this IT — it's inline in the inner `TestConfig`, because `@DataJpaTest`'s `@Import` of a base does NOT register the base's `@Container` lifecycle when the test isn't a `@DataJpaTest` itself.
 
 - [ ] **Step 1: Write the IT**
 
@@ -3484,18 +3516,26 @@ Create `backend/modules/delivery/src/test/java/com/shop/delivery/delivery/reposi
 ```java
 package com.shop.delivery.delivery.repository;
 
-import com.shop.delivery.delivery.support.DeliveryTestcontainerBase;
 import com.shop.delivery.order.domain.OrderStatus;
 import com.shop.delivery.order.domain.PaymentMethod;
 import com.shop.delivery.order.domain.PaymentStatus;
 import com.shop.delivery.order.entity.Order;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -3506,13 +3546,42 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Import(DeliveryTestcontainerBase.class)
-@ActiveProfiles("test")
-class ReportsRepositoryIT extends DeliveryTestcontainerBase {
+@SpringBootTest(classes = ReportsRepositoryIT.TestConfig.class)
+@Testcontainers
+@Transactional
+class ReportsRepositoryIT {
+
+    /**
+     * Inner Spring Boot configuration: scans ALL of {@code com.shop.delivery} so Hibernate
+     * generates every JPA entity's table (orders, telegram_user, user_role, status_history,
+     * delivery_assignment, shipper_profile, location_ping, rating, conversation_state, payment...).
+     * Without the broad {@code @EntityScan}, {@code @DataJpaTest} would only scan the test
+     * package's entities and leave cross-module joins ("relation 'orders' does not exist").
+     */
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    @EntityScan(basePackages = "com.shop.delivery")
+    @EnableJpaRepositories(basePackages = "com.shop.delivery")
+    static class TestConfig {}
+
+    @Container
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
+            .withDatabaseName("delivery_reports_test")
+            .withUsername("test")
+            .withPassword("test")
+            .withReuse(true);
+
+    @DynamicPropertySource
+    static void props(DynamicPropertyRegistry r) {
+        r.add("spring.datasource.url",      POSTGRES::getJdbcUrl);
+        r.add("spring.datasource.username", POSTGRES::getUsername);
+        r.add("spring.datasource.password", POSTGRES::getPassword);
+        r.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        r.add("spring.flyway.enabled", () -> "false");
+    }
 
     @Autowired ReportsRepository repo;
-    @Autowired TestEntityManager em;
+    @PersistenceContext EntityManager em;
 
     @Test
     void revenueLast7Days_returnsSevenRowsEvenWhenSparse() {
@@ -3624,7 +3693,9 @@ class ReportsRepositoryIT extends DeliveryTestcontainerBase {
         // After persisting, update created_at via raw SQL to backdate.
         em.persist(o);
         em.flush();
-        em.getEntityManager().createNativeQuery(
+        // `em` is the standard JPA EntityManager (NOT Spring Boot's TestEntityManager wrapper).
+        // Use `em.createNativeQuery(...)` directly — there is no `getEntityManager()` indirection.
+        em.createNativeQuery(
             "UPDATE orders SET created_at = :ts WHERE id = :id")
             .setParameter("ts", Instant.ofEpochSecond(date.toEpochSecond(java.time.LocalTime.NOON, ZoneOffset.UTC)))
             .setParameter("id", o.getId())
