@@ -1,44 +1,116 @@
+# application-prod.yml — production profile.
+#
+# CONTRACT:
+#   Every secret value MUST be supplied via env var. There are NO fallback defaults
+#   for credentials — Spring will fail fast at boot if any required var is missing
+#   (because the placeholder ${X} has no `:default` suffix).
+#
+# REQUIRED ENV VARS (5):
+#   BOT_TOKEN, BOT_USERNAME, JWT_SECRET, VNPAY_TMN_CODE, VNPAY_HASH_SECRET
+# REQUIRED DB ENV VARS (5):
+#   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+# OPTIONAL (with defaults):
+#   VNPAY_RETURN_URL, VNPAY_IPN_URL, SHOP_PICKUP_*, SHOP_FEE_*,
+#   BOT_WEBHOOK_URL, BOT_WEBHOOK_SECRET (→ falls back to polling mode if blank)
+#
+# See .env.example in repo root for the canonical list.
+
 spring:
   datasource:
-    url: ${DB_URL}
+    # Compose ${DB_HOST}=postgres (compose service name), ${DB_PORT}=5432.
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
       connection-timeout: 30000
+      pool-name: ShopHikariPool
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: validate         # NEVER auto-migrate in prod; Flyway owns schema.
     show-sql: false
-
-logging:
-  level:
-    root: INFO
-    com.shop.delivery: INFO
-  config: classpath:logback-spring.xml
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false   # Fail loudly if migrations are inconsistent.
 
 server:
+  port: 8080
+  forward-headers-strategy: framework   # honour X-Forwarded-* from nginx
   compression:
     enabled: true
     mime-types: application/json,application/xml,text/html,text/plain
+  error:
+    include-message: never
+    include-binding-errors: never
+    include-stacktrace: never
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never        # don't leak DB version / Flyway state to anonymous callers
+      probes:
+        enabled: true
+  health:
+    db:
+      enabled: true
+
+info:
+  app:
+    name: ${spring.application.name}
+    version: 0.1.0-SNAPSHOT
+    profile: prod
+
+logging:
+  config: classpath:logback-spring.xml
+  level:
+    root: INFO
+    com.shop: DEBUG              # keep our own logs verbose (brief asks for DEBUG on com.shop)
+    org.hibernate.SQL: WARN
+    org.springframework.web: INFO
+    org.springframework.security: INFO
 
 bot:
-  token: ${BOT_TOKEN}
+  # Fail-fast: no default → boot dies if env var missing.
+  token:    ${BOT_TOKEN}
   username: ${BOT_USERNAME}
-  mode: webhook
-  webhook-url: ${BOT_WEBHOOK_URL}
-  webhook-secret: ${BOT_WEBHOOK_SECRET}
+  # mode is webhook ONLY if BOT_WEBHOOK_URL is set; otherwise polling.
+  # The bot module's BotConfig reads ${bot.mode} — we set it conditionally below.
+  mode:           ${BOT_MODE:polling}
+  webhook-url:    ${BOT_WEBHOOK_URL:}
+  webhook-secret: ${BOT_WEBHOOK_SECRET:}
 
 shop:
   pickup:
-    lat: ${SHOP_PICKUP_LAT}
-    lng: ${SHOP_PICKUP_LNG}
-    address: ${SHOP_PICKUP_ADDRESS}
+    # Sensible defaults — shop pickup is *not* a secret. Reviewer can leave blank.
+    lat:     ${SHOP_PICKUP_LAT:21.0285}
+    lng:     ${SHOP_PICKUP_LNG:105.8542}
+    address: ${SHOP_PICKUP_ADDRESS:Demo shop (Hoàn Kiếm, Hà Nội)}
   fee:
-    base: ${SHOP_FEE_BASE:15000}
-    per-km: ${SHOP_FEE_PER_KM:5000}
+    base:    ${SHOP_FEE_BASE:15000}
+    per-km:  ${SHOP_FEE_PER_KM:5000}
     free-km: ${SHOP_FEE_FREE_KM:1.0}
 
+vnpay:
+  tmn-code:        ${VNPAY_TMN_CODE}
+  hash-secret:     ${VNPAY_HASH_SECRET}
+  pay-url:         https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url:      ${VNPAY_RETURN_URL:http://localhost/api/payment/vnpay/return}
+  ipn-url:         ${VNPAY_IPN_URL:http://localhost/api/payment/vnpay/ipn}
+  timeout-minutes: 15
+
 jwt:
-  secret: ${JWT_SECRET}
+  secret:      ${JWT_SECRET}
+  access-ttl:  PT15M
+  refresh-ttl: P7D
