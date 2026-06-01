@@ -1889,7 +1889,11 @@ SELECT
 FROM generate_series(10, 12) n
 ON CONFLICT (id) DO NOTHING;
 
--- 3 DELIVERING (VNPAY, in flight) — n=13..15
+-- 2 DELIVERING (VNPAY, in flight) — n=13..14
+-- (BLOCKER fix B2: only 2 DELIVERING so each maps to a distinct active shipper —
+--  the V8 partial unique index `uq_assignment_shipper_started` rejects two STARTED
+--  rows for the same shipper. Demo still shows the live-tracking feature with one
+--  in-flight order; the 3rd shipper slot is PENDING and not yet ACTIVE.)
 INSERT INTO orders (id, code, customer_id, customer_name, customer_phone,
                     pickup_lat, pickup_lng, delivery_address, delivery_lat, delivery_lng,
                     distance_km, subtotal, delivery_fee, total,
@@ -1912,10 +1916,10 @@ SELECT
     'Đơn demo DELIVERING #' || n,
     NOW() - (n - 12 || ' hours')::interval,
     NOW() - (n - 12 || ' minutes')::interval  -- updated recently
-FROM generate_series(13, 15) n
+FROM generate_series(13, 14) n
 ON CONFLICT (id) DO NOTHING;
 
--- 12 DELIVERED (mix COD/VNPAY, spread across 30 days) — n=16..27
+-- 13 DELIVERED (mix COD/VNPAY, spread across 30 days) — n=15..27
 INSERT INTO orders (id, code, customer_id, customer_name, customer_phone,
                     pickup_lat, pickup_lng, delivery_address, delivery_lat, delivery_lng,
                     distance_km, subtotal, delivery_fee, total,
@@ -1940,7 +1944,7 @@ SELECT
     'Đơn demo DELIVERED #' || n,
     NOW() - ((n - 5) || ' days')::interval,
     NOW() - ((n - 5) || ' days')::interval + INTERVAL '2 hours'
-FROM generate_series(16, 27) n
+FROM generate_series(15, 27) n
 ON CONFLICT (id) DO NOTHING;
 
 -- 3 CANCELLED (mix recent + old) — n=28..30
@@ -2019,10 +2023,15 @@ SELECT
     ('b0000000-0000-0000-0000-0000000000' || lpad(right(o.code, 4), 2, '0'))::uuid,
     o.id,
     CASE WHEN (right(o.code, 4)::int) % 2 = 0 THEN 9000000101 ELSE 9000000102 END,
+    -- BLOCKER fix B1: AssignmentStatus enum is {OFFERED, ACCEPTED, REJECTED, STARTED, COMPLETED, CANCELLED}.
+    -- The order's status values map to assignment values like this:
+    --   order.ASSIGNED   → assignment.ACCEPTED  (shipper accepted, hasn't pressed "start")
+    --   order.DELIVERING → assignment.STARTED   (shipper pressed "start", sharing live location)
+    --   order.DELIVERED  → assignment.COMPLETED (delivery confirmed)
     CASE o.status
-        WHEN 'ASSIGNED'   THEN 'ASSIGNED'
+        WHEN 'ASSIGNED'   THEN 'ACCEPTED'
         WHEN 'DELIVERING' THEN 'STARTED'
-        WHEN 'DELIVERED'  THEN 'DELIVERED'
+        WHEN 'DELIVERED'  THEN 'COMPLETED'
     END,
     o.created_at + INTERVAL '5 minutes',
     CASE WHEN o.status IN ('DELIVERING','DELIVERED') THEN o.created_at + INTERVAL '10 minutes' END,
@@ -2095,7 +2104,8 @@ ON CONFLICT (id) DO NOTHING;
 -- Schema check:
 --   status_history columns vary by phase (V4 baseline). We only fill what
 --   V4 declared as NOT NULL: order_id, to_status, changed_at.
-INSERT INTO status_history (order_id, from_status, to_status, actor_user_id, note, changed_at)
+-- BLOCKER fix B3: column is `changed_by_user_id` (V4 schema), not `actor_user_id`.
+INSERT INTO status_history (order_id, from_status, to_status, changed_by_user_id, note, changed_at)
 SELECT
     o.id,
     NULL,
@@ -2759,7 +2769,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore } from '@/stores/auth-store';   // WARNING fix W3: real path is `stores/auth-store` not `store/authStore`
 
 /**
  * Subscribes to /topic/admin/orders via STOMP/SockJS. On every message,
@@ -2779,7 +2789,8 @@ import { useAuthStore } from '@/store/authStore';
  */
 export function useAdminOrdersSocket(): void {
   const queryClient = useQueryClient();
-  const token = useAuthStore((s) => s.accessToken);
+  // WARNING fix W3: real store shape is `{ auth: { accessToken } | null }`, not a flat field.
+  const token = useAuthStore((s) => s.auth?.accessToken);
   const clientRef = useRef<Client | null>(null);
 
   useEffect(() => {
@@ -3813,7 +3824,7 @@ package com.shop.delivery.delivery.api.customer.dto;
 
 import com.shop.delivery.delivery.entity.Rating;
 
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 /**
@@ -3836,7 +3847,7 @@ public record RateOrderResponse(
     UUID orderId,
     int stars,
     String comment,
-    OffsetDateTime createdAt
+    Instant createdAt   // BLOCKER fix B4: Rating.getCreatedAt() returns Instant, not OffsetDateTime
 ) {
 
     /** Convenience factory — keeps the controller call site clean. */
