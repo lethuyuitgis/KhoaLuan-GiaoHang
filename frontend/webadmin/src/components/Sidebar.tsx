@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/auth-store';
 const ITEMS = [
   { to: '/', label: 'Dashboard', icon: '📊' },
   { to: '/orders', label: 'Đơn hàng', icon: '📦' },
+  { to: '/reports', label: 'Báo cáo', icon: '📈' },
   { to: '/products', label: 'Sản phẩm', icon: '🛍️' },
   { to: '/shippers', label: 'Shipper', icon: '🚴' },
 ];
