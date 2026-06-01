@@ -1,9 +1,12 @@
 package com.shop.delivery.config;
 
+import com.shop.delivery.auth.api.admin.AdminPrincipal;
 import com.shop.delivery.auth.entity.TelegramUser;
+import com.shop.delivery.auth.service.JwtService;
 import com.shop.delivery.auth.service.TelegramInitDataVerifier;
 import com.shop.delivery.auth.service.TelegramUserService;
 import com.shop.delivery.auth.service.TelegramUserUpsertCommand;
+import com.shop.delivery.ws.AdminPrincipalWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -19,19 +22,28 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.security.Principal;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(WebSocketConfig.class);
     private static final String HEADER_INIT_DATA = "X-Telegram-Init-Data";
+    private static final String HEADER_AUTH      = "Authorization";
+    private static final String BEARER_PREFIX    = "Bearer ";
+    private static final String ROLE_SHOP_OWNER  = "SHOP_OWNER";
 
     private final TelegramInitDataVerifier verifier;
     private final TelegramUserService userService;
+    private final JwtService jwtService;
 
-    public WebSocketConfig(TelegramInitDataVerifier verifier, TelegramUserService userService) {
+    public WebSocketConfig(TelegramInitDataVerifier verifier,
+                           TelegramUserService userService,
+                           JwtService jwtService) {
         this.verifier = verifier;
         this.userService = userService;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -55,29 +67,22 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
                 if (accessor == null) return message;
                 StompCommand cmd = accessor.getCommand();
+
                 if (StompCommand.CONNECT.equals(cmd)) {
-                    String initData = accessor.getFirstNativeHeader(HEADER_INIT_DATA);
-                    if (initData == null || initData.isBlank()) {
-                        log.debug("WS CONNECT rejected — missing X-Telegram-Init-Data header");
+                    Principal principal = authenticate(accessor);
+                    if (principal == null) {
+                        log.debug("WS CONNECT rejected — no valid credentials");
                         return null;
                     }
-                    var verified = verifier.tryVerify(initData);
-                    if (verified.isEmpty()) {
-                        log.debug("WS CONNECT rejected — invalid initData");
-                        return null;
-                    }
-                    var v = verified.get();
-                    TelegramUser user = userService.registerOrUpdate(new TelegramUserUpsertCommand(
-                        v.userId(), v.username(), v.firstName(), v.lastName(), v.languageCode()));
-                    accessor.setUser(new TelegramUserPrincipal(user));
-                    log.debug("WS CONNECT OK for userId={}", user.getId());
+                    accessor.setUser(principal);
+                    log.debug("WS CONNECT OK for principal {}", principal.getName());
+
                 } else if (StompCommand.SUBSCRIBE.equals(cmd)) {
-                    // Defense-in-depth: only allow per-user `/user/queue/...` destinations.
-                    // Public `/topic/...` destinations from clients are dropped because we never
-                    // broadcast to them — keeps the broker from being used as a free-for-all bus.
+                    Principal principal = accessor.getUser();
                     String dest = accessor.getDestination();
-                    if (dest == null || (!dest.startsWith("/user/") && !dest.startsWith("/queue/"))) {
-                        log.debug("WS SUBSCRIBE rejected — disallowed destination {}", dest);
+                    if (!isSubscribeAllowed(principal, dest)) {
+                        log.debug("WS SUBSCRIBE rejected — principal={} dest={}",
+                            principal == null ? "<none>" : principal.getName(), dest);
                         return null;
                     }
                 }
@@ -86,7 +91,59 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         });
     }
 
-    public record TelegramUserPrincipal(TelegramUser user) implements java.security.Principal {
+    /**
+     * Inspect headers and return a {@link Principal} on success, or null on failure.
+     * Two paths:
+     *   1. X-Telegram-Init-Data → TelegramUserPrincipal (existing Mini App path)
+     *   2. Authorization: Bearer <jwt> → AdminPrincipalWrapper (new admin path)
+     * Header precedence: init-data wins if both are present (Mini App is the more
+     * common case; admin clients won't bother setting init-data).
+     */
+    private Principal authenticate(StompHeaderAccessor accessor) {
+        String initData = accessor.getFirstNativeHeader(HEADER_INIT_DATA);
+        if (initData != null && !initData.isBlank()) {
+            var verified = verifier.tryVerify(initData);
+            if (verified.isEmpty()) return null;
+            var v = verified.get();
+            TelegramUser user = userService.registerOrUpdate(new TelegramUserUpsertCommand(
+                v.userId(), v.username(), v.firstName(), v.lastName(), v.languageCode()));
+            return new TelegramUserPrincipal(user);
+        }
+
+        String authHeader = accessor.getFirstNativeHeader(HEADER_AUTH);
+        if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
+            String token = authHeader.substring(BEARER_PREFIX.length());
+            var claimsOpt = jwtService.tryParse(token);
+            if (claimsOpt.isEmpty()) return null;
+            var claims = claimsOpt.get();
+            if (!ROLE_SHOP_OWNER.equals(claims.role())) {
+                log.debug("WS CONNECT JWT role rejected: {}", claims.role());
+                return null;
+            }
+            return new AdminPrincipalWrapper(new AdminPrincipal(claims.adminUserId(), claims.email()));
+        }
+
+        return null;
+    }
+
+    /**
+     * Per-principal subscription whitelist. Defence in depth on top of business-level
+     * authorization in controllers.
+     */
+    private boolean isSubscribeAllowed(Principal principal, String dest) {
+        if (dest == null || principal == null) return false;
+        if (principal instanceof TelegramUserPrincipal) {
+            return dest.startsWith("/user/") || dest.startsWith("/queue/");
+        }
+        if (principal instanceof AdminPrincipalWrapper) {
+            return dest.startsWith("/topic/admin/")
+                || dest.startsWith("/user/")
+                || dest.startsWith("/queue/");
+        }
+        return false;
+    }
+
+    public record TelegramUserPrincipal(TelegramUser user) implements Principal {
         @Override public String getName() { return String.valueOf(user.getId()); }
     }
 }
