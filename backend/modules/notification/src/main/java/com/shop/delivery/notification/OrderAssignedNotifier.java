@@ -1,6 +1,7 @@
 package com.shop.delivery.notification;
 
 import com.shop.delivery.bot.sender.BotSender;
+import com.shop.delivery.delivery.repository.RatingRepository;
 import com.shop.delivery.delivery.service.event.OrderAcceptedEvent;
 import com.shop.delivery.delivery.service.event.OrderAssignedEvent;
 import com.shop.delivery.delivery.service.event.OrderDeliveredEvent;
@@ -27,9 +28,15 @@ public class OrderAssignedNotifier {
     private static final Logger log = LoggerFactory.getLogger(OrderAssignedNotifier.class);
 
     private final BotSender bot;
+    private final RatingPromptBuilder ratingPromptBuilder;
+    private final RatingRepository ratingRepo;
 
-    public OrderAssignedNotifier(BotSender bot) {
+    public OrderAssignedNotifier(BotSender bot,
+                                 RatingPromptBuilder ratingPromptBuilder,
+                                 RatingRepository ratingRepo) {
         this.bot = bot;
+        this.ratingPromptBuilder = ratingPromptBuilder;
+        this.ratingRepo = ratingRepo;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -79,7 +86,25 @@ public class OrderAssignedNotifier {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderDelivered(OrderDeliveredEvent e) {
-        bot.sendText(e.customerId(), "✅ Đơn " + e.orderCode() + " đã giao xong. Cảm ơn bạn đã mua hàng!");
+        // 1. Always notify the shipper (unchanged behavior).
         bot.sendText(e.shipperId(), "✅ Hoàn thành đơn " + e.orderCode() + ". Chúc bạn ngày làm việc tốt lành!");
+
+        // 2. Send the customer a rating prompt — but ONLY if not already rated.
+        //    Defence-in-depth: AFTER_COMMIT could in theory fire twice (it shouldn't,
+        //    but a manual replay or test harness might trigger it). The UNIQUE constraint
+        //    on rating.order_id is the ultimate guard; this check just keeps the UX clean.
+        if (ratingRepo.existsByOrderId(e.orderId())) {
+            log.debug("Order {} already rated — skipping rating prompt", e.orderId());
+            return;
+        }
+
+        InlineKeyboardMarkup kb = ratingPromptBuilder.build(e.orderId());
+        SendMessage msg = SendMessage.builder()
+            .chatId(String.valueOf(e.customerId()))
+            .text("✅ Đơn " + e.orderCode() + " đã giao xong.\n⭐ Hãy đánh giá shipper:")
+            .replyMarkup(kb)
+            .build();
+        bot.execute(msg);
+        log.info("Sent rating prompt to customer {} for order {}", e.customerId(), e.orderCode());
     }
 }
