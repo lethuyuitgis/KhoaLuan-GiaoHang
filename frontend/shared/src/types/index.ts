@@ -6,3 +6,4 @@ export * from './shipper';
 export * from './assignment';
 export * from './location';
 export * from './payment';
+export * from './reports';
