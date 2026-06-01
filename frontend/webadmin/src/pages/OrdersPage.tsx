@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { formatVnd, formatDateTime, type OrderStatus, type OrderSummary, type Page } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
 
 const STATUSES: (OrderStatus | 'ALL')[] = ['ALL', 'PENDING', 'CONFIRMED', 'ASSIGNED', 'DELIVERING', 'DELIVERED', 'CANCELLED'];
 
@@ -48,6 +49,7 @@ export function OrdersPage() {
             <tr>
               <th className="px-4 py-2 text-left">Mã đơn</th>
               <th className="px-4 py-2 text-left">Trạng thái</th>
+              <th className="px-4 py-2 text-left">Phương thức</th>
               <th className="px-4 py-2 text-left">Thanh toán</th>
               <th className="px-4 py-2 text-right">Tổng</th>
               <th className="px-4 py-2 text-left">Tạo lúc</th>
@@ -56,13 +58,14 @@ export function OrdersPage() {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filtered.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">Không có đơn</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-500">Không có đơn</td></tr>
             )}
             {filtered.map(o => (
               <tr key={o.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium">{o.code}</td>
                 <td className="px-4 py-3"><OrderStatusBadge status={o.status} /></td>
-                <td className="px-4 py-3">{o.paymentMethod} ({o.paymentStatus})</td>
+                <td className="px-4 py-3 text-gray-700">{o.paymentMethod}</td>
+                <td className="px-4 py-3"><PaymentStatusBadge status={o.paymentStatus} /></td>
                 <td className="px-4 py-3 text-right font-medium">{formatVnd(o.total)}</td>
                 <td className="px-4 py-3 text-gray-600">{formatDateTime(o.createdAt)}</td>
                 <td className="px-4 py-3 text-right">
