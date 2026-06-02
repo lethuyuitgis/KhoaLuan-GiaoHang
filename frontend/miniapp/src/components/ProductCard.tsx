@@ -4,37 +4,68 @@ import { useCart } from '@/features/cart/use-cart';
 
 interface Props { product: Product }
 
+/** Deterministic colored fallback so out-of-image products still look intentional. */
+const FALLBACK_COLORS = [
+  'from-orange-400 to-red-500',
+  'from-amber-400 to-orange-600',
+  'from-rose-400 to-pink-600',
+  'from-emerald-400 to-teal-600',
+  'from-sky-400 to-indigo-600',
+  'from-violet-400 to-purple-600',
+];
+
 export function ProductCard({ product }: Props) {
   const { add, getQuantity } = useCart();
   const qty = getQuantity(product.id);
+  const outOfStock = product.stock <= 0;
+  const fallback = FALLBACK_COLORS[product.id % FALLBACK_COLORS.length];
 
   return (
-    <div className="bg-tg-secondaryBg rounded-lg p-3 flex gap-3">
-      {product.imageUrl ? (
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="w-20 h-20 rounded-md object-cover bg-tg-hint/20"
-          loading="lazy"
-        />
-      ) : (
-        <div className="w-20 h-20 rounded-md bg-tg-hint/20 flex items-center justify-center text-tg-hint text-xs">
-          No image
-        </div>
-      )}
-      <div className="flex-1 min-w-0">
-        <h3 className="font-semibold truncate">{product.name}</h3>
-        {product.description && (
-          <p className="text-sm text-tg-hint line-clamp-2 mt-0.5">{product.description}</p>
+    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex active:scale-[0.98] transition-transform">
+      {/* Image — square thumbnail, larger and consistent */}
+      <div className="relative w-28 flex-shrink-0">
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-full object-cover bg-gray-100"
+            loading="lazy"
+          />
+        ) : (
+          <div className={`w-full h-full bg-gradient-to-br ${fallback} flex items-center justify-center text-white font-bold text-2xl`}>
+            {product.name.charAt(0).toUpperCase()}
+          </div>
         )}
-        <div className="mt-2 flex items-center justify-between">
-          <span className="font-bold text-tg-button">{formatVnd(product.price)}</span>
+        {outOfStock && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <span className="text-white text-xs font-semibold uppercase tracking-wide">Hết hàng</span>
+          </div>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="flex-1 min-w-0 p-3 flex flex-col justify-between">
+        <div>
+          <h3 className="font-semibold text-[15px] leading-tight line-clamp-1">{product.name}</h3>
+          {product.description && (
+            <p className="text-xs text-gray-500 line-clamp-2 mt-1">{product.description}</p>
+          )}
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="font-bold text-orange-600 text-base whitespace-nowrap">
+            {formatVnd(product.price)}
+          </span>
           <button
             onClick={() => add(product, 1)}
-            className="px-3 py-1 text-sm bg-tg-button text-tg-buttonText rounded-md disabled:opacity-50"
-            disabled={product.stock <= 0}
+            disabled={outOfStock}
+            className={
+              qty > 0
+                ? 'h-8 px-3 inline-flex items-center gap-1 rounded-full bg-orange-500 text-white text-xs font-semibold shadow-sm active:scale-95 transition'
+                : 'h-8 w-8 inline-flex items-center justify-center rounded-full bg-orange-500 text-white text-lg leading-none shadow-sm active:scale-95 transition disabled:bg-gray-300 disabled:shadow-none'
+            }
+            aria-label={`Thêm ${product.name}`}
           >
-            {qty > 0 ? `Thêm (${qty})` : product.stock <= 0 ? 'Hết hàng' : 'Thêm'}
+            {qty > 0 ? <><span>+</span><span>{qty}</span></> : '+'}
           </button>
         </div>
       </div>
