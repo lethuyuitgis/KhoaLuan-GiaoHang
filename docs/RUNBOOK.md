@@ -81,6 +81,43 @@ Goal: prove JWT + role-based access works.
 
 ---
 
+## Đăng ký shipper qua bot — flow demo (3 min)
+
+Demo this BEFORE P4 if you want to show the registration FSM live; otherwise
+shippers come pre-seeded.
+
+1. **Phone B** (chưa có role SHIPPER): `/start` →
+   bot trả về 2 nút inline: `🛍️ Đặt hàng` / `🚴 Làm shipper`.
+2. Bấm **🚴 Làm shipper** → bot hỏi "Bạn tên là gì?".
+   - State: `SHIPPER_REG_AWAITING_NAME`.
+3. Gõ tên (vd: `Nguyễn Văn A`) → bot trả về reply keyboard có nút `📞 Chia sẻ số`.
+   - State: `SHIPPER_REG_AWAITING_PHONE`.
+4. Bấm `📞 Chia sẻ số` → Telegram gửi contact → bot xác nhận đã nhận số,
+   gỡ reply keyboard và gửi inline keyboard 3 nút: `🏍️ Xe máy` / `🚗 Ô tô` / `🚲 Xe đạp`.
+   - State: `SHIPPER_REG_AWAITING_VEHICLE`.
+5. Bấm chọn phương tiện → bot edit message thành "Đã chọn ... Nhập biển số xe:".
+   - State: `SHIPPER_REG_AWAITING_PLATE`.
+6. Gõ biển số hợp lệ (vd: `29A-12345`) → bot trả: "✅ Đăng ký xong, đang chờ shop duyệt."
+   - DB: `user_role(SHIPPER, PENDING)` + `shipper_profile` row được tạo.
+   - Event `ShipperRegisteredEvent` bắn ra → `ShipperRegistrationNotifier` gửi tin nhắn
+     "🆕 Shipper mới đăng ký..." tới tất cả `SHOP_OWNER` đang ACTIVE.
+7. **Web Admin** (chủ shop): vào tab `Shipper` → thấy dòng PENDING của shipper mới →
+   bấm "Duyệt" (`POST /api/admin/shippers/{id}/approve`).
+   - Role chuyển từ PENDING → ACTIVE, cache RoleResolver được evict.
+   - Event `ShipperApprovedEvent` bắn ra → bot DM shipper: "✅ Bạn đã được duyệt!"
+     kèm nút Mini App (nếu `bot.miniapp-url` đã config).
+8. **Phone B**: bấm "Mở Mini App" → vào trang `/shipper/assignments` (giờ là 200 OK
+   thay vì 403). Demo sang P5.
+
+### Edge cases để show
+- Gõ `/cancel` ở bất kỳ state nào → FSM clear, không insert role.
+- Bấm `🚴 Làm shipper` lần thứ 2 sau khi đã đăng ký → bot trả
+  "Bạn đã đăng ký rồi, đang chờ duyệt" (idempotent).
+- Gõ biển sai format (vd: `???`) ở state PLATE → bot trả lỗi format,
+  vẫn ở AWAITING_PLATE để user thử lại.
+
+---
+
 ## P5 — Shipper nhận đơn + Live Location (5 min)
 
 Goal: shipper accepts, starts delivery, and the customer sees real-time location updates.
