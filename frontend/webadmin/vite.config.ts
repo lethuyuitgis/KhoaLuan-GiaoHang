@@ -17,6 +17,23 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },
+  build: {
+    // Split vendor bundles so the initial chunk stays under 500 KB.
+    // Without this, react+react-dom+react-router+@tanstack/react-query+
+    // sockjs-client all land in `index-*.js` and tip past the Vite warning.
+    // Recharts is already lazy-loaded with /reports — keep it pinned to its
+    // own vendor chunk so the dynamic import boundary remains intact.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor':  ['react', 'react-dom', 'react-router-dom'],
+          'query-vendor':  ['@tanstack/react-query'],
+          'chart-vendor':  ['recharts'],
+          'ws-vendor':     ['@stomp/stompjs', 'sockjs-client'],
+        },
+      },
+    },
+  },
   server: {
     port: 5174,
     proxy: {
