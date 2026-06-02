@@ -79,9 +79,19 @@ class OrderFlowIT extends PostgresTestContainer {
 
     @Test
     void shouldCreateOrderViaRestAndAdminConfirm() {
-        ResponseEntity<JsonNode> productList = rest.getForEntity("/api/products", JsonNode.class);
+        // Find the 'Test Product' seeded by this IT's @Sql script (price 100_000).
+        // Don't use content[0] — V11 demo seed inserts food products with lower IDs that
+        // would change the subtotal assertion downstream.
+        ResponseEntity<JsonNode> productList = rest.getForEntity("/api/products?size=100", JsonNode.class);
         assertThat(productList.getStatusCode().is2xxSuccessful()).isTrue();
-        Long productId = productList.getBody().get("content").get(0).get("id").asLong();
+        Long productId = null;
+        for (JsonNode p : productList.getBody().get("content")) {
+            if ("Test Product".equals(p.get("name").asText())) {
+                productId = p.get("id").asLong();
+                break;
+            }
+        }
+        assertThat(productId).as("Test Product must exist via @Sql seed").isNotNull();
 
         Map<String, Object> body = Map.of(
             "customerName", "Test Customer",
