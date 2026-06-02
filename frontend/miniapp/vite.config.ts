@@ -14,6 +14,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     port: 5173,
     host: true,
+    // Dev only — accept any external Host header so Mini App can be served
+    // through any HTTPS tunnel when demoing via Telegram.
+    allowedHosts: true as unknown as string[],
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

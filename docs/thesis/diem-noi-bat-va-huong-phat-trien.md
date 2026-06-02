@@ -197,6 +197,8 @@ Các hướng được phân thành 4 nhóm theo độ ưu tiên kinh doanh và 
 
 ### B.1. Hoàn thiện trong scope hiện tại (1–2 tuần / hạng mục)
 
+> **Ghi chú cập nhật 2026-06-02**: Bốn hạn chế đã được khắc phục trong giai đoạn hoàn thiện (xem mục D phía dưới): rating hai chiều (#6), khung test frontend Vitest (#7), tối ưu bundle webadmin (#9), và thay mật khẩu admin demo bằng giá trị mạnh (#10). Các hạng mục dưới đây là những việc còn lại trong scope hiện tại.
+
 | Hạng mục | Mô tả | Giá trị |
 |---|---|---|
 | **Bot FSM đăng ký shipper đầy đủ** | Hiện tại admin phải insert shipper qua Web Admin. FSM cần hoàn thiện: AWAITING_NAME → AWAITING_PHONE (request_contact button) → AWAITING_VEHICLE (inline keyboard) → AWAITING_PLATE → PENDING_APPROVAL. Spec §6.5 đã có thiết kế chi tiết. | Self-service shipper onboarding |
@@ -215,7 +217,8 @@ Các hướng được phân thành 4 nhóm theo độ ưu tiên kinh doanh và 
 | **Multi-shop / Multi-tenant** | Mở rộng từ "1 shop, 1 admin" → SaaS cho nhiều shop. Cần `shop` table + `shop_id` FK ở mọi bảng nghiệp vụ + row-level security | Schema migration lớn (10+ bảng). Có thể dùng schema-per-tenant hoặc shared-schema with shop_id discriminator |
 | **Native mobile app** (iOS / Android via React Native) | Reuse 70% code từ Mini App. Lợi ích: push notification riêng biệt khỏi Telegram, AppStore presence | Cần đăng ký Apple/Google developer (~$99/năm cho Apple) + build pipeline |
 | **AI recommendation engine** | Gợi ý món dựa trên: lịch sử đơn của khách + popularity + thời điểm trong ngày. Có thể dùng collaborative filtering đơn giản (Spark MLlib hoặc SciKit-learn) | Cần ít nhất 1 000+ đơn để có signal |
-| **Tích hợp thêm cổng thanh toán** | Momo, ZaloPay, ShopeePay, VietQR. Mỗi cổng tốn ~3-5 ngày integration vì pattern tương tự VNPay | Đa dạng hoá để giảm phụ thuộc 1 vendor |
+| **Mở rộng sang Zalo Mini App** ⭐ ƯU TIÊN CAO | Zalo có ~75 triệu MAU tại Việt Nam, lớn hơn cả Telegram ở thị trường nội địa. Zalo Mini App SDK (`miniapp.zalo.me`) khác Telegram WebApp nhưng UI code có thể reuse ~80% (React + Tailwind). Việc thay layer chính là: (1) thay `@twa-dev/sdk` bằng `zmp-sdk`, (2) đổi `initData` HMAC verify thành Zalo OA OAuth, (3) thay `Telegram.WebApp.openLink` bằng `zmp-sdk` API tương đương. Backend `TelegramAuthFilter` cần thêm sibling `ZaloAuthFilter`; rest of business logic không thay đổi nhờ Modular Monolith với module `auth` cô lập. | Mở rộng sang user base lớn hơn ở VN. Có thể chạy song song 2 platform. Ước lượng 3-4 tuần effort tổng. |
+| **Tích hợp thêm cổng thanh toán** ⭐ ƯU TIÊN CAO | Momo, ZaloPay, ShopeePay, VietQR. Pattern integration giống VNPay (sign URL + verify IPN callback) nên mỗi cổng chỉ tốn ~3-5 ngày sau khi đã làm VNPay. Cần xử lý: (1) signing algorithm khác nhau (Momo dùng HMAC-SHA256, ZaloPay dùng HMAC-SHA256 + zalopay specific format), (2) callback URL khác biệt, (3) refund flow riêng. Tạo abstraction `PaymentGateway` interface trong module `payment`, mỗi cổng là 1 implementation. | Đa dạng hoá để giảm phụ thuộc 1 vendor. Đặc biệt quan trọng vì hiện tại khi VNPay sandbox không sẵn credentials thật thì luồng thanh toán online demo không hoạt động được — Momo/ZaloPay có thể có sandbox dễ tiếp cận hơn cho việc demo bảo vệ. |
 | **Loyalty program / coupon** | Bảng `coupon`, `customer_loyalty(points, tier)`. Bot có thể gửi mã giảm giá định kỳ (cohort retention) | Tăng retention 15-20% theo benchmark ngành |
 | **Voice ordering** | Khách gửi voice note vào bot ("Cho 2 phở bò"), backend dùng Whisper / Google Speech-to-Text → parse intent → tạo đơn nháp | Hỗ trợ khách lớn tuổi / lái xe / khuyết tật tay |
 | **Multi-language** | i18n cho UI (vi/en + có thể zh, ru cho khách du lịch). Backend đã sẵn `language_code` ở `telegram_user` | Tăng base khách hàng quốc tế ở khu du lịch |
