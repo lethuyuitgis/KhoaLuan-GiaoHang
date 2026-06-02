@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -11,7 +12,16 @@ import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProductFormPage } from './pages/ProductFormPage';
 import { ShippersPage } from './pages/ShippersPage';
-import { ReportsPage } from './pages/ReportsPage';
+
+// P8 IM-03 follow-up: lazy-load /reports (recharts ~80 kB gzipped).
+// Most sessions never open /reports → ship a smaller initial bundle.
+const ReportsPage = lazy(() =>
+  import('./pages/ReportsPage').then((mod) => ({ default: mod.ReportsPage }))
+);
+
+const ReportsFallback = () => (
+  <div className="p-6 text-gray-500">Đang tải báo cáo…</div>
+);
 
 export default function App() {
   return (
@@ -29,7 +39,14 @@ export default function App() {
                 <Route path="products/new" element={<ProductFormPage />} />
                 <Route path="products/:id/edit" element={<ProductFormPage />} />
                 <Route path="shippers" element={<ShippersPage />} />
-                <Route path="reports" element={<ReportsPage />} />
+                <Route
+                  path="reports"
+                  element={
+                    <Suspense fallback={<ReportsFallback />}>
+                      <ReportsPage />
+                    </Suspense>
+                  }
+                />
                 <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Route>
