@@ -13,6 +13,7 @@ import com.shop.delivery.order.service.command.CreateOrderCommand;
 import com.shop.delivery.order.service.command.OrderLineCommand;
 import com.shop.delivery.order.domain.PaymentStatus;
 import com.shop.delivery.shared.event.OrderConfirmedEvent;
+import com.shop.delivery.shared.event.OrderCreatedEvent;
 import com.shop.delivery.shared.exception.NotFoundException;
 import com.shop.delivery.shared.exception.ValidationException;
 import org.slf4j.Logger;
@@ -122,6 +123,14 @@ public class OrderService {
         orderItemRepo.saveAll(items);
 
         recordTransition(saved.getId(), null, OrderStatus.PENDING, cmd.customerId(), "Đơn được tạo");
+
+        // P9 — broadcast to admin dashboard via WebSocket (AdminOrderBroadcaster listens AFTER_COMMIT).
+        events.publishEvent(new OrderCreatedEvent(
+            saved.getId(),
+            saved.getCode(),
+            saved.getCustomerId(),
+            saved.getPaymentMethod().name()
+        ));
 
         return saved;
     }

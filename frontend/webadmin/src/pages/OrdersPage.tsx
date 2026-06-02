@@ -5,10 +5,14 @@ import { formatVnd, formatDateTime, type OrderStatus, type OrderSummary, type Pa
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 import { PaymentStatusBadge } from '@/components/PaymentStatusBadge';
+import { useAdminOrdersSocket } from '@/hooks/useAdminOrdersSocket';
 
 const STATUSES: (OrderStatus | 'ALL')[] = ['ALL', 'PENDING', 'CONFIRMED', 'ASSIGNED', 'DELIVERING', 'DELIVERED', 'CANCELLED'];
 
 export function OrdersPage() {
+  // Subscribe to /topic/admin/orders; invalidates ['admin','orders'] on each WS event.
+  useAdminOrdersSocket();
+
   const [filter, setFilter] = useState<OrderStatus | 'ALL'>('ALL');
 
   const { data, isLoading } = useQuery({
