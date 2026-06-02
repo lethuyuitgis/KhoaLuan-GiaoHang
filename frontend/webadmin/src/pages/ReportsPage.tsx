@@ -46,51 +46,70 @@ export function ReportsPage() {
     enabled: rangeValid,
   });
 
+  const inputCls = "block w-full px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white text-gray-900 " +
+    "focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition-colors";
+  const labelCls = "block text-xs font-semibold text-gray-600 mb-1.5 uppercase tracking-wide";
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Báo cáo</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Báo cáo</h1>
+        <p className="text-sm text-gray-500 mt-1">Doanh thu, top shipper, tỉ lệ huỷ theo khoảng thời gian tuỳ chọn</p>
+      </div>
 
       {/* Date-range picker */}
-      <div className="bg-white rounded-lg shadow p-4 mb-6 flex flex-wrap gap-4 items-end">
-        <div>
-          <label htmlFor="from" className="block text-sm text-gray-600 mb-1">Từ ngày</label>
-          <input
-            id="from"
-            type="date"
-            value={from}
-            min={minDate}
-            max={to}
-            onChange={e => setFrom(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1"
-          />
-        </div>
-        <div>
-          <label htmlFor="to" className="block text-sm text-gray-600 mb-1">Đến ngày</label>
-          <input
-            id="to"
-            type="date"
-            value={to}
-            min={from}
-            max={maxDate}
-            onChange={e => setTo(e.target.value)}
-            className="border border-gray-300 rounded px-2 py-1"
-          />
-        </div>
-        <div>
-          <label htmlFor="groupBy" className="block text-sm text-gray-600 mb-1">Nhóm theo</label>
-          <select
-            id="groupBy"
-            value={groupBy}
-            onChange={e => setGroupBy(e.target.value as GroupBy)}
-            className="border border-gray-300 rounded px-2 py-1"
-          >
-            <option value="day">Ngày</option>
-            <option value="week">Tuần</option>
-          </select>
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+          <div>
+            <label htmlFor="from" className={labelCls}>Từ ngày</label>
+            <input
+              id="from"
+              type="date"
+              value={from}
+              min={minDate}
+              max={to}
+              onChange={e => setFrom(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label htmlFor="to" className={labelCls}>Đến ngày</label>
+            <input
+              id="to"
+              type="date"
+              value={to}
+              min={from}
+              max={maxDate}
+              onChange={e => setTo(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label htmlFor="groupBy" className={labelCls}>Nhóm theo</label>
+            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 w-full">
+              {(['day', 'week'] as const).map(g => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setGroupBy(g)}
+                  className={`flex-1 text-sm py-1.5 rounded-md font-medium transition-colors ${
+                    groupBy === g
+                      ? 'bg-white text-orange-600 shadow-sm'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {g === 'day' ? 'Theo ngày' : 'Theo tuần'}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="text-xs text-gray-500">
+            Tối đa {MAX_DAYS} ngày một lần.
+          </div>
         </div>
         {!rangeValid && (
-          <p className="text-red-600 text-sm self-center">
-            Khoảng thời gian không hợp lệ (tối đa {MAX_DAYS} ngày).
+          <p className="text-red-600 text-sm mt-3">
+            ⚠️ Khoảng thời gian không hợp lệ (tối đa {MAX_DAYS} ngày).
           </p>
         )}
       </div>
