@@ -74,9 +74,20 @@ export function OrderDetailPage() {
           <table className="w-full text-sm">
             <tbody>
               {order.items.map(i => (
-                <tr key={i.id} className="border-b border-gray-100">
-                  <td className="py-2">SP #{i.productId} × {i.quantity}</td>
-                  <td className="py-2 text-right">{formatVnd(i.subtotal)}</td>
+                <tr key={i.id} className="border-b border-gray-100 last:border-b-0">
+                  <td className="py-3">
+                    <div className="flex items-center gap-3">
+                      {i.productImageUrl
+                        ? <img src={i.productImageUrl} alt={i.productName}
+                               className="w-12 h-12 rounded object-cover bg-gray-100 flex-shrink-0" />
+                        : <div className="w-12 h-12 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-400 flex-shrink-0">N/A</div>}
+                      <div className="min-w-0">
+                        <div className="font-medium text-gray-900 truncate">{i.productName}</div>
+                        <div className="text-xs text-gray-500">{formatVnd(i.unitPrice)} × {i.quantity}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 text-right font-medium whitespace-nowrap align-top">{formatVnd(i.subtotal)}</td>
                 </tr>
               ))}
             </tbody>

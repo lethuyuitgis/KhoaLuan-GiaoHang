@@ -55,17 +55,20 @@ ON CONFLICT (email) DO NOTHING;
 -- ─────────────────────────────────────────────────────────────
 -- 3) 10 demo products (Vietnamese names + VND prices)
 -- ─────────────────────────────────────────────────────────────
+-- Use placehold.co with colored backgrounds + Vietnamese-without-diacritics text —
+-- stable, no random images like picsum.photos that pull beach/mountain pictures
+-- unrelated to food. (placehold.co doesn't render emoji glyphs in the text param.)
 INSERT INTO product (name, description, price, image_url, stock, is_active) VALUES
-    ('Phở bò tái',        'Phở bò truyền thống, nước dùng đậm đà',  55000,  'https://picsum.photos/seed/pho-bo/400/300',  100, TRUE),
-    ('Bún chả Hà Nội',    'Bún chả nướng than hoa, kèm rau sống',   60000,  'https://picsum.photos/seed/buncha/400/300',  80,  TRUE),
-    ('Bánh mì pate',      'Bánh mì pate, dưa leo, rau thơm',        25000,  'https://picsum.photos/seed/banhmi/400/300',  150, TRUE),
-    ('Cơm gà xối mỡ',     'Cơm gà giòn, sốt mắm tỏi',               65000,  'https://picsum.photos/seed/comga/400/300',   90,  TRUE),
-    ('Bún bò Huế',        'Bún bò Huế cay nồng, giò heo',           70000,  'https://picsum.photos/seed/bunbo/400/300',   60,  TRUE),
-    ('Trà sữa trân châu', 'Trà sữa size L, trân châu đường đen',    35000,  'https://picsum.photos/seed/trasua/400/300',  200, TRUE),
-    ('Cà phê sữa đá',     'Cà phê phin, sữa đặc, đá',               20000,  'https://picsum.photos/seed/caphe/400/300',   200, TRUE),
-    ('Nem rán Hà Nội',    'Nem rán giòn, kèm nước chấm chua ngọt',  45000,  'https://picsum.photos/seed/nemran/400/300',  120, TRUE),
-    ('Chè bưởi',          'Chè bưởi mát lạnh, nước cốt dừa',        30000,  'https://picsum.photos/seed/chebuoi/400/300', 70,  TRUE),
-    ('Bánh xèo miền Tây', 'Bánh xèo giòn, tôm thịt, rau sống',      50000,  'https://picsum.photos/seed/banhxeo/400/300', 50,  TRUE)
+    ('Phở bò tái',        'Phở bò truyền thống, nước dùng đậm đà',  55000,  'https://placehold.co/400x300/d97706/ffffff/png?text=Pho+bo+tai',     100, TRUE),
+    ('Bún chả Hà Nội',    'Bún chả nướng than hoa, kèm rau sống',   60000,  'https://placehold.co/400x300/c2410c/ffffff/png?text=Bun+cha',        80,  TRUE),
+    ('Bánh mì pate',      'Bánh mì pate, dưa leo, rau thơm',        25000,  'https://placehold.co/400x300/a16207/ffffff/png?text=Banh+mi+pate',  150, TRUE),
+    ('Cơm gà xối mỡ',     'Cơm gà giòn, sốt mắm tỏi',               65000,  'https://placehold.co/400x300/eab308/ffffff/png?text=Com+ga+xoi+mo',  90,  TRUE),
+    ('Bún bò Huế',        'Bún bò Huế cay nồng, giò heo',           70000,  'https://placehold.co/400x300/dc2626/ffffff/png?text=Bun+bo+Hue',     60,  TRUE),
+    ('Trà sữa trân châu', 'Trà sữa size L, trân châu đường đen',    35000,  'https://placehold.co/400x300/78350f/ffffff/png?text=Tra+sua',       200, TRUE),
+    ('Cà phê sữa đá',     'Cà phê phin, sữa đặc, đá',               20000,  'https://placehold.co/400x300/451a03/ffffff/png?text=Ca+phe',        200, TRUE),
+    ('Nem rán Hà Nội',    'Nem rán giòn, kèm nước chấm chua ngọt',  45000,  'https://placehold.co/400x300/ea580c/ffffff/png?text=Nem+ran',       120, TRUE),
+    ('Chè bưởi',          'Chè bưởi mát lạnh, nước cốt dừa',        30000,  'https://placehold.co/400x300/15803d/ffffff/png?text=Che+buoi',       70,  TRUE),
+    ('Bánh xèo miền Tây', 'Bánh xèo giòn, tôm thịt, rau sống',      50000,  'https://placehold.co/400x300/ca8a04/ffffff/png?text=Banh+xeo',       50,  TRUE)
 ON CONFLICT (name) DO NOTHING;
 
 
@@ -93,7 +96,8 @@ ON CONFLICT (telegram_user_id, role) DO NOTHING;
 
 -- Shipper profile (vehicle / rating tracking — populated by P5)
 INSERT INTO shipper_profile (user_id, vehicle_type, license_plate, current_state, rating_avg, rating_count, total_deliveries) VALUES
-    (9000000101, 'MOTORBIKE', '29-X1 12345', 'ONLINE',  4.80, 12, 15),
+    -- ShipperState enum is {AVAILABLE, BUSY, OFFLINE} — NOT "ONLINE".
+    (9000000101, 'MOTORBIKE', '29-X1 12345', 'AVAILABLE', 4.80, 12, 15),
     (9000000102, 'MOTORBIKE', '29-X2 23456', 'OFFLINE', 4.50, 8,  10),
     (9000000103, 'BICYCLE',   '',            'OFFLINE', 0.00, 0,  0)
 ON CONFLICT (user_id) DO NOTHING;

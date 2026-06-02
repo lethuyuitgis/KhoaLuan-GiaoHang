@@ -8,6 +8,8 @@ export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 export interface OrderItemResponse {
   id: number;
   productId: number;
+  productName: string;
+  productImageUrl: string | null;
   quantity: number;
   unitPrice: number;
   subtotal: number;
