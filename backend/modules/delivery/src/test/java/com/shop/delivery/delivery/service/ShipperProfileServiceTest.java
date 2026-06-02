@@ -12,13 +12,17 @@ import com.shop.delivery.delivery.domain.VehicleType;
 import com.shop.delivery.delivery.entity.ShipperProfile;
 import com.shop.delivery.delivery.repository.ShipperProfileRepository;
 import com.shop.delivery.delivery.service.command.CreateShipperCommand;
+import com.shop.delivery.shared.event.ShipperApprovedEvent;
+import com.shop.delivery.shared.event.ShipperRegisteredEvent;
 import com.shop.delivery.shared.exception.NotFoundException;
+import com.shop.delivery.shared.exception.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +30,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +41,7 @@ class ShipperProfileServiceTest {
     @Mock UserRoleRepository roleRepo;
     @Mock ShipperProfileRepository profileRepo;
     @Mock RoleResolver roleResolver;
+    @Mock ApplicationEventPublisher events;
 
     @InjectMocks ShipperProfileService service;
 
@@ -85,6 +91,86 @@ class ShipperProfileServiceTest {
         ArgumentCaptor<ShipperProfile> captor = ArgumentCaptor.forClass(ShipperProfile.class);
         verify(profileRepo).save(captor.capture());
         assertThat(captor.getValue().getCurrentState()).isEqualTo(ShipperState.AVAILABLE);
+    }
+
+    @Test
+    void registerPendingShouldInsertPendingRoleAndProfileAndPublishEvent() {
+        TelegramUser u = new TelegramUser();
+        u.setId(8888L);
+        when(userRepo.findById(8888L)).thenReturn(Optional.of(u));
+        when(roleRepo.findByTelegramUserIdAndRole(8888L, Role.SHIPPER)).thenReturn(Optional.empty());
+        when(profileRepo.findById(8888L)).thenReturn(Optional.empty());
+        when(profileRepo.save(any(ShipperProfile.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ShipperProfile result = service.registerPending(
+            8888L, VehicleType.MOTORBIKE, "29A-12345", "Nguyễn Văn A");
+
+        assertThat(result.getVehicleType()).isEqualTo(VehicleType.MOTORBIKE);
+        assertThat(result.getLicensePlate()).isEqualTo("29A-12345");
+
+        ArgumentCaptor<UserRole> roleCap = ArgumentCaptor.forClass(UserRole.class);
+        verify(roleRepo).save(roleCap.capture());
+        assertThat(roleCap.getValue().getStatus()).isEqualTo(UserRoleStatus.PENDING);
+        assertThat(roleCap.getValue().getRole()).isEqualTo(Role.SHIPPER);
+
+        ArgumentCaptor<ShipperRegisteredEvent> evCap = ArgumentCaptor.forClass(ShipperRegisteredEvent.class);
+        verify(events).publishEvent(evCap.capture());
+        assertThat(evCap.getValue().telegramUserId()).isEqualTo(8888L);
+        assertThat(evCap.getValue().fullName()).isEqualTo("Nguyễn Văn A");
+        assertThat(evCap.getValue().vehicleType()).isEqualTo("MOTORBIKE");
+        assertThat(evCap.getValue().licensePlate()).isEqualTo("29A-12345");
+    }
+
+    @Test
+    void registerPendingShouldRejectDuplicate() {
+        TelegramUser u = new TelegramUser();
+        u.setId(8888L);
+        when(userRepo.findById(8888L)).thenReturn(Optional.of(u));
+        UserRole existing = new UserRole();
+        existing.setRole(Role.SHIPPER);
+        existing.setStatus(UserRoleStatus.PENDING);
+        when(roleRepo.findByTelegramUserIdAndRole(8888L, Role.SHIPPER)).thenReturn(Optional.of(existing));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.registerPending(
+            8888L, VehicleType.MOTORBIKE, "29A-12345", "Nguyễn Văn A"))
+            .isInstanceOf(ValidationException.class);
+    }
+
+    @Test
+    void approveShouldFlipPendingToActiveAndPublishEvent() {
+        UserRole role = new UserRole();
+        role.setRole(Role.SHIPPER);
+        role.setStatus(UserRoleStatus.PENDING);
+        role.setTelegramUserId(8888L);
+        when(roleRepo.findByTelegramUserIdAndRole(8888L, Role.SHIPPER)).thenReturn(Optional.of(role));
+        ShipperProfile p = new ShipperProfile();
+        p.setUserId(8888L);
+        when(profileRepo.findById(8888L)).thenReturn(Optional.of(p));
+
+        service.approve(8888L);
+
+        assertThat(role.getStatus()).isEqualTo(UserRoleStatus.ACTIVE);
+        verify(roleResolver).evict(8888L);
+        ArgumentCaptor<ShipperApprovedEvent> evCap = ArgumentCaptor.forClass(ShipperApprovedEvent.class);
+        verify(events).publishEvent(evCap.capture());
+        assertThat(evCap.getValue().telegramUserId()).isEqualTo(8888L);
+    }
+
+    @Test
+    void approveShouldBeIdempotentForActiveShipper() {
+        UserRole role = new UserRole();
+        role.setRole(Role.SHIPPER);
+        role.setStatus(UserRoleStatus.ACTIVE);
+        role.setTelegramUserId(8888L);
+        when(roleRepo.findByTelegramUserIdAndRole(8888L, Role.SHIPPER)).thenReturn(Optional.of(role));
+        ShipperProfile p = new ShipperProfile();
+        p.setUserId(8888L);
+        when(profileRepo.findById(8888L)).thenReturn(Optional.of(p));
+
+        service.approve(8888L);
+
+        // No state change, no event emitted
+        verify(events, never()).publishEvent(any(ShipperApprovedEvent.class));
     }
 
     @Test
