@@ -12,13 +12,18 @@
     "./utils": "./src/utils/index.ts"
   },
   "scripts": {
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "axios": "^1.7.7",
     "date-fns": "^3.6.0"
   },
   "devDependencies": {
-    "typescript": "^5.6.0"
+    "@vitest/ui": "^2",
+    "jsdom": "^29.1.1",
+    "typescript": "^5.6.0",
+    "vitest": "^2"
   }
 }
