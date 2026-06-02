@@ -14,13 +14,32 @@ export function OrdersPage() {
     <div>
       <h1 className="text-2xl font-bold mb-4">Đơn hàng của tôi</h1>
 
-      {isLoading && <p className="text-tg-hint">Đang tải...</p>}
-      {error && <p className="text-red-500">Không tải được lịch sử đơn.</p>}
+      {isLoading && (
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100" />
+          ))}
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+          <p className="font-medium mb-1">Không tải được lịch sử đơn.</p>
+          <p className="text-xs opacity-80">Vui lòng thử lại sau.</p>
+        </div>
+      )}
 
       {data && data.content.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-tg-hint mb-4">Chưa có đơn nào</p>
-          <Link to="/customer/shop" className="text-tg-link">Bắt đầu mua hàng</Link>
+        <div className="text-center py-16">
+          <p className="text-5xl mb-3">📦</p>
+          <p className="font-medium text-gray-700 mb-1">Chưa có đơn nào</p>
+          <p className="text-sm text-gray-500 mb-5">Bắt đầu hành trình ẩm thực nào!</p>
+          <Link
+            to="/customer/shop"
+            className="inline-block px-5 py-2.5 rounded-2xl bg-orange-500 text-white font-semibold text-sm shadow-md shadow-orange-500/30 active:scale-[0.98] transition"
+          >
+            Xem menu
+          </Link>
         </div>
       )}
 
@@ -29,18 +48,20 @@ export function OrdersPage() {
           <Link
             key={o.id}
             to={`/customer/orders/${o.id}`}
-            className="block bg-tg-secondaryBg rounded-lg p-3"
+            className="block bg-white rounded-2xl shadow-sm border border-gray-100 p-3 active:scale-[0.99] transition"
           >
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start gap-2">
               <div className="min-w-0">
-                <p className="font-medium">{o.code}</p>
-                <p className="text-xs text-tg-hint mt-0.5">{formatRelative(o.createdAt)}</p>
+                <p className="font-semibold truncate">{o.code}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{formatRelative(o.createdAt)}</p>
               </div>
               <OrderStatusBadge status={o.status} />
             </div>
-            <div className="mt-2 flex justify-between items-end">
-              <span className="text-sm text-tg-hint">{o.paymentMethod}</span>
-              <span className="font-bold">{formatVnd(o.total)}</span>
+            <div className="mt-2.5 flex justify-between items-end">
+              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                {o.paymentMethod === 'VNPAY' ? '💳 VNPay' : '💰 COD'}
+              </span>
+              <span className="font-bold text-orange-600">{formatVnd(o.total)}</span>
             </div>
           </Link>
         ))}

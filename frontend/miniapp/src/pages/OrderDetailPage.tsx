@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getOrder, cancelOrder, formatVnd, formatDateTime } from '@shop/shared';
+import { getOrder, cancelOrder, formatVnd, formatDateTime, type PaymentStatus } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 import { OrderTrackingMap } from '@/features/tracking/OrderTrackingMap';
 import { tg } from '@/lib/telegram';
+import { useToast } from '@/components/Toast';
 
 const CANCELLABLE = new Set(['PENDING', 'CONFIRMED']);
 const POLL_MS = 3000;
@@ -15,6 +16,7 @@ export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const qc = useQueryClient();
+  const toast = useToast();
   const [pollingExpired, setPollingExpired] = useState(false);
 
   const { data: order, isLoading, error } = useQuery({
@@ -30,7 +32,6 @@ export function OrderDetailPage() {
     },
   });
 
-  // Stop polling after 60s so we don't ping forever if IPN never arrives.
   useEffect(() => {
     if (order?.paymentMethod === 'VNPAY' && order?.paymentStatus === 'PENDING') {
       const t = setTimeout(() => setPollingExpired(true), POLL_TIMEOUT_MS);
@@ -43,11 +44,12 @@ export function OrderDetailPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['order', id] });
       qc.invalidateQueries({ queryKey: ['orders', 'mine'] });
+      toast.info('Đã hủy đơn');
     },
     onError: async (err: any) => {
       const msg = err.response?.data?.message ?? 'Không hủy được đơn';
       if (tg.isInTelegram()) await tg.showAlert(msg);
-      else alert(msg);
+      else toast.error(msg);
     },
   });
 
@@ -59,120 +61,183 @@ export function OrderDetailPage() {
     cancelMut.mutate('Khách hủy');
   };
 
-  if (isLoading) return <p className="text-tg-hint">Đang tải...</p>;
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-10 bg-white rounded-xl animate-pulse border border-gray-100" />
+        <div className="h-40 bg-white rounded-2xl animate-pulse border border-gray-100" />
+        <div className="h-24 bg-white rounded-2xl animate-pulse border border-gray-100" />
+        <div className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100" />
+      </div>
+    );
+  }
+
   if (error || !order) {
     return (
-      <div>
-        <p className="text-red-500 mb-4">Không tải được đơn.</p>
-        <Link to="/customer/orders" className="text-tg-link">Về danh sách đơn</Link>
+      <div className="text-center py-16">
+        <p className="text-5xl mb-3">😕</p>
+        <p className="font-medium text-gray-700 mb-1">Không tải được đơn</p>
+        <p className="text-sm text-gray-500 mb-5">Đơn có thể đã bị xoá hoặc bạn không có quyền xem.</p>
+        <Link
+          to="/customer/orders"
+          className="inline-block px-5 py-2.5 rounded-2xl bg-orange-500 text-white font-semibold text-sm shadow-md shadow-orange-500/30 active:scale-[0.98] transition"
+        >
+          Về danh sách đơn
+        </Link>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="pb-24">
       <button
         onClick={() => navigate(-1)}
-        className="mb-4 text-tg-link"
+        className="mb-3 text-sm text-gray-500 active:text-gray-700"
       >
         ← Quay lại
       </button>
 
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h1 className="text-2xl font-bold">{order.code}</h1>
-          <p className="text-xs text-tg-hint mt-1">{formatDateTime(order.createdAt)}</p>
+      <div className="flex justify-between items-start mb-4 gap-2">
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold truncate">{order.code}</h1>
+          <p className="text-xs text-gray-500 mt-1">{formatDateTime(order.createdAt)}</p>
         </div>
         <OrderStatusBadge status={order.status} />
       </div>
 
       {order.status === 'DELIVERING' && (
-        <OrderTrackingMap
-          orderId={order.id}
-          pickupLat={order.pickupLat}
-          pickupLng={order.pickupLng}
-          deliveryLat={order.deliveryLat}
-          deliveryLng={order.deliveryLng}
-        />
+        <div className="mb-4">
+          <OrderTrackingMap
+            orderId={order.id}
+            pickupLat={order.pickupLat}
+            pickupLng={order.pickupLng}
+            deliveryLat={order.deliveryLat}
+            deliveryLng={order.deliveryLng}
+          />
+        </div>
       )}
 
-      <div className="bg-tg-secondaryBg rounded-lg p-4 mb-4">
-        <h2 className="font-semibold mb-2">Sản phẩm</h2>
-        {order.items.map(i => (
-          <div key={i.id} className="flex justify-between py-1 text-sm">
-            <span>SP #{i.productId} × {i.quantity}</span>
-            <span>{formatVnd(i.subtotal)}</span>
-          </div>
-        ))}
-        <div className="border-t border-tg-hint/20 mt-2 pt-2 space-y-1 text-sm">
+      {/* Items + totals */}
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
+        <h2 className="text-sm font-semibold text-gray-500 mb-3">Sản phẩm</h2>
+        <div className="space-y-2">
+          {order.items.map(i => (
+            <div key={i.id} className="flex gap-3 items-center">
+              {i.productImageUrl ? (
+                <img
+                  src={i.productImageUrl}
+                  alt={i.productName}
+                  className="w-12 h-12 rounded-xl object-cover bg-gray-100 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex-shrink-0 flex items-center justify-center text-white font-bold">
+                  {i.productName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{i.productName}</p>
+                <p className="text-xs text-gray-500">
+                  {formatVnd(i.unitPrice)} × {i.quantity}
+                </p>
+              </div>
+              <span className="text-sm font-semibold whitespace-nowrap">{formatVnd(i.subtotal)}</span>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-gray-100 mt-3 pt-3 space-y-1 text-sm">
           <div className="flex justify-between">
-            <span className="text-tg-hint">Tạm tính</span>
+            <span className="text-gray-500">Tạm tính</span>
             <span>{formatVnd(order.subtotal)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-tg-hint">Phí ship ({order.distanceKm}km)</span>
+            <span className="text-gray-500">Phí ship ({order.distanceKm} km)</span>
             <span>{formatVnd(order.deliveryFee)}</span>
           </div>
-          <div className="flex justify-between font-bold pt-1 border-t border-tg-hint/20">
+          <div className="flex justify-between font-bold pt-1.5 border-t border-gray-100 text-base">
             <span>Tổng</span>
-            <span>{formatVnd(order.total)}</span>
+            <span className="text-orange-600">{formatVnd(order.total)}</span>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="bg-tg-secondaryBg rounded-lg p-4 mb-4">
-        <h2 className="font-semibold mb-2">Giao đến</h2>
-        <p className="text-sm">{order.deliveryAddress}</p>
+      {/* Delivery info */}
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
+        <h2 className="text-sm font-semibold text-gray-500 mb-2">Giao đến</h2>
+        <p className="text-sm flex items-start gap-2">
+          <span>📍</span>
+          <span>{order.deliveryAddress}</span>
+        </p>
         {order.customerPhone && (
-          <p className="text-sm text-tg-hint mt-1">SĐT: {order.customerPhone}</p>
+          <p className="text-sm text-gray-500 mt-1.5">
+            📞 {order.customerPhone}
+          </p>
         )}
         {order.note && (
-          <p className="text-sm text-tg-hint mt-2 italic">Ghi chú: {order.note}</p>
+          <p className="text-sm text-gray-500 mt-2 italic bg-gray-50 rounded-xl px-3 py-2">
+            💬 {order.note}
+          </p>
         )}
-      </div>
+      </section>
 
-      <div className="bg-tg-secondaryBg rounded-lg p-4 mb-4 text-sm">
-        <div className="flex justify-between">
-          <span className="text-tg-hint">Thanh toán</span>
-          <span>{order.paymentMethod === 'VNPAY' ? 'VNPay' : 'COD'}</span>
+      {/* Payment status */}
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3 text-sm">
+        <div className="flex justify-between items-center">
+          <span className="text-gray-500">Thanh toán</span>
+          <span className="font-medium">
+            {order.paymentMethod === 'VNPAY' ? '💳 VNPay' : '💰 COD'}
+          </span>
         </div>
-        <div className="flex justify-between mt-1 items-center">
-          <span className="text-tg-hint">Trạng thái thanh toán</span>
+        <div className="flex justify-between mt-2 items-center">
+          <span className="text-gray-500">Trạng thái</span>
           <PaymentStatusInline status={order.paymentStatus} />
         </div>
         {order.paymentMethod === 'VNPAY' && order.paymentStatus === 'PENDING' && !pollingExpired && (
-          <p className="text-xs text-tg-hint mt-2">
-            ⏳ Đang chờ xác nhận từ VNPay... (tự động cập nhật mỗi 3 giây)
-          </p>
+          <div className="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 flex items-center gap-2">
+            <span className="inline-block w-3 h-3 border-2 border-amber-300 border-t-amber-700 rounded-full animate-spin"></span>
+            Đang chờ xác nhận từ VNPay… (tự động cập nhật mỗi 3 giây)
+          </div>
         )}
         {order.paymentMethod === 'VNPAY' && order.paymentStatus === 'PENDING' && pollingExpired && (
-          <p className="text-xs text-amber-500 mt-2">
-            Chưa nhận được xác nhận thanh toán. Vui lòng tải lại trang sau ít phút,
+          <p className="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+            Chưa nhận được xác nhận thanh toán. Vui lòng tải lại sau ít phút,
             hoặc liên hệ shop nếu bạn đã thanh toán xong.
           </p>
         )}
-      </div>
+      </section>
+
+      {order.status === 'DELIVERED' && (
+        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 p-4 mb-3 text-sm text-amber-900">
+          <p className="font-semibold">⭐ Đơn đã giao xong!</p>
+          <p className="text-xs mt-1">
+            Mở chat với bot để đánh giá shipper — bot đã gửi nút bấm 1-5 ⭐ cho bạn.
+          </p>
+        </div>
+      )}
 
       {CANCELLABLE.has(order.status) && (
         <button
           onClick={handleCancel}
           disabled={cancelMut.isPending}
-          className="w-full py-3 border border-red-500 text-red-500 rounded-lg font-medium disabled:opacity-50"
+          className="w-full py-3 border border-red-300 text-red-600 rounded-2xl font-medium disabled:opacity-50 active:scale-[0.98] transition"
         >
-          {cancelMut.isPending ? 'Đang hủy...' : 'Hủy đơn'}
+          {cancelMut.isPending ? 'Đang hủy…' : '✕ Hủy đơn'}
         </button>
       )}
     </div>
   );
 }
 
-function PaymentStatusInline({ status }: { status: string }) {
-  const labelMap: Record<string, { text: string; cls: string }> = {
-    PENDING:  { text: 'Đang chờ thanh toán', cls: 'text-tg-hint' },
-    SUCCESS:  { text: 'Đã thanh toán',       cls: 'text-green-500 font-medium' },
-    FAILED:   { text: 'Thanh toán thất bại', cls: 'text-red-500 font-medium' },
-    REFUNDED: { text: 'Đã hoàn tiền',        cls: 'text-amber-500 font-medium' },
+function PaymentStatusInline({ status }: { status: PaymentStatus }) {
+  const map: Record<PaymentStatus, { text: string; cls: string }> = {
+    PENDING:  { text: 'Đang chờ',         cls: 'bg-gray-100 text-gray-700' },
+    SUCCESS:  { text: '✓ Đã thanh toán',  cls: 'bg-emerald-100 text-emerald-700' },
+    FAILED:   { text: '✕ Thất bại',       cls: 'bg-red-100 text-red-700' },
+    REFUNDED: { text: '↩ Đã hoàn tiền',   cls: 'bg-amber-100 text-amber-700' },
   };
-  const { text, cls } = labelMap[status] ?? { text: status, cls: '' };
-  return <span className={cls}>{text}</span>;
+  const { text, cls } = map[status] ?? { text: status, cls: 'bg-gray-100 text-gray-700' };
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
+      {text}
+    </span>
+  );
 }
