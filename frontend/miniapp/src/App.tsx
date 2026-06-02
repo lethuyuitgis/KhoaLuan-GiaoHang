@@ -3,6 +3,7 @@ import { TelegramProvider } from './providers/TelegramProvider';
 import { QueryProvider } from './providers/QueryProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
+import { ToastProvider } from './components/Toast';
 import { SplashPage } from './pages/SplashPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { CatalogPage } from './pages/CatalogPage';
@@ -18,21 +19,23 @@ export default function App() {
     <ErrorBoundary>
       <QueryProvider>
         <TelegramProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route index element={<SplashPage />} />
-                <Route path="customer/shop" element={<CatalogPage />} />
-                <Route path="customer/cart" element={<CartPage />} />
-                <Route path="customer/checkout" element={<CheckoutPage />} />
-                <Route path="customer/orders" element={<OrdersPage />} />
-                <Route path="customer/orders/:id" element={<OrderDetailPage />} />
-                <Route path="shipper/assignments" element={<ShipperAssignmentsPage />} />
-                <Route path="shipper/assignments/:id" element={<ShipperAssignmentDetailPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
+          <ToastProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route index element={<SplashPage />} />
+                  <Route path="customer/shop" element={<CatalogPage />} />
+                  <Route path="customer/cart" element={<CartPage />} />
+                  <Route path="customer/checkout" element={<CheckoutPage />} />
+                  <Route path="customer/orders" element={<OrdersPage />} />
+                  <Route path="customer/orders/:id" element={<OrderDetailPage />} />
+                  <Route path="shipper/assignments" element={<ShipperAssignmentsPage />} />
+                  <Route path="shipper/assignments/:id" element={<ShipperAssignmentDetailPage />} />
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </ToastProvider>
         </TelegramProvider>
       </QueryProvider>
     </ErrorBoundary>
