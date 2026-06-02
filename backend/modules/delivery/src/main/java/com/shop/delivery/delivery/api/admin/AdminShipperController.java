@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,15 @@ public class AdminShipperController {
             req.telegramUserId(), req.vehicleType(), req.licensePlate()
         ));
         return toResponse(p);
+    }
+
+    /**
+     * Duyệt shipper PENDING → ACTIVE. Idempotent: gọi lại trên shipper đã ACTIVE
+     * vẫn trả 200 với profile hiện tại (không lỗi).
+     */
+    @PostMapping("/{id}/approve")
+    public ShipperResponse approve(@PathVariable Long id) {
+        return toResponse(service.approve(id));
     }
 
     private ShipperResponse toResponse(ShipperProfile p) {

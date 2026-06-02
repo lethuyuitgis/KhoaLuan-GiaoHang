@@ -7,11 +7,15 @@ import com.shop.delivery.auth.repository.TelegramUserRepository;
 import com.shop.delivery.auth.repository.UserRoleRepository;
 import com.shop.delivery.auth.service.RoleResolver;
 import com.shop.delivery.delivery.domain.ShipperState;
+import com.shop.delivery.delivery.domain.VehicleType;
 import com.shop.delivery.delivery.entity.ShipperProfile;
 import com.shop.delivery.delivery.repository.ShipperProfileRepository;
 import com.shop.delivery.delivery.service.command.CreateShipperCommand;
+import com.shop.delivery.shared.event.ShipperApprovedEvent;
+import com.shop.delivery.shared.event.ShipperRegisteredEvent;
 import com.shop.delivery.shared.exception.NotFoundException;
 import com.shop.delivery.shared.exception.ValidationException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,15 +29,18 @@ public class ShipperProfileService {
     private final UserRoleRepository roleRepo;
     private final ShipperProfileRepository profileRepo;
     private final RoleResolver roleResolver;
+    private final ApplicationEventPublisher events;
 
     public ShipperProfileService(TelegramUserRepository userRepo,
                                  UserRoleRepository roleRepo,
                                  ShipperProfileRepository profileRepo,
-                                 RoleResolver roleResolver) {
+                                 RoleResolver roleResolver,
+                                 ApplicationEventPublisher events) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
         this.profileRepo = profileRepo;
         this.roleResolver = roleResolver;
+        this.events = events;
     }
 
     @Transactional
@@ -86,5 +93,80 @@ public class ShipperProfileService {
         ShipperProfile p = findById(userId);
         p.setCurrentState(state);
         return profileRepo.save(p);
+    }
+
+    /**
+     * Bot-driven shipper registration: the user finished the FSM in Telegram,
+     * so we insert {@code user_role(SHIPPER, PENDING)} + a {@code shipper_profile}
+     * row, then publish {@link ShipperRegisteredEvent} for the notification
+     * module to alert admins.
+     *
+     * <p>Idempotent: if the user already has any {@code user_role(SHIPPER)} (in
+     * any status), this is a no-op returning the existing profile if present.
+     * The {@code DUPLICATE} sentinel return value lets the caller distinguish
+     * the duplicate path so it can tell the user "you're already registered".
+     */
+    @Transactional
+    public ShipperProfile registerPending(Long telegramUserId,
+                                          VehicleType vehicleType,
+                                          String licensePlate,
+                                          String fullName) {
+        userRepo.findById(telegramUserId)
+            .orElseThrow(() -> new NotFoundException(
+                "USER_NOT_FOUND",
+                "Telegram user " + telegramUserId + " chưa tồn tại"));
+
+        boolean hasAnyShipperRole = roleRepo.findByTelegramUserIdAndRole(
+            telegramUserId, Role.SHIPPER).isPresent();
+        if (hasAnyShipperRole) {
+            throw new ValidationException("SHIPPER_EXISTS",
+                "Bạn đã đăng ký rồi, đang chờ duyệt");
+        }
+
+        UserRole role = new UserRole();
+        role.setTelegramUserId(telegramUserId);
+        role.setRole(Role.SHIPPER);
+        role.setStatus(UserRoleStatus.PENDING);
+        role.setAssignedAt(Instant.now());
+        roleRepo.save(role);
+
+        ShipperProfile profile = profileRepo.findById(telegramUserId).orElseGet(ShipperProfile::new);
+        profile.setUserId(telegramUserId);
+        profile.setVehicleType(vehicleType);
+        profile.setLicensePlate(licensePlate);
+        profile.setCurrentState(ShipperState.OFFLINE);
+        ShipperProfile saved = profileRepo.save(profile);
+
+        events.publishEvent(new ShipperRegisteredEvent(
+            telegramUserId, fullName, vehicleType.name(), licensePlate));
+
+        return saved;
+    }
+
+    /**
+     * Admin approves a pending shipper: flip the role to ACTIVE, evict the
+     * RoleResolver cache so future requests see the new role, and publish
+     * {@link ShipperApprovedEvent} so the bot can DM the shipper.
+     *
+     * @throws NotFoundException if no PENDING SHIPPER role exists for this user.
+     */
+    @Transactional
+    public ShipperProfile approve(Long telegramUserId) {
+        UserRole role = roleRepo.findByTelegramUserIdAndRole(telegramUserId, Role.SHIPPER)
+            .orElseThrow(() -> new NotFoundException(
+                "SHIPPER_NOT_FOUND",
+                "Không tìm thấy đơn đăng ký shipper cho user " + telegramUserId));
+
+        if (role.getStatus() == UserRoleStatus.ACTIVE) {
+            // Idempotent: already approved.
+            return findById(telegramUserId);
+        }
+        role.setStatus(UserRoleStatus.ACTIVE);
+        roleRepo.save(role);
+        roleResolver.evict(telegramUserId);
+
+        events.publishEvent(new ShipperApprovedEvent(telegramUserId));
+
+        return findById(telegramUserId);
     }
 }
