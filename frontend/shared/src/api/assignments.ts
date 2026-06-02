@@ -24,3 +24,33 @@ export async function completeAssignment(client: AxiosInstance, id: string): Pro
   const { data } = await client.post<AssignmentResponse>(`/api/shipper/assignments/${id}/complete`);
   return data;
 }
+
+export interface RateCustomerRequest {
+  stars: number;
+  comment?: string | null;
+}
+
+export interface RateCustomerResponse {
+  ratingId: number;
+  orderId: string;
+  stars: number;
+  comment: string | null;
+  createdAt: string;
+}
+
+/**
+ * Shipper rates the customer (Should #6, counterpart to customer→shipper rating).
+ * Endpoint: POST /api/shipper/orders/{orderId}/rate-customer
+ * Result is NOT shown publicly to the customer.
+ */
+export async function rateCustomer(
+  client: AxiosInstance,
+  orderId: string,
+  body: RateCustomerRequest,
+): Promise<RateCustomerResponse> {
+  const { data } = await client.post<RateCustomerResponse>(
+    `/api/shipper/orders/${orderId}/rate-customer`,
+    body,
+  );
+  return data;
+}

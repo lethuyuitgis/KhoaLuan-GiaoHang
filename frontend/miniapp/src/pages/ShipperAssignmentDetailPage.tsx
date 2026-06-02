@@ -1,7 +1,8 @@
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  listMyAssignments, startAssignment, completeAssignment,
+  listMyAssignments, startAssignment, completeAssignment, rateCustomer,
   formatVnd, formatDateTime, type AssignmentResponse
 } from '@shop/shared';
 import { api } from '@/lib/api';
@@ -13,6 +14,11 @@ export function ShipperAssignmentDetailPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const toast = useToast();
+
+  // Local state for the "rate customer" section (only relevant when COMPLETED).
+  const [rateStars, setRateStars] = useState<number>(5);
+  const [rateComment, setRateComment] = useState<string>('');
+  const [rateSubmitted, setRateSubmitted] = useState<boolean>(false);
 
   const { data: list, isLoading } = useQuery({
     queryKey: ['shipper', 'assignments'],
@@ -35,9 +41,29 @@ export function ShipperAssignmentDetailPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['shipper'] });
       toast.success('Hoàn thành đơn — tuyệt vời!');
-      navigate('/shipper/assignments', { replace: true });
+      // Stay on the page so shipper can rate the customer before returning.
     },
     onError: showError,
+  });
+
+  const rateMut = useMutation({
+    mutationFn: () => rateCustomer(api, id!, {
+      stars: rateStars,
+      comment: rateComment.trim() || null,
+    }),
+    onSuccess: () => {
+      setRateSubmitted(true);
+      toast.success('Đã gửi đánh giá khách hàng. Cảm ơn bạn!');
+    },
+    onError: (err: any) => {
+      // ALREADY_RATED: treat as success-y (UI shows submitted state)
+      if (err?.response?.data?.code === 'ALREADY_RATED') {
+        setRateSubmitted(true);
+        toast.info?.('Bạn đã đánh giá đơn này rồi.');
+        return;
+      }
+      showError(err);
+    },
   });
 
   async function showError(err: any) {
@@ -154,6 +180,65 @@ export function ShipperAssignmentDetailPage() {
         >
           {completeMut.isPending ? 'Đang xử lý…' : '✅ Đã giao xong'}
         </button>
+      )}
+
+      {assignment.status === 'COMPLETED' && (
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
+          <h2 className="text-sm font-semibold text-gray-700 mb-1">Đánh giá khách hàng</h2>
+          <p className="text-xs text-gray-500 mb-3">
+            Thái độ, dễ tìm địa chỉ, có ở nhà — đánh giá riêng cho shop. Khách không thấy được.
+          </p>
+
+          {rateSubmitted ? (
+            <p className="text-sm text-emerald-700 font-medium flex items-center gap-2">
+              <span>✓</span> Bạn đã gửi đánh giá cho đơn này.
+            </p>
+          ) : (
+            <>
+              <div className="flex items-center gap-1 mb-3" role="radiogroup" aria-label="Chọn số sao">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <button
+                    key={s}
+                    type="button"
+                    role="radio"
+                    aria-checked={rateStars === s}
+                    onClick={() => setRateStars(s)}
+                    className={`text-3xl leading-none active:scale-90 transition ${
+                      s <= rateStars ? 'text-amber-400' : 'text-gray-300'
+                    }`}
+                  >
+                    ★
+                  </button>
+                ))}
+                <span className="ml-2 text-sm text-gray-600">{rateStars}/5</span>
+              </div>
+
+              <textarea
+                value={rateComment}
+                onChange={e => setRateComment(e.target.value)}
+                maxLength={1000}
+                rows={3}
+                placeholder="Nhận xét (tuỳ chọn)…"
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 resize-none"
+              />
+
+              <button
+                onClick={() => rateMut.mutate()}
+                disabled={rateMut.isPending}
+                className="mt-3 w-full bg-emerald-600 text-white rounded-2xl py-3 px-4 font-semibold shadow-md shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
+              >
+                {rateMut.isPending ? 'Đang gửi…' : 'Gửi đánh giá'}
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={() => navigate('/shipper/assignments', { replace: true })}
+            className="mt-3 w-full text-sm text-gray-500 active:text-gray-700 py-2"
+          >
+            ← Về danh sách
+          </button>
+        </section>
       )}
     </div>
   );
