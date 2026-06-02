@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +55,11 @@ class RatingControllerTest {
         Rating r = new Rating();
         r.setId(42L);
         r.setOrderId(orderId);
+        r.setCustomerId(1001L);
+        r.setShipperId(2002L);
         r.setStars((short) 5);
+        r.setComment("Tốt");
+        r.setCreatedAt(Instant.now());
         when(ratingService.rate(eq(orderId), eq(1001L), eq(5), any()))
             .thenReturn(r);
 
@@ -64,8 +69,13 @@ class RatingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json.writeValueAsString(body)))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.id").value(42))
-            .andExpect(jsonPath("$.stars").value(5));
+            .andExpect(jsonPath("$.ratingId").value(42))
+            .andExpect(jsonPath("$.orderId").value(orderId.toString()))
+            .andExpect(jsonPath("$.stars").value(5))
+            .andExpect(jsonPath("$.comment").value("Tốt"))
+            .andExpect(jsonPath("$.createdAt").exists())
+            .andExpect(jsonPath("$.customerId").doesNotExist())   // confirm PII NOT leaked
+            .andExpect(jsonPath("$.shipperId").doesNotExist());
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.shop.delivery.delivery.api.customer;
 import com.shop.delivery.auth.api.CurrentUser;
 import com.shop.delivery.auth.entity.TelegramUser;
 import com.shop.delivery.delivery.api.customer.dto.RateOrderRequest;
+import com.shop.delivery.delivery.api.customer.dto.RateOrderResponse;
 import com.shop.delivery.delivery.entity.Rating;
 import com.shop.delivery.delivery.service.RatingService;
 import jakarta.validation.Valid;
@@ -26,12 +27,12 @@ public class RatingController {
     }
 
     @PostMapping("/{id}/rating")
-    public ResponseEntity<Rating> rate(
+    public ResponseEntity<RateOrderResponse> rate(
         @PathVariable("id") UUID orderId,
         @Valid @RequestBody RateOrderRequest body,
         @CurrentUser TelegramUser user
     ) {
         Rating r = ratingService.rate(orderId, user.getId(), body.stars(), body.comment());
-        return ResponseEntity.ok(r);
+        return ResponseEntity.ok(RateOrderResponse.from(r));
     }
 }
