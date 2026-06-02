@@ -16,7 +16,7 @@ export function LoginPage() {
   const location = useLocation();
   const setAuth = useAuthStore(s => s.setAuth);
 
-  const [email, setEmail] = useState('admin@shop.local');
+  const [email, setEmail] = useState('shop@example.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -93,7 +93,7 @@ export function LoginPage() {
         </form>
 
         <p className="mt-6 text-xs text-gray-500 text-center">
-          Default: admin@shop.local / admin123 (đổi sau khi setup)
+          Demo: shop@example.com / admin123 (đổi sau khi setup)
         </p>
       </div>
     </div>
