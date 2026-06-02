@@ -31,7 +31,7 @@ End-to-end demo flow covering P1–P8. Estimated total runtime: **~25 minutes**
    - **Phone A (Khách)** — your main Telegram. Search bot `@<BOT_USERNAME>`. Send `/start`.
    - **Phone B (Shipper)** — second Telegram (a friend's account or a secondary number). Send `/start` → menu → "Đăng ký làm shipper" → fill form.
 5. On the Web Admin:
-   - Login `shop@example.com` / `admin123`
+   - Login `shop@example.com` / `Demo@Shop2026!`
    - Tab "Shipper" → approve Phone B's PENDING row.
 
 ---
@@ -41,7 +41,7 @@ End-to-end demo flow covering P1–P8. Estimated total runtime: **~25 minutes**
 Goal: prove JWT + role-based access works.
 
 1. Open `http://localhost/admin/login`
-2. Login `shop@example.com` / `admin123` → should land on `/` (Dashboard)
+2. Login `shop@example.com` / `Demo@Shop2026!` → should land on `/` (Dashboard)
 3. F12 → Application → Local Storage → confirm `accessToken` + `refreshToken` keys
 4. Logout (top-right menu) → redirected to `/login`
 5. Try direct nav to `http://localhost/admin/orders` while logged out → bounced to `/login`. ✓ AuthGuard works.

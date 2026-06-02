@@ -85,8 +85,8 @@ After all containers report `(healthy)`:
 
 | Vai trò | Tài khoản | Cách truy cập |
 |---------|-----------|---------------|
-| Chủ shop | `shop@example.com` / `admin123` | `http://localhost/admin/login` |
-| Admin gốc (V5) | `admin@shop.local` / `admin123` | `http://localhost/admin/login` |
+| Chủ shop | `shop@example.com` / `Demo@Shop2026!` | `http://localhost/admin/login` |
+| Admin gốc (V5) | `admin@shop.local` / `admin123` (test fixture) | `http://localhost/admin/login` |
 | Bot khách | (Telegram thật của bạn) | Chat bot `@<BOT_USERNAME>` từ `.env` → `/start` → tap "Đặt hàng" |
 | Bot shipper | (Telegram thật khác) | Chat bot tương tự → `/start` → đăng ký shipper → chờ admin duyệt |
 

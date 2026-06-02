@@ -15,7 +15,11 @@
 --
 -- Demo admin credentials:
 --   email:    shop@example.com
---   password: admin123          (BCrypt-10, same hash as V5's admin@shop.local)
+--   password: Demo@Shop2026!    (BCrypt-10; strong demo password — distinct from V5)
+--
+-- Reviewers / thesis defenders: the credentials are listed verbatim above and
+-- also in README.md + .env.example. Rotate the hash before deploying anywhere
+-- public (or stop Flyway at V10 in production, see warning below).
 
 
 -- ─────────────────────────────────────────────────────────────
@@ -43,10 +47,13 @@ END$$;
 -- ─────────────────────────────────────────────────────────────
 -- 2) Demo admin user
 -- ─────────────────────────────────────────────────────────────
+-- Password 'Demo@Shop2026!' (BCrypt-10). Generated once with BCrypt.gensalt(10) +
+-- BCrypt.hashpw and verified with BCrypt.checkpw before commit. Distinct from V5's
+-- admin@shop.local seed so the two demo accounts no longer share credentials.
 INSERT INTO admin_user (email, password_hash, full_name)
 VALUES (
     'shop@example.com',
-    '$2a$10$8tbM0mvZZFQuz9KVhA6lOOZQfM2GxHIgmTWXbcVQ2ml353wyiYktO',
+    '$2a$10$OlsupF634zxKmzbpRaDIeOYK.VemZbX2XsLvn9nSKnRZ0fkw8dnU2',
     'Demo Shop Owner'
 )
 ON CONFLICT (email) DO NOTHING;

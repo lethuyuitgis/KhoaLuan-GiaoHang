@@ -93,7 +93,7 @@ export function LoginPage() {
         </form>
 
         <p className="mt-6 text-xs text-gray-500 text-center">
-          Demo: shop@example.com / admin123 (đổi sau khi setup)
+          Demo: shop@example.com / Demo@Shop2026! (đổi sau khi setup)
         </p>
       </div>
     </div>
