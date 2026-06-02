@@ -58,4 +58,19 @@ public class TelegramUserService {
 
         return saved;
     }
+
+    /**
+     * Update the {@code phone} field for an existing user. Used by the bot
+     * shipper-registration FSM when the user shares a contact via Telegram's
+     * {@code request_contact} reply keyboard.
+     *
+     * @return the updated user, or empty if the user doesn't exist (no autocreate).
+     */
+    @Transactional
+    public java.util.Optional<TelegramUser> updatePhone(Long telegramUserId, String phone) {
+        return userRepo.findById(telegramUserId).map(u -> {
+            u.setPhone(phone);
+            return userRepo.save(u);
+        });
+    }
 }
