@@ -23,6 +23,14 @@ public class BotProperties {
     /** Secret token cho webhook verification (X-Telegram-Bot-Api-Secret-Token header) */
     private String webhookSecret;
 
+    /**
+     * Public HTTPS URL of the Mini App (Telegram requires HTTPS for the
+     * {@code web_app} button). Used by {@code StartHandler} after a user
+     * chooses CUSTOMER and by {@code ShipperApprovedEvent} listener to give
+     * an approved shipper a one-tap link into the app.
+     */
+    private String miniappUrl;
+
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
 
@@ -37,4 +45,7 @@ public class BotProperties {
 
     public String getWebhookSecret() { return webhookSecret; }
     public void setWebhookSecret(String webhookSecret) { this.webhookSecret = webhookSecret; }
+
+    public String getMiniappUrl() { return miniappUrl; }
+    public void setMiniappUrl(String miniappUrl) { this.miniappUrl = miniappUrl; }
 }
