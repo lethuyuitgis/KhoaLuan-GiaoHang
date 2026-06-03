@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { ZaloProvider } from './providers/ZaloProvider';
 import { QueryProvider } from './providers/QueryProvider';
+import { ThemeProvider } from './providers/ThemeProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { ToastProvider } from './components/Toast';
@@ -16,6 +17,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryProvider>
+        <ThemeProvider>
         <ZaloProvider>
           <ToastProvider>
             <BrowserRouter>
@@ -33,6 +35,7 @@ export default function App() {
             </BrowserRouter>
           </ToastProvider>
         </ZaloProvider>
+        </ThemeProvider>
       </QueryProvider>
     </ErrorBoundary>
   );

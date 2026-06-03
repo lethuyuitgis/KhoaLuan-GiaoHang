@@ -7,6 +7,7 @@ import { ProductCard } from '@/components/ProductCard';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { PromoCarousel } from '@/components/PromoCarousel';
 import { CategoryChips, categorize, isBestseller, type CategoryKey } from '@/components/CategoryChips';
+import { useShopConfig } from '@/hooks/useShopConfig';
 
 export function CatalogPage() {
   const { t } = useTranslation();
@@ -39,15 +40,18 @@ export function CatalogPage() {
   );
 
   const greeting = t('catalog.greeting');
+  const { data: shop } = useShopConfig();
+  const brandLine = shop?.name ? `${shop.name} • Zalo` : t('catalog.brandZalo');
+  const tagline = shop?.tagline ?? t('catalog.heroSubtitle');
 
   return (
     <div>
       <header className="bg-brand-700 text-cream-50 px-5 pt-6 pb-10 rounded-b-3xl shadow-warm">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-[0.2em] text-brand-200">{t('catalog.brandZalo')}</p>
+            <p className="text-[11px] uppercase tracking-[0.2em] text-brand-200">{brandLine}</p>
             <h1 className="text-2xl font-bold mt-1 leading-tight">{greeting}</h1>
-            <p className="text-xs text-brand-200 mt-2">{t('catalog.heroSubtitle')}</p>
+            <p className="text-xs text-brand-200 mt-2">{tagline}</p>
           </div>
           <LanguageSwitcher variant="light" />
         </div>
@@ -130,7 +134,7 @@ export function CatalogPage() {
 
         {!isLoading && !error && filtered.length === 0 && (
           <div className="text-center py-12 text-brand-500">
-            <p className="text-5xl mb-3">☕</p>
+            <p className="text-5xl mb-3">🍱</p>
             <p className="text-sm">{search
               ? t('catalog.searchEmpty', { query: search })
               : t('catalog.categoryEmpty')}</p>
