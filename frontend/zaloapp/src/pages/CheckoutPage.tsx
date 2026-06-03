@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { createOrder, formatVnd, type CreateOrderRequest, type PaymentMethod } from '@shop/shared';
@@ -6,6 +6,8 @@ import { api } from '@/lib/api';
 import { useCart } from '@/features/cart/use-cart';
 import { usePayWithVnpay } from '@/features/payment/use-pay-with-vnpay';
 import { useToast } from '@/components/Toast';
+import { AddressPicker } from '@/features/address/AddressPicker';
+import { isInHanoi, isInVietnam, validateAddressString } from '@/features/address/nominatim';
 
 const INPUT_CLS =
   'mt-1 w-full px-3.5 py-2.5 rounded-xl bg-gray-50 border border-gray-200 ' +
@@ -19,12 +21,28 @@ export function CheckoutPage() {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [deliveryLat] = useState('21.0193');
-  const [deliveryLng] = useState('105.8503');
+  const [deliveryLat, setDeliveryLat] = useState<number | null>(null);
+  const [deliveryLng, setDeliveryLng] = useState<number | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [note, setNote] = useState('');
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const payWithVnpay = usePayWithVnpay();
+
+  const addressError = useMemo<string | null>(() => {
+    if (deliveryLat === null || deliveryLng === null) {
+      return 'Vui lòng chọn vị trí giao hàng trên bản đồ.';
+    }
+    if (!isInVietnam(deliveryLat, deliveryLng)) {
+      return 'Toạ độ ngoài lãnh thổ Việt Nam.';
+    }
+    if (!isInHanoi(deliveryLat, deliveryLng)) {
+      return 'Shop hiện chỉ giao trong nội thành Hà Nội.';
+    }
+    const shapeIssue = validateAddressString(deliveryAddress);
+    if (shapeIssue) return shapeIssue;
+    return null;
+  }, [deliveryAddress, deliveryLat, deliveryLng]);
 
   const placeOrder = useMutation({
     mutationFn: (req: CreateOrderRequest) => createOrder(api, req),
@@ -48,13 +66,18 @@ export function CheckoutPage() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitAttempted(true);
     if (cart.items.length === 0) return;
+    if (addressError) {
+      toast.error(addressError);
+      return;
+    }
     placeOrder.mutate({
       customerName: customerName || undefined,
       customerPhone: customerPhone || undefined,
       deliveryAddress,
-      deliveryLat,
-      deliveryLng,
+      deliveryLat: String(deliveryLat),
+      deliveryLng: String(deliveryLng),
       items: cart.items.map(i => ({ productId: i.product.id, quantity: i.quantity })),
       paymentMethod,
       note: note || undefined,
@@ -69,6 +92,9 @@ export function CheckoutPage() {
       </div>
     );
   }
+
+  const submitDisabled = placeOrder.isPending || addressError !== null;
+  const showInlineError = submitAttempted && addressError !== null;
 
   return (
     <div className="pb-32">
@@ -119,20 +145,27 @@ export function CheckoutPage() {
               className={INPUT_CLS}
             />
           </label>
-          <label className="block">
-            <span className="text-xs text-gray-500">Địa chỉ giao <span className="text-red-500">*</span></span>
-            <input
-              type="text"
-              value={deliveryAddress}
-              onChange={e => setDeliveryAddress(e.target.value)}
-              required
-              placeholder="Số nhà, đường, phường, quận"
-              className={INPUT_CLS}
-            />
-            <p className="text-[11px] text-gray-400 mt-1">
-              Toạ độ giao tạm thời dùng mặc định Bà Triệu (sẽ thay bằng map picker).
-            </p>
-          </label>
+
+          <div>
+            <span className="text-xs text-gray-500 flex items-center justify-between">
+              <span>Địa chỉ giao <span className="text-red-500">*</span></span>
+              <span className="text-[10px] text-gray-400">Bắt buộc chọn trên bản đồ</span>
+            </span>
+            <div className="mt-1">
+              <AddressPicker
+                address={deliveryAddress}
+                lat={deliveryLat}
+                lng={deliveryLng}
+                onChange={({ address, lat, lng }) => {
+                  setDeliveryAddress(address);
+                  setDeliveryLat(lat);
+                  setDeliveryLng(lng);
+                }}
+                error={showInlineError ? (addressError ?? undefined) : undefined}
+              />
+            </div>
+          </div>
+
           <label className="block">
             <span className="text-xs text-gray-500">Ghi chú (tuỳ chọn)</span>
             <textarea
@@ -167,12 +200,14 @@ export function CheckoutPage() {
 
         <button
           type="submit"
-          disabled={placeOrder.isPending}
+          disabled={submitDisabled}
           className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-zalo text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-zalo/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
         >
           {placeOrder.isPending
             ? 'Đang đặt…'
-            : `Đặt hàng • ${formatVnd(cart.subtotal())} + ship`}
+            : addressError
+              ? 'Chọn địa chỉ trên bản đồ để tiếp tục'
+              : `Đặt hàng • ${formatVnd(cart.subtotal())} + ship`}
         </button>
       </form>
     </div>
