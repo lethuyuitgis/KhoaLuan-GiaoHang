@@ -9,9 +9,12 @@ import com.shop.delivery.promotion.repository.VoucherRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.shop.delivery.promotion.entity.VoucherRedemption;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class VoucherService {
@@ -56,5 +59,30 @@ public class VoucherService {
 
         BigDecimal base = target == VoucherTarget.SHIPPING ? deliveryFee : subtotal;
         return VoucherValidationResult.ok(v, calculator.discountFor(v, base));
+    }
+
+    @Transactional
+    public void redeem(String code, UUID orderId, Long customerId, BigDecimal discountApplied) {
+        Voucher v = voucherRepo.findByCodeForUpdate(code)
+            .orElseThrow(() -> new VoucherRedeemException(VoucherInvalidReason.NOT_FOUND));
+
+        if (v.getMaxUsesTotal() != null && v.getUsedCount() >= v.getMaxUsesTotal()) {
+            throw new VoucherRedeemException(VoucherInvalidReason.EXHAUSTED_TOTAL);
+        }
+
+        int customerUses = redemptionRepo.countByVoucherIdAndCustomerId(v.getId(), customerId);
+        if (customerUses >= v.getMaxUsesPerCustomer()) {
+            throw new VoucherRedeemException(VoucherInvalidReason.EXHAUSTED_PER_CUSTOMER);
+        }
+
+        v.setUsedCount(v.getUsedCount() + 1);
+        voucherRepo.save(v);
+
+        VoucherRedemption r = new VoucherRedemption();
+        r.setVoucherId(v.getId());
+        r.setOrderId(orderId);
+        r.setCustomerId(customerId);
+        r.setDiscountApplied(discountApplied);
+        redemptionRepo.save(r);
     }
 }
