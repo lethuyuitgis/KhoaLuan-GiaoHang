@@ -105,6 +105,21 @@ export function OrderDetailPage() {
             <p className="text-sm">{order.customerName ?? '(chưa cung cấp tên)'}</p>
             <p className="text-sm text-gray-600">{order.customerPhone ?? '(chưa có SĐT)'}</p>
             <p className="text-sm mt-2">{order.deliveryAddress}</p>
+            {order.deliveryLat && order.deliveryLng && (
+              <div className="mt-2 flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-gray-500 font-mono">
+                  {Number(order.deliveryLat).toFixed(6)}, {Number(order.deliveryLng).toFixed(6)}
+                </span>
+                <a
+                  href={`https://www.google.com/maps?q=${order.deliveryLat},${order.deliveryLng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-brand-600 underline hover:text-brand-700"
+                >
+                  Xem trên Google Maps ↗
+                </a>
+              </div>
+            )}
             {order.note && <p className="text-sm text-gray-600 mt-2 italic">Ghi chú: {order.note}</p>}
           </div>
 
