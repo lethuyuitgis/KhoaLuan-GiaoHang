@@ -8,3 +8,4 @@ export * from './location';
 export * from './payment';
 export * from './reports';
 export * from './shop-config';
+export * from './voucher';
