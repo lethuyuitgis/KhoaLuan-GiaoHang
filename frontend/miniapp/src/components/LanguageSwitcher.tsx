@@ -54,7 +54,7 @@ export function LanguageSwitcher({ variant = 'light' }: Props) {
   const triggerCls =
     variant === 'light'
       ? 'bg-white/15 backdrop-blur text-white hover:bg-white/25'
-      : 'bg-gray-100 text-gray-700 hover:bg-gray-200';
+      : 'bg-brand-100 text-brand-700 hover:bg-brand-200';
 
   return (
     <div className="relative" ref={ref}>
@@ -83,8 +83,8 @@ export function LanguageSwitcher({ variant = 'light' }: Props) {
                 className={
                   'w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition ' +
                   (current === code
-                    ? 'bg-orange-50 text-orange-700 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-50')
+                    ? 'bg-brand-50 text-brand-700 font-semibold'
+                    : 'text-brand-800 hover:bg-brand-50')
                 }
               >
                 <span aria-hidden="true">{FLAGS[code]}</span>

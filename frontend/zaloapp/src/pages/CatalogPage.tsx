@@ -1,119 +1,152 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { listProducts, formatVnd } from '@shop/shared';
+import { listProducts } from '@shop/shared';
 import { api } from '@/lib/api';
 import { ProductCard } from '@/components/ProductCard';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { useCart } from '@/features/cart/use-cart';
+import { PromoCarousel } from '@/components/PromoCarousel';
+import { CategoryChips, categorize, isBestseller, type CategoryKey } from '@/components/CategoryChips';
 
 export function CatalogPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState<CategoryKey>('all');
   const { data, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: () => listProducts(api, 0, 50),
   });
-  const cart = useCart();
+
+  const items = data?.content ?? [];
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const items = data?.content ?? [];
-    if (!q) return items;
-    return items.filter(p =>
-      p.name.toLowerCase().includes(q) ||
-      (p.description?.toLowerCase().includes(q) ?? false)
-    );
-  }, [data, search]);
+    return items.filter(p => {
+      if (q) {
+        const matches = p.name.toLowerCase().includes(q)
+          || (p.description?.toLowerCase().includes(q) ?? false);
+        if (!matches) return false;
+      }
+      if (category === 'all')        return true;
+      if (category === 'bestseller') return isBestseller(p.id);
+      return categorize(p.id) === category;
+    });
+  }, [items, search, category]);
+
+  const bestSellers = useMemo(
+    () => items.filter(p => isBestseller(p.id) && p.stock > 0).slice(0, 4),
+    [items],
+  );
+
+  const greeting = t('catalog.greeting');
 
   return (
-    <div className="-mx-4 -mt-4">
-      {/* Hero / greeting strip — Zalo blue */}
-      <div className="bg-gradient-to-br from-zalo to-zalo-dark px-4 pt-5 pb-8 text-white">
+    <div>
+      <header className="bg-brand-700 text-cream-50 px-5 pt-6 pb-10 rounded-b-3xl shadow-warm">
         <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs opacity-90">{t('catalog.brandZalo')}</p>
-            <h1 className="text-2xl font-bold mt-0.5">{t('catalog.greeting')}</h1>
-            <p className="text-xs opacity-90 mt-1">{t('catalog.itemsReady', { count: filtered.length })}</p>
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-brand-200">{t('catalog.brandZalo')}</p>
+            <h1 className="text-2xl font-bold mt-1 leading-tight">{greeting}</h1>
+            <p className="text-xs text-brand-200 mt-2">{t('catalog.heroSubtitle')}</p>
           </div>
-          <div className="flex items-center gap-2">
-            <LanguageSwitcher variant="light" />
-            <Link
-              to="/customer/orders"
-              className="bg-white/15 backdrop-blur rounded-full px-3 py-1.5 text-xs font-medium hover:bg-white/25 transition"
-            >
-              {t('catalog.myOrders')}
-            </Link>
-          </div>
+          <LanguageSwitcher variant="light" />
         </div>
-      </div>
+      </header>
 
-      {/* Search bar — overlaps the hero by half */}
-      <div className="px-4 -mt-5">
-        <div className="bg-white rounded-2xl shadow-md px-4 py-2.5 flex items-center gap-2 ring-1 ring-black/5">
-          <span className="text-gray-400">🔍</span>
+      <div className="px-4 -mt-6">
+        <label className="flex items-center gap-2 bg-white rounded-2xl shadow-warm px-4 py-3 ring-1 ring-brand-100">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-400 flex-shrink-0" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.3-4.3" />
+          </svg>
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('catalog.searchPlaceholder')}
-            className="flex-1 outline-none text-sm bg-transparent placeholder-gray-400"
+            className="flex-1 outline-none text-sm bg-transparent placeholder-brand-400/70 text-brand-800"
           />
           {search && (
             <button
+              type="button"
               onClick={() => setSearch('')}
-              className="text-gray-400 text-lg leading-none"
+              className="text-brand-400 text-xl leading-none active:scale-90"
               aria-label={t('catalog.searchClear')}
             >×</button>
           )}
-        </div>
+        </label>
       </div>
 
-      <div className="px-4 pt-5 pb-28">
+      <div className="mt-4">
+        <PromoCarousel />
+      </div>
+
+      <div className="mt-5">
+        <CategoryChips value={category} onChange={setCategory} />
+      </div>
+
+      {category === 'all' && !search && bestSellers.length > 0 && (
+        <section className="mt-6 px-4">
+          <div className="flex items-baseline justify-between mb-3">
+            <h2 className="text-base font-bold text-brand-800 flex items-center gap-1.5">
+              <span aria-hidden="true">🔥</span>
+              {t('catalog.bestSeller')}
+            </h2>
+            <button
+              type="button"
+              onClick={() => setCategory('bestseller')}
+              className="text-xs text-brand-600 font-semibold active:scale-95"
+            >
+              {t('catalog.seeAll')} →
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {bestSellers.map(p => (
+              <ProductCard key={p.id} product={p} highlighted />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="mt-6 px-4">
+        <h2 className="text-base font-bold text-brand-800 mb-3">
+          {category === 'all' ? t('catalog.allProducts') : t(`categories.${category}`)}
+        </h2>
+
         {isLoading && (
-          <div className="space-y-3">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="h-28 bg-white rounded-2xl animate-pulse border border-gray-100" />
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="aspect-[4/3] bg-white rounded-3xl shadow-warm animate-pulse" />
             ))}
           </div>
         )}
 
         {error && (
-          <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-            <p className="font-medium mb-1">{t('catalog.errorLoad')}</p>
+          <div className="rounded-3xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
+            <p className="font-semibold mb-1">{t('catalog.errorLoad')}</p>
             <p className="text-xs opacity-80">{t('catalog.errorLoadHintZalo')}</p>
           </div>
         )}
 
         {!isLoading && !error && filtered.length === 0 && (
-          <div className="text-center py-16 text-gray-500">
-            <p className="text-4xl mb-2">🔎</p>
-            <p className="text-sm">{t('catalog.searchEmpty', { query: search })}</p>
+          <div className="text-center py-12 text-brand-500">
+            <p className="text-5xl mb-3">☕</p>
+            <p className="text-sm">{search
+              ? t('catalog.searchEmpty', { query: search })
+              : t('catalog.categoryEmpty')}</p>
           </div>
         )}
 
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           {filtered.map(p => (
-            <ProductCard key={p.id} product={p} />
+            <ProductCard
+              key={p.id}
+              product={p}
+              highlighted={category !== 'bestseller' && isBestseller(p.id)}
+            />
           ))}
         </div>
-      </div>
-
-      {cart.totalItems() > 0 && (
-        <Link
-          to="/customer/cart"
-          className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-zalo text-white rounded-2xl py-3.5 px-4 flex items-center justify-between shadow-xl shadow-zalo/30 active:scale-[0.98] transition"
-        >
-          <span className="flex items-center gap-2">
-            <span className="bg-white/25 rounded-full w-7 h-7 inline-flex items-center justify-center font-bold text-sm">
-              {cart.totalItems()}
-            </span>
-            <span className="font-semibold">{t('catalog.viewCart')}</span>
-          </span>
-          <span className="font-bold">{formatVnd(cart.subtotal(), i18n.language)}</span>
-        </Link>
-      )}
+      </section>
     </div>
   );
 }

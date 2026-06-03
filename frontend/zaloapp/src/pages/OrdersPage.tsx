@@ -13,32 +13,34 @@ export function OrdersPage() {
   });
 
   return (
-    <div>
-      <h1 className="text-2xl font-bold mb-4">{t('orders.title')}</h1>
+    <div className="px-5 pt-6">
+      <h1 className="text-2xl font-bold text-brand-800 mb-5">{t('orders.title')}</h1>
 
       {isLoading && (
         <div className="space-y-3">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100" />
+            <div key={i} className="h-24 bg-white rounded-3xl shadow-warm animate-pulse" />
           ))}
         </div>
       )}
 
       {error && (
-        <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-          <p className="font-medium mb-1">{t('orders.errorLoad')}</p>
+        <div className="rounded-3xl bg-rose-50 border border-rose-200 p-4 text-sm text-rose-700">
+          <p className="font-semibold mb-1">{t('orders.errorLoad')}</p>
           <p className="text-xs opacity-80">{t('orders.errorLoadHint')}</p>
         </div>
       )}
 
       {data && data.content.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-5xl mb-3">📦</p>
-          <p className="font-medium text-gray-700 mb-1">{t('orders.empty')}</p>
-          <p className="text-sm text-gray-500 mb-5">{t('orders.emptyHint')}</p>
+          <div className="w-24 h-24 rounded-full bg-brand-100 mx-auto flex items-center justify-center mb-5">
+            <span className="text-5xl" aria-hidden="true">📋</span>
+          </div>
+          <p className="font-bold text-lg text-brand-800 mb-1.5">{t('orders.empty')}</p>
+          <p className="text-sm text-brand-500 mb-6">{t('orders.emptyHint')}</p>
           <Link
             to="/customer/shop"
-            className="inline-block px-5 py-2.5 rounded-2xl bg-zalo text-white font-semibold text-sm shadow-md shadow-zalo/30 active:scale-[0.98] transition"
+            className="inline-block px-6 py-3 rounded-full bg-brand-700 text-cream-50 font-semibold text-sm shadow-warm-lg active:scale-95 transition"
           >
             {t('orders.emptyCta')}
           </Link>
@@ -50,20 +52,24 @@ export function OrdersPage() {
           <Link
             key={o.id}
             to={`/customer/orders/${o.id}`}
-            className="block bg-white rounded-2xl shadow-sm border border-gray-100 p-3 active:scale-[0.99] transition"
+            className="block bg-white rounded-3xl shadow-warm p-4 active:scale-[0.99] transition"
           >
             <div className="flex justify-between items-start gap-2">
               <div className="min-w-0">
-                <p className="font-semibold truncate">{o.code}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{formatRelative(o.createdAt, i18n.language)}</p>
+                <p className="font-bold text-brand-800 truncate">{o.code}</p>
+                <p className="text-xs text-brand-500 mt-1 flex items-center gap-1">
+                  <span aria-hidden="true">🕐</span>
+                  {formatRelative(o.createdAt, i18n.language)}
+                </p>
               </div>
               <OrderStatusBadge status={o.status} />
             </div>
-            <div className="mt-2.5 flex justify-between items-end">
-              <span className="inline-flex items-center gap-1 text-xs text-gray-500">
-                {o.paymentMethod === 'VNPAY' ? '💳 VNPay' : '💰 COD'}
+            <div className="mt-3 pt-3 border-t border-brand-100 flex justify-between items-end">
+              <span className="inline-flex items-center gap-1.5 text-xs text-brand-500 font-medium">
+                <span aria-hidden="true">{o.paymentMethod === 'VNPAY' ? '💳' : '💵'}</span>
+                {o.paymentMethod === 'VNPAY' ? 'VNPay' : 'COD'}
               </span>
-              <span className="font-bold text-zalo">{formatVnd(o.total, i18n.language)}</span>
+              <span className="font-bold text-brand-700 text-lg">{formatVnd(o.total, i18n.language)}</span>
             </div>
           </Link>
         ))}

@@ -12,8 +12,11 @@ import { AddressPicker } from '@/features/address/AddressPicker';
 import { isInHanoi, isInVietnam, validateAddressString } from '@/features/address/nominatim';
 
 const INPUT_CLS =
-  'mt-1 w-full px-3.5 py-2.5 rounded-xl bg-gray-50 border border-gray-200 ' +
-  'text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500';
+  'mt-1 w-full px-4 py-3 rounded-2xl bg-brand-50 border border-brand-100 ' +
+  'text-sm text-brand-800 placeholder-brand-400/70 focus:outline-none focus:ring-2 focus:ring-brand-600 focus:border-brand-600 transition';
+
+const SECTION_TITLE_CLS = 'text-[11px] font-bold uppercase tracking-[0.18em] text-brand-500 mb-3';
+const SECTION_CARD_CLS  = 'bg-white rounded-3xl shadow-warm p-5';
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -32,7 +35,6 @@ export function CheckoutPage() {
 
   const payWithVnpay = usePayWithVnpay();
 
-  // Compute a single validation error message — used for both inline banner and submit guard.
   const addressError = useMemo<string | null>(() => {
     if (deliveryLat === null || deliveryLng === null) {
       return t('checkout.errorAddress');
@@ -77,7 +79,6 @@ export function CheckoutPage() {
       toast.error(addressError);
       return;
     }
-    // addressError === null implies lat/lng non-null
     placeOrder.mutate({
       customerName: customerName || undefined,
       customerPhone: customerPhone || undefined,
@@ -92,9 +93,9 @@ export function CheckoutPage() {
 
   if (cart.items.length === 0) {
     return (
-      <div className="text-center py-16">
-        <p className="text-5xl mb-3">🛒</p>
-        <p className="font-medium text-gray-700">{t('cart.empty')}</p>
+      <div className="px-5 pt-6 text-center py-16">
+        <p className="text-5xl mb-3">☕</p>
+        <p className="font-semibold text-brand-800">{t('cart.emptyTitle')}</p>
       </div>
     );
   }
@@ -103,114 +104,123 @@ export function CheckoutPage() {
   const showInlineError = submitAttempted && addressError !== null;
 
   return (
-    <div className="pb-32">
+    <div className="px-4 pt-4 pb-32">
       <button
+        type="button"
         onClick={() => navigate(-1)}
-        className="mb-2 text-sm text-gray-500 active:text-gray-700"
+        className="mb-2 text-sm text-brand-500 font-medium active:text-brand-700"
       >
-        {t('checkout.back')}
+        ← {t('checkout.back')}
       </button>
-      <h1 className="text-2xl font-bold mb-4">{t('checkout.title')}</h1>
+      <h1 className="text-2xl font-bold text-brand-800 mb-5">{t('checkout.title')}</h1>
 
-      <form onSubmit={submit} className="space-y-4">
-        {/* Order summary card */}
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-sm font-semibold text-gray-500 mb-2">
+      <form onSubmit={submit} className="space-y-3">
+        {/* Order summary */}
+        <section className={SECTION_CARD_CLS}>
+          <h2 className={SECTION_TITLE_CLS}>
             {t('checkout.summary', { count: cart.totalItems() })}
           </h2>
-          {cart.items.map(i => (
-            <div key={i.product.id} className="flex justify-between py-1 text-sm">
-              <span className="truncate pr-2">{i.product.name} × {i.quantity}</span>
-              <span className="font-medium whitespace-nowrap">{formatVnd(i.product.price * i.quantity, i18n.language)}</span>
-            </div>
-          ))}
-          <div className="border-t border-gray-100 mt-2 pt-2 flex justify-between font-bold">
-            <span>{t('checkout.subtotal')}</span>
-            <span className="text-orange-600">{formatVnd(cart.subtotal(), i18n.language)}</span>
+          <div className="space-y-1.5">
+            {cart.items.map(i => (
+              <div key={i.product.id} className="flex justify-between py-1 text-sm">
+                <span className="truncate pr-2 text-brand-800">{i.product.name} × {i.quantity}</span>
+                <span className="font-semibold text-brand-800 whitespace-nowrap">
+                  {formatVnd(i.product.price * i.quantity, i18n.language)}
+                </span>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-brand-100 mt-3 pt-3 flex justify-between font-bold">
+            <span className="text-brand-800">{t('checkout.subtotal')}</span>
+            <span className="text-brand-700">{formatVnd(cart.subtotal(), i18n.language)}</span>
           </div>
         </section>
 
-        {/* Recipient info card */}
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
-          <h2 className="text-sm font-semibold text-gray-500">{t('checkout.recipient')}</h2>
-          <label className="block">
-            <span className="text-xs text-gray-500">{t('checkout.name')}</span>
-            <input
-              type="text"
-              value={customerName}
-              onChange={e => setCustomerName(e.target.value)}
-              placeholder={t('checkout.namePlaceholder')}
-              className={INPUT_CLS}
-            />
-          </label>
-          <label className="block">
-            <span className="text-xs text-gray-500">{t('checkout.phone')}</span>
-            <input
-              type="tel"
-              value={customerPhone}
-              onChange={e => setCustomerPhone(e.target.value)}
-              placeholder={t('checkout.phonePlaceholder')}
-              className={INPUT_CLS}
-            />
-          </label>
-
-          <div>
-            <span className="text-xs text-gray-500 flex items-center justify-between">
-              <span>{t('checkout.address')} <span className="text-red-500">*</span></span>
-              <span className="text-[10px] text-gray-400">{t('checkout.addressRequired')}</span>
-            </span>
-            <div className="mt-1">
-              <AddressPicker
-                address={deliveryAddress}
-                lat={deliveryLat}
-                lng={deliveryLng}
-                onChange={({ address, lat, lng }) => {
-                  setDeliveryAddress(address);
-                  setDeliveryLat(lat);
-                  setDeliveryLng(lng);
-                }}
-                error={showInlineError ? (addressError ?? undefined) : undefined}
+        {/* Recipient */}
+        <section className={SECTION_CARD_CLS}>
+          <h2 className={SECTION_TITLE_CLS}>{t('checkout.recipient')}</h2>
+          <div className="space-y-3">
+            <label className="block">
+              <span className="text-xs font-medium text-brand-500">{t('checkout.name')}</span>
+              <input
+                type="text"
+                value={customerName}
+                onChange={e => setCustomerName(e.target.value)}
+                placeholder={t('checkout.namePlaceholder')}
+                className={INPUT_CLS}
               />
-            </div>
-          </div>
+            </label>
+            <label className="block">
+              <span className="text-xs font-medium text-brand-500">{t('checkout.phone')}</span>
+              <input
+                type="tel"
+                value={customerPhone}
+                onChange={e => setCustomerPhone(e.target.value)}
+                placeholder={t('checkout.phonePlaceholder')}
+                className={INPUT_CLS}
+              />
+            </label>
 
-          <label className="block">
-            <span className="text-xs text-gray-500">{t('checkout.note')}</span>
-            <textarea
-              value={note}
-              onChange={e => setNote(e.target.value)}
-              placeholder={t('checkout.notePlaceholder')}
-              className={INPUT_CLS + ' resize-none'}
-              rows={2}
-            />
-          </label>
+            <div>
+              <span className="text-xs font-medium text-brand-500 flex items-center justify-between">
+                <span>{t('checkout.address')} <span className="text-rose-500">*</span></span>
+                <span className="text-[10px] text-brand-400">{t('checkout.addressRequired')}</span>
+              </span>
+              <div className="mt-1">
+                <AddressPicker
+                  address={deliveryAddress}
+                  lat={deliveryLat}
+                  lng={deliveryLng}
+                  onChange={({ address, lat, lng }) => {
+                    setDeliveryAddress(address);
+                    setDeliveryLat(lat);
+                    setDeliveryLng(lng);
+                  }}
+                  error={showInlineError ? (addressError ?? undefined) : undefined}
+                />
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="text-xs font-medium text-brand-500">{t('checkout.note')}</span>
+              <textarea
+                value={note}
+                onChange={e => setNote(e.target.value)}
+                placeholder={t('checkout.notePlaceholder')}
+                className={INPUT_CLS + ' resize-none'}
+                rows={2}
+              />
+            </label>
+          </div>
         </section>
 
-        {/* Payment method card */}
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-sm font-semibold text-gray-500 mb-2">{t('checkout.paymentMethod')}</h2>
-          <PaymentOption
-            value="COD"
-            checked={paymentMethod === 'COD'}
-            onChange={() => setPaymentMethod('COD')}
-            icon="💰"
-            title={t('checkout.cod')}
-            subtitle={t('checkout.codDescription')}
-          />
-          <PaymentOption
-            value="VNPAY"
-            checked={paymentMethod === 'VNPAY'}
-            onChange={() => setPaymentMethod('VNPAY')}
-            icon="💳"
-            title={t('checkout.vnpay')}
-            subtitle={t('checkout.vnpayDescription')}
-          />
+        {/* Payment */}
+        <section className={SECTION_CARD_CLS}>
+          <h2 className={SECTION_TITLE_CLS}>{t('checkout.paymentMethod')}</h2>
+          <div className="space-y-2">
+            <PaymentOption
+              value="COD"
+              checked={paymentMethod === 'COD'}
+              onChange={() => setPaymentMethod('COD')}
+              icon="💵"
+              title={t('checkout.cod')}
+              subtitle={t('checkout.codDescription')}
+            />
+            <PaymentOption
+              value="VNPAY"
+              checked={paymentMethod === 'VNPAY'}
+              onChange={() => setPaymentMethod('VNPAY')}
+              icon="💳"
+              title={t('checkout.vnpay')}
+              subtitle={t('checkout.vnpayDescription')}
+            />
+          </div>
         </section>
 
         <button
           type="submit"
           disabled={submitDisabled}
-          className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-orange-500 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-orange-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
+          className="fixed bottom-20 left-4 right-4 max-w-md mx-auto bg-brand-700 text-cream-50 rounded-2xl py-4 px-4 font-bold shadow-warm-lg active:scale-[0.98] transition disabled:bg-brand-200 disabled:text-brand-400 disabled:shadow-none"
         >
           {placeOrder.isPending
             ? t('checkout.placing')
@@ -236,10 +246,10 @@ function PaymentOption({
   return (
     <label
       className={
-        'flex items-center gap-3 py-2.5 px-3 rounded-xl cursor-pointer transition border ' +
+        'flex items-center gap-3 py-3 px-3.5 rounded-2xl cursor-pointer transition border-2 ' +
         (checked
-          ? 'border-orange-500 bg-orange-50'
-          : 'border-transparent hover:bg-gray-50')
+          ? 'border-brand-600 bg-brand-50 shadow-warm'
+          : 'border-brand-100 bg-brand-50/40 hover:border-brand-200')
       }
     >
       <input
@@ -248,12 +258,12 @@ function PaymentOption({
         value={value}
         checked={checked}
         onChange={onChange}
-        className="accent-orange-500"
+        className="accent-brand-700"
       />
-      <span className="text-2xl">{icon}</span>
+      <span className="text-2xl" aria-hidden="true">{icon}</span>
       <span className="flex-1 min-w-0">
-        <span className="block font-semibold text-sm">{title}</span>
-        <span className="block text-xs text-gray-500 line-clamp-1">{subtitle}</span>
+        <span className="block font-semibold text-sm text-brand-800">{title}</span>
+        <span className="block text-xs text-brand-500 line-clamp-1">{subtitle}</span>
       </span>
     </label>
   );

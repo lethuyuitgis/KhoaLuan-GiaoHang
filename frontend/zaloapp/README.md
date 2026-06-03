@@ -12,7 +12,10 @@ chỉ thay layer auth + SDK + brand color.
 - [x] Mock Zalo SDK (`window.ZaloJavaScriptInterface` check) trong `src/lib/zalo.ts`
 - [x] Dev-bypass header `X-Dev-User-Id` (cùng cơ chế với Telegram miniapp)
 - [x] Backend `ZaloAuthFilter` (stub) — chấp nhận header `X-Zalo-Access-Token`
-- [x] Brand color `zalo` (#0068FF) thay cho orange của miniapp
+- [x] Brand đồng nhất với miniapp — chung palette `brand` (coffee brown TCH-style) cho UI
+      khách hàng. Token `zalo` (#0068FF) vẫn được giữ trong `tailwind.config.ts` để dùng
+      cho các thành phần đặc thù Zalo (provider banner, splash badge…) nhưng các CTA
+      và header dùng nâu để khách thấy đây cùng một quán cà phê dù vào qua Telegram hay Zalo.
 - [x] Smoke tests cho SDK wrapper + cart store
 - [x] `pnpm --filter @shop/zaloapp dev` chạy ở port `5182` (miniapp dùng 5173, webadmin 5181)
 

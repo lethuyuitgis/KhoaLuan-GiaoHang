@@ -1,13 +1,29 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import { BottomNav } from './BottomNav';
 
+/**
+ * Mobile-first shell with cream page background. The bottom navigation lives
+ * outside <main> so it stays fixed; we reserve `pb-20` to keep the last
+ * card from being hidden behind it.
+ */
 export function Layout() {
-  // On desktop dev mode we frame the mobile-width page in a soft surround so
-  // the centered 28rem column doesn't float on a vast empty canvas.
+  const { pathname } = useLocation();
+  // Splash page wants the hero to span the full viewport with no padding.
+  const isSplash = pathname === '/' || pathname === '';
+  // Shipper screens preserve their original flat layout.
+  const isShipper = pathname.startsWith('/shipper');
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-100 to-slate-200 sm:py-6">
-      <main className="max-w-md mx-auto min-h-screen sm:min-h-0 bg-tg-bg text-tg-text sm:rounded-3xl sm:shadow-xl sm:ring-1 sm:ring-black/5 overflow-hidden px-4 pt-4 pb-24">
+    <div className="min-h-screen bg-brand-50 text-brand-800">
+      <main
+        className={
+          'max-w-md mx-auto min-h-screen ' +
+          (isSplash ? '' : isShipper ? 'px-4 pt-4 pb-6' : 'pb-24')
+        }
+      >
         <Outlet />
       </main>
+      <BottomNav />
     </div>
   );
 }

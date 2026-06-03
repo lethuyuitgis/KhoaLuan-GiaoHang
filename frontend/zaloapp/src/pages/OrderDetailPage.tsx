@@ -11,6 +11,9 @@ const CANCELLABLE = new Set(['PENDING', 'CONFIRMED']);
 const POLL_MS = 3000;
 const POLL_TIMEOUT_MS = 60_000;
 
+const SECTION_TITLE_CLS = 'text-[11px] font-bold uppercase tracking-[0.18em] text-brand-500 mb-3';
+const SECTION_CARD_CLS  = 'bg-white rounded-3xl shadow-warm p-5';
+
 export function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -62,24 +65,26 @@ export function OrderDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <div className="h-10 bg-white rounded-xl animate-pulse border border-gray-100" />
-        <div className="h-40 bg-white rounded-2xl animate-pulse border border-gray-100" />
-        <div className="h-24 bg-white rounded-2xl animate-pulse border border-gray-100" />
-        <div className="h-20 bg-white rounded-2xl animate-pulse border border-gray-100" />
+      <div className="px-4 pt-4 space-y-3">
+        <div className="h-10 bg-white rounded-2xl shadow-warm animate-pulse" />
+        <div className="h-40 bg-white rounded-3xl shadow-warm animate-pulse" />
+        <div className="h-24 bg-white rounded-3xl shadow-warm animate-pulse" />
+        <div className="h-20 bg-white rounded-3xl shadow-warm animate-pulse" />
       </div>
     );
   }
 
   if (error || !order) {
     return (
-      <div className="text-center py-16">
-        <p className="text-5xl mb-3">😕</p>
-        <p className="font-medium text-gray-700 mb-1">{t('orderDetail.errorLoad')}</p>
-        <p className="text-sm text-gray-500 mb-5">{t('orderDetail.errorLoadHint')}</p>
+      <div className="px-5 pt-6 text-center py-16">
+        <div className="w-24 h-24 rounded-full bg-brand-100 mx-auto flex items-center justify-center mb-5">
+          <span className="text-5xl" aria-hidden="true">😕</span>
+        </div>
+        <p className="font-bold text-lg text-brand-800 mb-1.5">{t('orderDetail.errorLoad')}</p>
+        <p className="text-sm text-brand-500 mb-6">{t('orderDetail.errorLoadHint')}</p>
         <Link
           to="/customer/orders"
-          className="inline-block px-5 py-2.5 rounded-2xl bg-zalo text-white font-semibold text-sm shadow-md shadow-zalo/30 active:scale-[0.98] transition"
+          className="inline-block px-6 py-3 rounded-full bg-brand-700 text-cream-50 font-semibold text-sm shadow-warm-lg active:scale-95 transition"
         >
           {t('orderDetail.backToList')}
         </Link>
@@ -88,122 +93,132 @@ export function OrderDetailPage() {
   }
 
   return (
-    <div className="pb-24">
+    <div className="px-4 pt-4 pb-10 space-y-3">
       <button
+        type="button"
         onClick={() => navigate(-1)}
-        className="mb-3 text-sm text-gray-500 active:text-gray-700"
+        className="text-sm text-brand-500 font-medium active:text-brand-700"
       >
-        {t('orderDetail.back')}
+        ← {t('orderDetail.back')}
       </button>
 
-      <div className="flex justify-between items-start mb-4 gap-2">
+      <div className="bg-white rounded-3xl shadow-warm p-5 flex justify-between items-start gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-bold truncate">{order.code}</h1>
-          <p className="text-xs text-gray-500 mt-1">{formatDateTime(order.createdAt, i18n.language)}</p>
+          <h1 className="text-xl font-bold text-brand-800 truncate">{order.code}</h1>
+          <p className="text-xs text-brand-500 mt-1 flex items-center gap-1">
+            <span aria-hidden="true">🕐</span>
+            {formatDateTime(order.createdAt, i18n.language)}
+          </p>
         </div>
         <OrderStatusBadge status={order.status} />
       </div>
 
       {order.status === 'DELIVERING' && (
-        <div className="mb-4 rounded-2xl bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
-          <p className="font-semibold">📍 {t('status.DELIVERING')}</p>
-          <p className="text-xs mt-1 opacity-80">
-            {t('orderDetail.deliveredHintZalo')}
+        <div className="rounded-3xl bg-gradient-to-br from-brand-100 to-cream-200 p-5 shadow-warm">
+          <p className="font-bold text-brand-800 flex items-center gap-2">
+            <span aria-hidden="true">📍</span>
+            {t('status.DELIVERING')}
           </p>
+          <p className="text-xs text-brand-600 mt-1.5 leading-relaxed">{t('orderDetail.deliveredHintZalo')}</p>
         </div>
       )}
 
-      {/* Items + totals */}
-      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
-        <h2 className="text-sm font-semibold text-gray-500 mb-3">{t('orderDetail.items')}</h2>
-        <div className="space-y-2">
+      <section className={SECTION_CARD_CLS}>
+        <h2 className={SECTION_TITLE_CLS}>{t('orderDetail.items')}</h2>
+        <div className="space-y-3">
           {order.items.map(i => (
             <div key={i.id} className="flex gap-3 items-center">
               {i.productImageUrl ? (
                 <img
                   src={i.productImageUrl}
                   alt={i.productName}
-                  className="w-12 h-12 rounded-xl object-cover bg-gray-100 flex-shrink-0"
+                  className="w-14 h-14 rounded-2xl object-cover bg-brand-100 flex-shrink-0"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-zalo to-zalo-dark flex-shrink-0 flex items-center justify-center text-white font-bold">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-lg">
                   {i.productName.charAt(0).toUpperCase()}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{i.productName}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-semibold text-brand-800 truncate">{i.productName}</p>
+                <p className="text-xs text-brand-500 mt-0.5">
                   {formatVnd(i.unitPrice, i18n.language)} × {i.quantity}
                 </p>
               </div>
-              <span className="text-sm font-semibold whitespace-nowrap">{formatVnd(i.subtotal, i18n.language)}</span>
+              <span className="text-sm font-bold text-brand-800 whitespace-nowrap">
+                {formatVnd(i.subtotal, i18n.language)}
+              </span>
             </div>
           ))}
         </div>
-        <div className="border-t border-gray-100 mt-3 pt-3 space-y-1 text-sm">
+        <div className="border-t border-brand-100 mt-4 pt-3 space-y-1.5 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">{t('orderDetail.subtotal')}</span>
-            <span>{formatVnd(order.subtotal, i18n.language)}</span>
+            <span className="text-brand-500">{t('orderDetail.subtotal')}</span>
+            <span className="text-brand-800">{formatVnd(order.subtotal, i18n.language)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">{t('orderDetail.shippingFee', { km: order.distanceKm })}</span>
-            <span>{formatVnd(order.deliveryFee, i18n.language)}</span>
+            <span className="text-brand-500">{t('orderDetail.shippingFee', { km: order.distanceKm })}</span>
+            <span className="text-brand-800">{formatVnd(order.deliveryFee, i18n.language)}</span>
           </div>
-          <div className="flex justify-between font-bold pt-1.5 border-t border-gray-100 text-base">
-            <span>{t('orderDetail.total')}</span>
-            <span className="text-zalo">{formatVnd(order.total, i18n.language)}</span>
+          <div className="flex justify-between font-bold pt-2 mt-1 border-t border-brand-100 text-base">
+            <span className="text-brand-800">{t('orderDetail.total')}</span>
+            <span className="text-brand-700">{formatVnd(order.total, i18n.language)}</span>
           </div>
         </div>
       </section>
 
-      {/* Delivery info */}
-      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
-        <h2 className="text-sm font-semibold text-gray-500 mb-2">{t('orderDetail.deliveryTo')}</h2>
-        <p className="text-sm flex items-start gap-2">
-          <span>📍</span>
+      <section className={SECTION_CARD_CLS}>
+        <h2 className={SECTION_TITLE_CLS}>{t('orderDetail.deliveryTo')}</h2>
+        <p className="text-sm text-brand-800 flex items-start gap-2 leading-relaxed">
+          <span aria-hidden="true" className="text-brand-600 flex-shrink-0">📍</span>
           <span>{order.deliveryAddress}</span>
         </p>
         {order.customerPhone && (
-          <p className="text-sm text-gray-500 mt-1.5">
-            📞 {order.customerPhone}
+          <p className="text-sm text-brand-500 mt-2 flex items-center gap-2">
+            <span aria-hidden="true">📞</span>
+            {order.customerPhone}
           </p>
         )}
         {order.note && (
-          <p className="text-sm text-gray-500 mt-2 italic bg-gray-50 rounded-xl px-3 py-2">
-            💬 {order.note}
+          <p className="text-sm text-brand-600 mt-3 italic bg-brand-50 rounded-2xl px-3 py-2.5 leading-relaxed">
+            <span aria-hidden="true" className="mr-1">💬</span>
+            {order.note}
           </p>
         )}
       </section>
 
-      {/* Payment status */}
-      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3 text-sm">
-        <div className="flex justify-between items-center">
-          <span className="text-gray-500">{t('orderDetail.payment')}</span>
-          <span className="font-medium">
-            {order.paymentMethod === 'VNPAY' ? '💳 VNPay' : '💰 COD'}
+      <section className={SECTION_CARD_CLS}>
+        <h2 className={SECTION_TITLE_CLS}>{t('orderDetail.payment')}</h2>
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-brand-500">{t('orderDetail.payment')}</span>
+          <span className="font-semibold text-brand-800">
+            {order.paymentMethod === 'VNPAY' ? '💳 VNPay' : '💵 COD'}
           </span>
         </div>
-        <div className="flex justify-between mt-2 items-center">
-          <span className="text-gray-500">{t('orderDetail.paymentStatus')}</span>
+        <div className="flex justify-between mt-2.5 items-center text-sm">
+          <span className="text-brand-500">{t('orderDetail.paymentStatus')}</span>
           <PaymentStatusInline status={order.paymentStatus} />
         </div>
         {order.paymentMethod === 'VNPAY' && order.paymentStatus === 'PENDING' && !pollingExpired && (
-          <div className="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800 flex items-center gap-2">
+          <div className="mt-3 rounded-2xl bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs text-amber-800 flex items-center gap-2">
             <span className="inline-block w-3 h-3 border-2 border-amber-300 border-t-amber-700 rounded-full animate-spin"></span>
             {t('orderDetail.vnpayPending')}
           </div>
         )}
         {order.paymentMethod === 'VNPAY' && order.paymentStatus === 'PENDING' && pollingExpired && (
-          <p className="mt-3 rounded-xl bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+          <p className="mt-3 rounded-2xl bg-amber-50 border border-amber-200 px-3 py-2.5 text-xs text-amber-800">
             {t('orderDetail.vnpayTimeout')}
           </p>
         )}
       </section>
 
       {order.status === 'DELIVERED' && (
-        <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-blue-50 border border-amber-200 p-4 mb-3 text-sm text-amber-900">
-          <p className="font-semibold">{t('orderDetail.delivered')}</p>
-          <p className="text-xs mt-1">{t('orderDetail.deliveredHintZalo')}</p>
+        <div className="rounded-3xl bg-gradient-to-br from-brand-100 to-cream-200 p-5 shadow-warm">
+          <p className="font-bold text-brand-800 flex items-center gap-2">
+            <span aria-hidden="true">⭐</span>
+            {t('orderDetail.delivered')}
+          </p>
+          <p className="text-xs text-brand-600 mt-1.5 leading-relaxed">{t('orderDetail.deliveredHintZalo')}</p>
         </div>
       )}
 
@@ -211,7 +226,7 @@ export function OrderDetailPage() {
         <button
           onClick={handleCancel}
           disabled={cancelMut.isPending}
-          className="w-full py-3 border border-red-300 text-red-600 rounded-2xl font-medium disabled:opacity-50 active:scale-[0.98] transition"
+          className="w-full py-3.5 border-2 border-rose-300 text-rose-600 rounded-2xl font-semibold disabled:opacity-50 active:scale-[0.98] transition bg-white"
         >
           {cancelMut.isPending ? t('orderDetail.cancelling') : t('orderDetail.cancel')}
         </button>
@@ -223,14 +238,14 @@ export function OrderDetailPage() {
 function PaymentStatusInline({ status }: { status: PaymentStatus }) {
   const { t } = useTranslation();
   const styles: Record<PaymentStatus, string> = {
-    PENDING:  'bg-gray-100 text-gray-700',
+    PENDING:  'bg-stone-200 text-stone-700',
     SUCCESS:  'bg-emerald-100 text-emerald-700',
-    FAILED:   'bg-red-100 text-red-700',
+    FAILED:   'bg-rose-100 text-rose-700',
     REFUNDED: 'bg-amber-100 text-amber-700',
   };
-  const cls = styles[status] ?? 'bg-gray-100 text-gray-700';
+  const cls = styles[status] ?? 'bg-stone-200 text-stone-700';
   return (
-    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${cls}`}>
       {t(`payment.${status}`)}
     </span>
   );
