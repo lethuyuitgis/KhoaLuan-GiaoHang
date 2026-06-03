@@ -8,6 +8,7 @@ import com.shop.delivery.promotion.support.PromotionTestcontainerBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -19,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@DirtiesContext
 class VoucherRaceConditionIT extends PromotionTestcontainerBase {
 
     @Autowired VoucherRepository repo;

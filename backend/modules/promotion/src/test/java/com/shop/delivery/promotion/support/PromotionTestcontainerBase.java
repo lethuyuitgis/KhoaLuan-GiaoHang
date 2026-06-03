@@ -15,7 +15,8 @@ public abstract class PromotionTestcontainerBase {
     static PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine")
         .withDatabaseName("promo_test")
         .withUsername("app")
-        .withPassword("app_test");
+        .withPassword("app_test")
+        .withReuse(true);
 
     @DynamicPropertySource
     static void props(DynamicPropertyRegistry r) {
