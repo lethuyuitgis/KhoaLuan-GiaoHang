@@ -5,10 +5,16 @@ import { useTranslation } from 'react-i18next';
 import { fetchMe } from '@shop/shared';
 import { api } from '@/lib/api';
 import { tg } from '@/lib/telegram';
+import { useShopConfig } from '@/hooks/useShopConfig';
 
 export function SplashPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { data: shop } = useShopConfig();
+  // Fall back to i18n keys so the splash never looks empty during the first
+  // fetch — admins can override per-shop, customers see good defaults regardless.
+  const brandName = shop?.name ?? t('splash.brandName');
+  const tagline = shop?.tagline ?? t('app.tagline');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['me'],
@@ -32,10 +38,14 @@ export function SplashPage() {
     return (
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-brand-800 via-brand-700 to-brand-600 text-cream-50">
         <div className="flex-1 px-6 pt-20 pb-10 text-center flex flex-col items-center justify-center">
-          <div className="text-7xl mb-5 drop-shadow-lg" aria-hidden="true">☕</div>
+          {shop?.logoUrl ? (
+            <img src={shop.logoUrl} alt={brandName} className="w-24 h-24 mb-5 rounded-2xl object-contain bg-white/10 p-2" />
+          ) : (
+            <div className="text-7xl mb-5 drop-shadow-lg" aria-hidden="true">🛵</div>
+          )}
           <p className="text-[11px] uppercase tracking-[0.3em] text-brand-200 mb-2">{t('splash.eyebrow')}</p>
-          <h1 className="text-4xl font-extrabold leading-tight">{t('splash.brandName')}</h1>
-          <p className="text-sm text-brand-100 mt-3 max-w-xs leading-relaxed">{t('app.tagline')}</p>
+          <h1 className="text-4xl font-extrabold leading-tight">{brandName}</h1>
+          <p className="text-sm text-brand-100 mt-3 max-w-xs leading-relaxed">{tagline}</p>
         </div>
         <div className="px-5 pb-8 space-y-3">
           {import.meta.env.DEV && (
@@ -66,8 +76,8 @@ export function SplashPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-6 bg-gradient-to-br from-brand-800 to-brand-600 text-cream-50">
-        <div className="text-6xl mb-4" aria-hidden="true">☕</div>
-        <h1 className="text-2xl font-bold">{t('splash.brandName')}</h1>
+        <div className="text-6xl mb-4" aria-hidden="true">🛵</div>
+        <h1 className="text-2xl font-bold">{brandName}</h1>
         <div className="mt-6 inline-block w-8 h-8 border-2 border-cream-200/40 border-t-cream-50 rounded-full animate-spin" />
         <p className="mt-4 text-sm text-brand-100">{t('splash.authenticating')}</p>
       </div>

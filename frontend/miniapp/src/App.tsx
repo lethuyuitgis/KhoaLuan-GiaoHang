@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { TelegramProvider } from './providers/TelegramProvider';
 import { QueryProvider } from './providers/QueryProvider';
+import { ThemeProvider } from './providers/ThemeProvider';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Layout } from './components/Layout';
 import { ToastProvider } from './components/Toast';
@@ -18,6 +19,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryProvider>
+        <ThemeProvider>
         <TelegramProvider>
           <ToastProvider>
             <BrowserRouter>
@@ -37,6 +39,7 @@ export default function App() {
             </BrowserRouter>
           </ToastProvider>
         </TelegramProvider>
+        </ThemeProvider>
       </QueryProvider>
     </ErrorBoundary>
   );
