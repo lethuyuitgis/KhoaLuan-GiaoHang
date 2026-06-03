@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { createOrder, formatVnd, type CreateOrderRequest, type PaymentMethod } from '@shop/shared';
 import { api } from '@/lib/api';
 import { useCart } from '@/features/cart/use-cart';
@@ -17,6 +18,7 @@ export function CheckoutPage() {
   const navigate = useNavigate();
   const cart = useCart();
   const toast = useToast();
+  const { t, i18n } = useTranslation();
 
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
@@ -31,24 +33,24 @@ export function CheckoutPage() {
 
   const addressError = useMemo<string | null>(() => {
     if (deliveryLat === null || deliveryLng === null) {
-      return 'Vui lòng chọn vị trí giao hàng trên bản đồ.';
+      return t('checkout.errorAddress');
     }
     if (!isInVietnam(deliveryLat, deliveryLng)) {
-      return 'Toạ độ ngoài lãnh thổ Việt Nam.';
+      return t('checkout.errorOutsideVN');
     }
     if (!isInHanoi(deliveryLat, deliveryLng)) {
-      return 'Shop hiện chỉ giao trong nội thành Hà Nội.';
+      return t('checkout.errorOutsideHanoi');
     }
     const shapeIssue = validateAddressString(deliveryAddress);
     if (shapeIssue) return shapeIssue;
     return null;
-  }, [deliveryAddress, deliveryLat, deliveryLng]);
+  }, [deliveryAddress, deliveryLat, deliveryLng, t]);
 
   const placeOrder = useMutation({
     mutationFn: (req: CreateOrderRequest) => createOrder(api, req),
     onSuccess: order => {
       cart.clear();
-      toast.success('Đặt hàng thành công!');
+      toast.success(t('checkout.success'));
       if (order.paymentMethod === 'VNPAY') {
         navigate(`/customer/orders/${order.id}`, { replace: true });
         payWithVnpay.mutate(order.id);
@@ -59,7 +61,7 @@ export function CheckoutPage() {
     onError: (err: unknown) => {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        ?? 'Đặt đơn thất bại';
+        ?? t('checkout.error');
       toast.error(msg);
     },
   });
@@ -88,7 +90,7 @@ export function CheckoutPage() {
     return (
       <div className="text-center py-16">
         <p className="text-5xl mb-3">🛒</p>
-        <p className="font-medium text-gray-700">Giỏ hàng trống</p>
+        <p className="font-medium text-gray-700">{t('cart.empty')}</p>
       </div>
     );
   }
@@ -102,54 +104,54 @@ export function CheckoutPage() {
         onClick={() => navigate(-1)}
         className="mb-2 text-sm text-gray-500 active:text-gray-700"
       >
-        ← Quay lại
+        {t('checkout.back')}
       </button>
-      <h1 className="text-2xl font-bold mb-4">Xác nhận đặt hàng</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('checkout.title')}</h1>
 
       <form onSubmit={submit} className="space-y-4">
         <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
           <h2 className="text-sm font-semibold text-gray-500 mb-2">
-            Sản phẩm ({cart.totalItems()})
+            {t('checkout.summary', { count: cart.totalItems() })}
           </h2>
           {cart.items.map(i => (
             <div key={i.product.id} className="flex justify-between py-1 text-sm">
               <span className="truncate pr-2">{i.product.name} × {i.quantity}</span>
-              <span className="font-medium whitespace-nowrap">{formatVnd(i.product.price * i.quantity)}</span>
+              <span className="font-medium whitespace-nowrap">{formatVnd(i.product.price * i.quantity, i18n.language)}</span>
             </div>
           ))}
           <div className="border-t border-gray-100 mt-2 pt-2 flex justify-between font-bold">
-            <span>Tạm tính</span>
-            <span className="text-zalo">{formatVnd(cart.subtotal())}</span>
+            <span>{t('checkout.subtotal')}</span>
+            <span className="text-zalo">{formatVnd(cart.subtotal(), i18n.language)}</span>
           </div>
         </section>
 
         <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3">
-          <h2 className="text-sm font-semibold text-gray-500">Thông tin người nhận</h2>
+          <h2 className="text-sm font-semibold text-gray-500">{t('checkout.recipient')}</h2>
           <label className="block">
-            <span className="text-xs text-gray-500">Tên người nhận</span>
+            <span className="text-xs text-gray-500">{t('checkout.name')}</span>
             <input
               type="text"
               value={customerName}
               onChange={e => setCustomerName(e.target.value)}
-              placeholder="Để trống = dùng tên Zalo"
+              placeholder={t('checkout.namePlaceholderZalo')}
               className={INPUT_CLS}
             />
           </label>
           <label className="block">
-            <span className="text-xs text-gray-500">Số điện thoại</span>
+            <span className="text-xs text-gray-500">{t('checkout.phone')}</span>
             <input
               type="tel"
               value={customerPhone}
               onChange={e => setCustomerPhone(e.target.value)}
-              placeholder="+849xxxxxxxx"
+              placeholder={t('checkout.phonePlaceholder')}
               className={INPUT_CLS}
             />
           </label>
 
           <div>
             <span className="text-xs text-gray-500 flex items-center justify-between">
-              <span>Địa chỉ giao <span className="text-red-500">*</span></span>
-              <span className="text-[10px] text-gray-400">Bắt buộc chọn trên bản đồ</span>
+              <span>{t('checkout.address')} <span className="text-red-500">*</span></span>
+              <span className="text-[10px] text-gray-400">{t('checkout.addressRequired')}</span>
             </span>
             <div className="mt-1">
               <AddressPicker
@@ -167,11 +169,11 @@ export function CheckoutPage() {
           </div>
 
           <label className="block">
-            <span className="text-xs text-gray-500">Ghi chú (tuỳ chọn)</span>
+            <span className="text-xs text-gray-500">{t('checkout.note')}</span>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
-              placeholder="Vd: Giao tối 6–8h, gọi trước khi đến…"
+              placeholder={t('checkout.notePlaceholder')}
               className={INPUT_CLS + ' resize-none'}
               rows={2}
             />
@@ -179,22 +181,22 @@ export function CheckoutPage() {
         </section>
 
         <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
-          <h2 className="text-sm font-semibold text-gray-500 mb-2">Phương thức thanh toán</h2>
+          <h2 className="text-sm font-semibold text-gray-500 mb-2">{t('checkout.paymentMethod')}</h2>
           <PaymentOption
             value="COD"
             checked={paymentMethod === 'COD'}
             onChange={() => setPaymentMethod('COD')}
             icon="💰"
-            title="Thanh toán khi nhận hàng"
-            subtitle="Trả tiền mặt cho shipper khi nhận đơn"
+            title={t('checkout.cod')}
+            subtitle={t('checkout.codDescription')}
           />
           <PaymentOption
             value="VNPAY"
             checked={paymentMethod === 'VNPAY'}
             onChange={() => setPaymentMethod('VNPAY')}
             icon="💳"
-            title="VNPay (sandbox)"
-            subtitle="Quét QR / ATM / thẻ — xác nhận tức thì"
+            title={t('checkout.vnpay')}
+            subtitle={t('checkout.vnpayDescription')}
           />
         </section>
 
@@ -204,10 +206,10 @@ export function CheckoutPage() {
           className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-zalo text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-zalo/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
         >
           {placeOrder.isPending
-            ? 'Đang đặt…'
+            ? t('checkout.placing')
             : addressError
-              ? 'Chọn địa chỉ trên bản đồ để tiếp tục'
-              : `Đặt hàng • ${formatVnd(cart.subtotal())} + ship`}
+              ? t('checkout.cta.disabled')
+              : t('checkout.cta.ready', { total: formatVnd(cart.subtotal(), i18n.language) })}
         </button>
       </form>
     </div>

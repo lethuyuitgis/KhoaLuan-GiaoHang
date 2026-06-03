@@ -1,23 +1,25 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { formatVnd } from '@shop/shared';
 import { useCart } from '@/features/cart/use-cart';
 
 export function CartPage() {
+  const { t, i18n } = useTranslation();
   const cart = useCart();
 
   if (cart.items.length === 0) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-4">Giỏ hàng</h1>
+        <h1 className="text-2xl font-bold mb-4">{t('cart.title')}</h1>
         <div className="text-center py-16">
           <p className="text-5xl mb-3">🛒</p>
-          <p className="font-medium text-gray-700 mb-1">Giỏ hàng trống</p>
-          <p className="text-sm text-gray-500 mb-5">Khám phá menu và thêm món yêu thích nhé!</p>
+          <p className="font-medium text-gray-700 mb-1">{t('cart.empty')}</p>
+          <p className="text-sm text-gray-500 mb-5">{t('cart.emptyHint')}</p>
           <Link
             to="/customer/shop"
             className="inline-block px-5 py-2.5 rounded-2xl bg-orange-500 text-white font-semibold text-sm shadow-md shadow-orange-500/30 active:scale-[0.98] transition"
           >
-            Xem menu
+            {t('cart.browseMenu')}
           </Link>
         </div>
       </div>
@@ -26,7 +28,7 @@ export function CartPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Giỏ hàng</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('cart.title')}</h1>
 
       <div className="space-y-3">
         {cart.items.map(item => (
@@ -48,14 +50,14 @@ export function CartPage() {
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-[15px] line-clamp-1">{item.product.name}</h3>
               <p className="text-sm font-bold text-orange-600 mt-0.5">
-                {formatVnd(item.product.price)}
+                {formatVnd(item.product.price, i18n.language)}
               </p>
               <div className="flex items-center gap-2 mt-2">
                 <div className="inline-flex items-center bg-gray-50 rounded-full ring-1 ring-gray-200">
                   <button
                     onClick={() => cart.setQuantity(item.product.id, item.quantity - 1)}
                     className="w-8 h-8 inline-flex items-center justify-center text-lg leading-none text-gray-600 active:scale-95 transition"
-                    aria-label="Giảm"
+                    aria-label={t('product.decrease')}
                   >
                     −
                   </button>
@@ -63,7 +65,7 @@ export function CartPage() {
                   <button
                     onClick={() => cart.setQuantity(item.product.id, item.quantity + 1)}
                     className="w-8 h-8 inline-flex items-center justify-center text-lg leading-none text-gray-600 active:scale-95 transition"
-                    aria-label="Tăng"
+                    aria-label={t('product.increase')}
                   >
                     +
                   </button>
@@ -72,7 +74,7 @@ export function CartPage() {
                   onClick={() => cart.remove(item.product.id)}
                   className="ml-auto text-xs text-red-500 font-medium active:scale-95 transition"
                 >
-                  Xoá
+                  {t('cart.remove')}
                 </button>
               </div>
             </div>
@@ -82,12 +84,10 @@ export function CartPage() {
 
       <div className="mt-5 bg-white rounded-2xl shadow-sm border border-gray-100 p-4">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-500">Tạm tính ({cart.totalItems()} món)</span>
-          <span className="font-semibold">{formatVnd(cart.subtotal())}</span>
+          <span className="text-gray-500">{t('cart.subtotal', { count: cart.totalItems() })}</span>
+          <span className="font-semibold">{formatVnd(cart.subtotal(), i18n.language)}</span>
         </div>
-        <p className="text-xs text-gray-400 mt-1.5">
-          Phí ship sẽ tính khi bạn nhập địa chỉ giao
-        </p>
+        <p className="text-xs text-gray-400 mt-1.5">{t('cart.shippingNote')}</p>
       </div>
 
       {/* Sticky cart CTA — matches catalog floating bar style */}
@@ -99,9 +99,9 @@ export function CartPage() {
           <span className="bg-white/25 rounded-full w-7 h-7 inline-flex items-center justify-center font-bold text-sm">
             {cart.totalItems()}
           </span>
-          <span className="font-semibold">Đặt hàng</span>
+          <span className="font-semibold">{t('cart.placeOrder')}</span>
         </span>
-        <span className="font-bold">{formatVnd(cart.subtotal())}</span>
+        <span className="font-bold">{formatVnd(cart.subtotal(), i18n.language)}</span>
       </Link>
     </div>
   );

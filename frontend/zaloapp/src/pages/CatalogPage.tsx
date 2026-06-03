@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { listProducts, formatVnd } from '@shop/shared';
 import { api } from '@/lib/api';
 import { ProductCard } from '@/components/ProductCard';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useCart } from '@/features/cart/use-cart';
 
 export function CatalogPage() {
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState('');
   const { data, isLoading, error } = useQuery({
     queryKey: ['products'],
@@ -30,16 +33,19 @@ export function CatalogPage() {
       <div className="bg-gradient-to-br from-zalo to-zalo-dark px-4 pt-5 pb-8 text-white">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs opacity-90">🛵 Shop Giao Hàng • Zalo</p>
-            <h1 className="text-2xl font-bold mt-0.5">Hôm nay ăn gì?</h1>
-            <p className="text-xs opacity-90 mt-1">{filtered.length} món sẵn sàng giao</p>
+            <p className="text-xs opacity-90">{t('catalog.brandZalo')}</p>
+            <h1 className="text-2xl font-bold mt-0.5">{t('catalog.greeting')}</h1>
+            <p className="text-xs opacity-90 mt-1">{t('catalog.itemsReady', { count: filtered.length })}</p>
           </div>
-          <Link
-            to="/customer/orders"
-            className="bg-white/15 backdrop-blur rounded-full px-3 py-1.5 text-xs font-medium hover:bg-white/25 transition"
-          >
-            Đơn của tôi
-          </Link>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher variant="light" />
+            <Link
+              to="/customer/orders"
+              className="bg-white/15 backdrop-blur rounded-full px-3 py-1.5 text-xs font-medium hover:bg-white/25 transition"
+            >
+              {t('catalog.myOrders')}
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -51,14 +57,14 @@ export function CatalogPage() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Tìm phở, cơm gà, trà sữa…"
+            placeholder={t('catalog.searchPlaceholder')}
             className="flex-1 outline-none text-sm bg-transparent placeholder-gray-400"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
               className="text-gray-400 text-lg leading-none"
-              aria-label="Xoá tìm kiếm"
+              aria-label={t('catalog.searchClear')}
             >×</button>
           )}
         </div>
@@ -75,15 +81,15 @@ export function CatalogPage() {
 
         {error && (
           <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-            <p className="font-medium mb-1">Không tải được danh sách sản phẩm.</p>
-            <p className="text-xs opacity-80">Mở Mini App qua Zalo để dùng đầy đủ, hoặc thử lại sau.</p>
+            <p className="font-medium mb-1">{t('catalog.errorLoad')}</p>
+            <p className="text-xs opacity-80">{t('catalog.errorLoadHintZalo')}</p>
           </div>
         )}
 
         {!isLoading && !error && filtered.length === 0 && (
           <div className="text-center py-16 text-gray-500">
             <p className="text-4xl mb-2">🔎</p>
-            <p className="text-sm">Không tìm thấy món "{search}"</p>
+            <p className="text-sm">{t('catalog.searchEmpty', { query: search })}</p>
           </div>
         )}
 
@@ -103,9 +109,9 @@ export function CatalogPage() {
             <span className="bg-white/25 rounded-full w-7 h-7 inline-flex items-center justify-center font-bold text-sm">
               {cart.totalItems()}
             </span>
-            <span className="font-semibold">Xem giỏ hàng</span>
+            <span className="font-semibold">{t('catalog.viewCart')}</span>
           </span>
-          <span className="font-bold">{formatVnd(cart.subtotal())}</span>
+          <span className="font-bold">{formatVnd(cart.subtotal(), i18n.language)}</span>
         </Link>
       )}
     </div>

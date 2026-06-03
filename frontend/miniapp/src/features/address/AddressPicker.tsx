@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@/styles/leaflet-overrides.css';
@@ -46,6 +47,7 @@ interface Props {
 }
 
 export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -102,11 +104,11 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
 
   function applyLocation(nextLat: number, nextLng: number, displayName?: string) {
     if (!isInVietnam(nextLat, nextLng)) {
-      setGeoError('Chỉ giao trong lãnh thổ Việt Nam — vui lòng chọn lại.');
+      setGeoError(t('address.outsideVietnam'));
       return;
     }
     if (!isInHanoi(nextLat, nextLng)) {
-      setGeoError('Hiện shop chỉ giao trong nội thành Hà Nội. Vui lòng chọn lại.');
+      setGeoError(t('address.outsideHanoi'));
       return;
     }
     setGeoError(null);
@@ -131,7 +133,7 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
         if (err?.name === 'AbortError') return;
         // network error — at least record coordinates so user can still submit
         onChange({
-          address: `Toạ độ ${nextLat.toFixed(5)}, ${nextLng.toFixed(5)} (không tra được tên)`,
+          address: t('address.coordsUnresolved', { lat: nextLat.toFixed(5), lng: nextLng.toFixed(5) }),
           lat: nextLat,
           lng: nextLng,
         });
@@ -155,9 +157,9 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
             value={query}
             onChange={e => setQuery(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-            placeholder="Tìm địa chỉ, ví dụ: 123 Lê Lợi, Hoàn Kiếm"
+            placeholder={t('address.search')}
             className="flex-1 bg-transparent text-sm outline-none"
-            aria-label="Tìm địa chỉ"
+            aria-label={t('address.searchAria')}
             data-testid="address-search-input"
           />
           {searching && <span className="text-xs text-gray-400">…</span>}
@@ -184,7 +186,7 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
         )}
         {showSuggestions && query.trim().length >= 3 && !searching && suggestions.length === 0 && (
           <div className="absolute z-[1100] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2 text-xs text-gray-500">
-            Không tìm thấy địa chỉ. Bạn có thể chạm vào bản đồ để chọn vị trí.
+            {t('address.notFound')}
           </div>
         )}
       </div>
@@ -219,25 +221,25 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
           <ClickHandler onPick={applyLocation} />
         </MapContainer>
         <div className="absolute top-2 left-2 z-[1000] bg-white/95 px-2 py-1 rounded-md text-[10px] shadow text-gray-600">
-          Chạm bản đồ hoặc kéo pin để chọn vị trí chính xác
+          {t('address.tipDrag')}
         </div>
       </div>
 
       {/* Selected address readout */}
       <div className="px-3 py-2 rounded-xl bg-orange-50 border border-orange-100 text-sm">
         <div className="text-[11px] uppercase tracking-wide font-semibold text-orange-700 mb-0.5">
-          Địa chỉ đã chọn
+          {t('address.selected')}
         </div>
         {reverseLoading ? (
-          <span className="text-gray-500 italic">Đang lấy tên đường…</span>
+          <span className="text-gray-500 italic">{t('address.loading')}</span>
         ) : address ? (
           <span className="text-gray-800 break-words" data-testid="resolved-address">{address}</span>
         ) : (
-          <span className="text-gray-400 italic">Chưa chọn — tìm địa chỉ hoặc chạm bản đồ</span>
+          <span className="text-gray-400 italic">{t('address.notSelected')}</span>
         )}
         {hasPin && (
           <div className="text-[11px] text-gray-500 mt-0.5">
-            Toạ độ: {lat?.toFixed(6)}, {lng?.toFixed(6)}
+            {t('address.coords', { lat: lat?.toFixed(6), lng: lng?.toFixed(6) })}
           </div>
         )}
       </div>

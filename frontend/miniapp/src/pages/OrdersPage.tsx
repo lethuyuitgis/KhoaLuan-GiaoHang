@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { listMyOrders, formatVnd, formatRelative } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 
 export function OrdersPage() {
+  const { t, i18n } = useTranslation();
   const { data, isLoading, error } = useQuery({
     queryKey: ['orders', 'mine'],
     queryFn: () => listMyOrders(api, 0, 50),
@@ -12,7 +14,7 @@ export function OrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Đơn hàng của tôi</h1>
+      <h1 className="text-2xl font-bold mb-4">{t('orders.title')}</h1>
 
       {isLoading && (
         <div className="space-y-3">
@@ -24,21 +26,21 @@ export function OrdersPage() {
 
       {error && (
         <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-          <p className="font-medium mb-1">Không tải được lịch sử đơn.</p>
-          <p className="text-xs opacity-80">Vui lòng thử lại sau.</p>
+          <p className="font-medium mb-1">{t('orders.errorLoad')}</p>
+          <p className="text-xs opacity-80">{t('orders.errorLoadHint')}</p>
         </div>
       )}
 
       {data && data.content.length === 0 && (
         <div className="text-center py-16">
           <p className="text-5xl mb-3">📦</p>
-          <p className="font-medium text-gray-700 mb-1">Chưa có đơn nào</p>
-          <p className="text-sm text-gray-500 mb-5">Bắt đầu hành trình ẩm thực nào!</p>
+          <p className="font-medium text-gray-700 mb-1">{t('orders.empty')}</p>
+          <p className="text-sm text-gray-500 mb-5">{t('orders.emptyHint')}</p>
           <Link
             to="/customer/shop"
             className="inline-block px-5 py-2.5 rounded-2xl bg-orange-500 text-white font-semibold text-sm shadow-md shadow-orange-500/30 active:scale-[0.98] transition"
           >
-            Xem menu
+            {t('orders.emptyCta')}
           </Link>
         </div>
       )}
@@ -53,7 +55,7 @@ export function OrdersPage() {
             <div className="flex justify-between items-start gap-2">
               <div className="min-w-0">
                 <p className="font-semibold truncate">{o.code}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{formatRelative(o.createdAt)}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{formatRelative(o.createdAt, i18n.language)}</p>
               </div>
               <OrderStatusBadge status={o.status} />
             </div>
@@ -61,7 +63,7 @@ export function OrdersPage() {
               <span className="inline-flex items-center gap-1 text-xs text-gray-500">
                 {o.paymentMethod === 'VNPAY' ? '💳 VNPay' : '💰 COD'}
               </span>
-              <span className="font-bold text-orange-600">{formatVnd(o.total)}</span>
+              <span className="font-bold text-orange-600">{formatVnd(o.total, i18n.language)}</span>
             </div>
           </Link>
         ))}

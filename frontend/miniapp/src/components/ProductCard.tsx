@@ -1,5 +1,6 @@
 import type { Product } from '@shop/shared';
 import { formatVnd } from '@shop/shared';
+import { useTranslation } from 'react-i18next';
 import { useCart } from '@/features/cart/use-cart';
 
 interface Props { product: Product }
@@ -15,6 +16,7 @@ const FALLBACK_COLORS = [
 ];
 
 export function ProductCard({ product }: Props) {
+  const { t, i18n } = useTranslation();
   const { add, getQuantity } = useCart();
   const qty = getQuantity(product.id);
   const outOfStock = product.stock <= 0;
@@ -38,7 +40,7 @@ export function ProductCard({ product }: Props) {
         )}
         {outOfStock && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="text-white text-xs font-semibold uppercase tracking-wide">Hết hàng</span>
+            <span className="text-white text-xs font-semibold uppercase tracking-wide">{t('product.outOfStock')}</span>
           </div>
         )}
       </div>
@@ -53,7 +55,7 @@ export function ProductCard({ product }: Props) {
         </div>
         <div className="mt-2 flex items-center justify-between gap-2">
           <span className="font-bold text-orange-600 text-base whitespace-nowrap">
-            {formatVnd(product.price)}
+            {formatVnd(product.price, i18n.language)}
           </span>
           <button
             onClick={() => add(product, 1)}
@@ -63,7 +65,7 @@ export function ProductCard({ product }: Props) {
                 ? 'h-8 px-3 inline-flex items-center gap-1 rounded-full bg-orange-500 text-white text-xs font-semibold shadow-sm active:scale-95 transition'
                 : 'h-8 w-8 inline-flex items-center justify-center rounded-full bg-orange-500 text-white text-lg leading-none shadow-sm active:scale-95 transition disabled:bg-gray-300 disabled:shadow-none'
             }
-            aria-label={`Thêm ${product.name}`}
+            aria-label={t('product.add', { name: product.name })}
           >
             {qty > 0 ? <><span>+</span><span>{qty}</span></> : '+'}
           </button>
