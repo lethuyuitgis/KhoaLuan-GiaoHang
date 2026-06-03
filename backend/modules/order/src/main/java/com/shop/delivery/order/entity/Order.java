@@ -59,6 +59,15 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_fee", nullable = false, precision = 12, scale = 2)
     private BigDecimal deliveryFee;
 
+    @Column(name = "discount_products", nullable = false, precision = 12, scale = 2)
+    private BigDecimal discountProducts = BigDecimal.ZERO;
+
+    @Column(name = "discount_shipping", nullable = false, precision = 12, scale = 2)
+    private BigDecimal discountShipping = BigDecimal.ZERO;
+
+    @Column(name = "delivery_fee_original", nullable = false, precision = 12, scale = 2)
+    private BigDecimal deliveryFeeOriginal;
+
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
@@ -107,6 +116,12 @@ public class Order extends BaseEntity {
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
     public BigDecimal getDeliveryFee() { return deliveryFee; }
     public void setDeliveryFee(BigDecimal deliveryFee) { this.deliveryFee = deliveryFee; }
+    public BigDecimal getDiscountProducts() { return discountProducts; }
+    public void setDiscountProducts(BigDecimal discountProducts) { this.discountProducts = discountProducts; }
+    public BigDecimal getDiscountShipping() { return discountShipping; }
+    public void setDiscountShipping(BigDecimal discountShipping) { this.discountShipping = discountShipping; }
+    public BigDecimal getDeliveryFeeOriginal() { return deliveryFeeOriginal; }
+    public void setDeliveryFeeOriginal(BigDecimal deliveryFeeOriginal) { this.deliveryFeeOriginal = deliveryFeeOriginal; }
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }
