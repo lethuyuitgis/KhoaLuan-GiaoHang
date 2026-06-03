@@ -9,8 +9,10 @@ export interface VoucherSummary {
   discountType: DiscountType;
   discountValue: number;
   maxDiscount: number | null;
+  minOrderAmount: number;
   usedCount: number;
   maxUsesTotal: number | null;
+  maxUsesPerCustomer: number;
   validFrom: string;        // ISO 8601
   validUntil: string;
   active: boolean;

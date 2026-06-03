@@ -57,11 +57,11 @@ export function VoucherFormPage() {
       discountType: s.discountType,
       discountValue: Number(s.discountValue),
       maxDiscount: s.maxDiscount,
-      minOrderAmount: 0,
+      minOrderAmount: Number(s.minOrderAmount ?? 0),
       validFrom: s.validFrom.slice(0, 16),
       validUntil: s.validUntil.slice(0, 16),
       maxUsesTotal: s.maxUsesTotal,
-      maxUsesPerCustomer: 1,
+      maxUsesPerCustomer: s.maxUsesPerCustomer ?? 1,
       active: s.active,
     });
   }, [detail]);

@@ -99,7 +99,9 @@ public class AdminVoucherController {
         return new VoucherSummary(v.getId(), v.getCode(), v.getName(),
             v.getTarget(), v.getDiscountType(),
             v.getDiscountValue(), v.getMaxDiscount(),
+            v.getMinOrderAmount(),
             v.getUsedCount(), v.getMaxUsesTotal(),
+            v.getMaxUsesPerCustomer(),
             v.getValidFrom(), v.getValidUntil(),
             v.isActive());
     }

@@ -9,7 +9,9 @@ public record VoucherSummary(
     Long id, String code, String name,
     VoucherTarget target, DiscountType discountType,
     BigDecimal discountValue, BigDecimal maxDiscount,
+    BigDecimal minOrderAmount,
     int usedCount, Integer maxUsesTotal,
+    int maxUsesPerCustomer,
     OffsetDateTime validFrom, OffsetDateTime validUntil,
     boolean active
 ) {}
