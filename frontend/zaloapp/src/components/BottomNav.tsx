@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useCart } from '@/features/cart/use-cart';
 
 /**
- * Fixed 4-tab bottom navigation in the TCH style — Zalo build mirrors the
- * miniapp design 1:1 so the brand reads as the same shop.
+ * Fixed 4-tab bottom navigation inspired by popular delivery apps — Zalo
+ * build mirrors the miniapp design 1:1 so the brand reads as the same shop.
  */
 export function BottomNav() {
   const { t } = useTranslation();

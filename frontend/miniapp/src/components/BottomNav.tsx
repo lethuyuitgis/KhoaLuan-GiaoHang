@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useCart } from '@/features/cart/use-cart';
 
 /**
- * Fixed 4-tab bottom navigation in the TCH style.
+ * Fixed 4-tab bottom navigation inspired by popular delivery apps.
  * Hidden on shipper routes and on the splash page so the splash hero owns
  * the full viewport.
  */
