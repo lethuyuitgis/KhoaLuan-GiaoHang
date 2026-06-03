@@ -57,4 +57,8 @@ export interface CreateOrderRequest {
   items: { productId: number; quantity: number }[];
   paymentMethod: PaymentMethod;
   note?: string;
+  voucherCodes?: {
+    products?: string;
+    shipping?: string;
+  };
 }

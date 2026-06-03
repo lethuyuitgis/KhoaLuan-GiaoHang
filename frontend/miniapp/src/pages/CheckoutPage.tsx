@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { createOrder, formatVnd, type CreateOrderRequest, type PaymentMethod } from '@shop/shared';
+import { createOrder, formatVnd, type CreateOrderRequest, type PaymentMethod, type ValidateVoucherResponse } from '@shop/shared';
 import { api } from '@/lib/api';
 import { useCart } from '@/features/cart/use-cart';
+import { VoucherInput } from '@/components/VoucherInput';
 import { tg } from '@/lib/telegram';
 import { usePayWithVnpay } from '@/features/payment/use-pay-with-vnpay';
 import { useToast } from '@/components/Toast';
@@ -32,6 +33,8 @@ export function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [note, setNote] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [productsVoucher, setProductsVoucher] = useState<ValidateVoucherResponse | null>(null);
+  const [shippingVoucher, setShippingVoucher] = useState<ValidateVoucherResponse | null>(null);
 
   const payWithVnpay = usePayWithVnpay();
 
@@ -88,6 +91,10 @@ export function CheckoutPage() {
       items: cart.items.map(i => ({ productId: i.product.id, quantity: i.quantity })),
       paymentMethod,
       note: note || undefined,
+      voucherCodes: {
+        products: productsVoucher?.code,
+        shipping: shippingVoucher?.code,
+      },
     });
   };
 
@@ -99,6 +106,12 @@ export function CheckoutPage() {
       </div>
     );
   }
+
+  const subtotal = cart.subtotal();
+  const deliveryFee = 0; // resolved by backend; we pass 0 here for voucher validation pre-check
+  const discountProducts = productsVoucher?.discountAmount ?? 0;
+  const discountShipping = shippingVoucher?.discountAmount ?? 0;
+  const totalAfterDiscount = subtotal - discountProducts + deliveryFee - discountShipping;
 
   const submitDisabled = placeOrder.isPending || addressError !== null;
   const showInlineError = submitAttempted && addressError !== null;
@@ -130,9 +143,23 @@ export function CheckoutPage() {
               </div>
             ))}
           </div>
-          <div className="border-t border-brand-100 mt-3 pt-3 flex justify-between font-bold">
-            <span className="text-brand-800">{t('checkout.subtotal')}</span>
-            <span className="text-brand-700">{formatVnd(cart.subtotal(), i18n.language)}</span>
+          <div className="border-t border-brand-100 mt-3 pt-3 space-y-1">
+            <div className="flex justify-between font-bold">
+              <span className="text-brand-800">{t('checkout.subtotal')}</span>
+              <span className="text-brand-700">{formatVnd(subtotal, i18n.language)}</span>
+            </div>
+            {discountProducts > 0 && (
+              <div className="flex justify-between text-sm text-green-700">
+                <span>Giảm tiền hàng</span>
+                <span>− {formatVnd(discountProducts, i18n.language)}</span>
+              </div>
+            )}
+            {discountShipping > 0 && (
+              <div className="flex justify-between text-sm text-green-700">
+                <span>Giảm phí ship</span>
+                <span>− {formatVnd(discountShipping, i18n.language)}</span>
+              </div>
+            )}
           </div>
         </section>
 
@@ -194,6 +221,29 @@ export function CheckoutPage() {
           </div>
         </section>
 
+        {/* Vouchers */}
+        <section className={SECTION_CARD_CLS}>
+          <h2 className={SECTION_TITLE_CLS}>Khuyến mãi</h2>
+          <div className="space-y-4">
+            <VoucherInput
+              label="Mã giảm tiền hàng"
+              target="PRODUCTS"
+              subtotal={subtotal}
+              deliveryFee={deliveryFee}
+              onApplied={setProductsVoucher}
+              onRemoved={() => setProductsVoucher(null)}
+            />
+            <VoucherInput
+              label="Mã giảm phí ship"
+              target="SHIPPING"
+              subtotal={subtotal}
+              deliveryFee={deliveryFee}
+              onApplied={setShippingVoucher}
+              onRemoved={() => setShippingVoucher(null)}
+            />
+          </div>
+        </section>
+
         {/* Payment */}
         <section className={SECTION_CARD_CLS}>
           <h2 className={SECTION_TITLE_CLS}>{t('checkout.paymentMethod')}</h2>
@@ -226,7 +276,7 @@ export function CheckoutPage() {
             ? t('checkout.placing')
             : addressError
               ? t('checkout.cta.disabled')
-              : t('checkout.cta.ready', { total: formatVnd(cart.subtotal(), i18n.language) })}
+              : t('checkout.cta.ready', { total: formatVnd(totalAfterDiscount, i18n.language) })}
         </button>
       </form>
     </div>
