@@ -11,6 +11,7 @@ import com.shop.delivery.order.repository.OrderRepository;
 import com.shop.delivery.order.repository.StatusHistoryRepository;
 import com.shop.delivery.order.service.command.CreateOrderCommand;
 import com.shop.delivery.order.service.command.OrderLineCommand;
+import com.shop.delivery.order.spi.VoucherApplicator;
 import com.shop.delivery.order.domain.PaymentStatus;
 import com.shop.delivery.shared.event.OrderConfirmedEvent;
 import com.shop.delivery.shared.event.OrderCreatedEvent;
@@ -46,6 +47,7 @@ public class OrderService {
     private final OrderStateMachine stateMachine;
     private final OrderCodeGenerator codeGen;
     private final ApplicationEventPublisher events;
+    private final VoucherApplicator voucherApplicator;
 
     public OrderService(OrderRepository orderRepo, OrderItemRepository orderItemRepo,
                         StatusHistoryRepository statusHistoryRepo,
@@ -53,7 +55,9 @@ public class OrderService {
                         ShopConfigProperties shopProps,
                         DistanceCalculator distance, FeeCalculator fee,
                         OrderStateMachine stateMachine, OrderCodeGenerator codeGen,
-                        ApplicationEventPublisher events) {
+                        ApplicationEventPublisher events,
+                        @org.springframework.beans.factory.annotation.Autowired(required = false)
+                        VoucherApplicator voucherApplicator) {
         this.orderRepo = orderRepo;
         this.orderItemRepo = orderItemRepo;
         this.statusHistoryRepo = statusHistoryRepo;
@@ -64,6 +68,7 @@ public class OrderService {
         this.stateMachine = stateMachine;
         this.codeGen = codeGen;
         this.events = events;
+        this.voucherApplicator = voucherApplicator;
     }
 
     @Transactional
@@ -94,8 +99,26 @@ public class OrderService {
         BigDecimal pickupLat = shopProps.getPickup().getLat();
         BigDecimal pickupLng = shopProps.getPickup().getLng();
         BigDecimal distKm = distance.haversineKm(pickupLat, pickupLng, cmd.deliveryLat(), cmd.deliveryLng());
-        BigDecimal deliveryFee = fee.calculate(distKm);
-        BigDecimal total = subtotal.add(deliveryFee);
+        BigDecimal deliveryFeeOriginal = fee.calculate(distKm);
+
+        // Apply voucher discounts if codes provided
+        BigDecimal discountProducts = BigDecimal.ZERO;
+        BigDecimal discountShipping = BigDecimal.ZERO;
+        String productsCode = cmd.voucherProductsCode();
+        String shippingCode = cmd.voucherShippingCode();
+        if (voucherApplicator != null && (productsCode != null || shippingCode != null)) {
+            try {
+                VoucherApplicator.AppliedDiscount applied = voucherApplicator.validate(
+                        productsCode, shippingCode, subtotal, deliveryFeeOriginal, cmd.customerId());
+                discountProducts = applied.products();
+                discountShipping = applied.shipping();
+            } catch (IllegalArgumentException ex) {
+                throw new ValidationException(ex.getMessage(), ex.getMessage());
+            }
+        }
+
+        BigDecimal deliveryFee = deliveryFeeOriginal.subtract(discountShipping);
+        BigDecimal total = subtotal.subtract(discountProducts).add(deliveryFee);
 
         Order order = new Order();
         order.setId(UUID.randomUUID());
@@ -110,6 +133,9 @@ public class OrderService {
         order.setDeliveryLng(cmd.deliveryLng());
         order.setDistanceKm(distKm);
         order.setSubtotal(subtotal);
+        order.setDeliveryFeeOriginal(deliveryFeeOriginal);
+        order.setDiscountProducts(discountProducts);
+        order.setDiscountShipping(discountShipping);
         order.setDeliveryFee(deliveryFee);
         order.setTotal(total);
         order.setPaymentMethod(cmd.paymentMethod());
@@ -121,6 +147,12 @@ public class OrderService {
             item.setOrderId(saved.getId());
         }
         orderItemRepo.saveAll(items);
+
+        // Redeem vouchers in same transaction — failure rolls back the order save
+        if (voucherApplicator != null && (productsCode != null || shippingCode != null)) {
+            voucherApplicator.redeem(productsCode, shippingCode,
+                    discountProducts, discountShipping, saved.getId(), cmd.customerId());
+        }
 
         recordTransition(saved.getId(), null, OrderStatus.PENDING, cmd.customerId(), "Đơn được tạo");
 

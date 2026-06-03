@@ -64,7 +64,7 @@ class OrderServiceTest {
         codeGen = new OrderCodeGenerator();
 
         service = new OrderService(orderRepo, orderItemRepo, statusHistoryRepo,
-            productService, shopProps, distance, fee, sm, codeGen, events);
+            productService, shopProps, distance, fee, sm, codeGen, events, null);
     }
 
     @Test
@@ -82,7 +82,8 @@ class OrderServiceTest {
             new BigDecimal("21.0193"), new BigDecimal("105.8503"),
             List.of(new OrderLineCommand(1L, 2), new OrderLineCommand(2L, 1)),
             PaymentMethod.COD,
-            "Giao tối"
+            "Giao tối",
+            null, null
         );
 
         Order saved = service.create(cmd);

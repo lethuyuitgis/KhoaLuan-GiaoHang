@@ -14,6 +14,8 @@ public record CreateOrderCommand(
     BigDecimal deliveryLng,
     List<OrderLineCommand> items,
     PaymentMethod paymentMethod,
-    String note
+    String note,
+    String voucherProductsCode,
+    String voucherShippingCode
 ) {
 }

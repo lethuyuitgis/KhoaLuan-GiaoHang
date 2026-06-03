@@ -91,6 +91,7 @@ class CreateOrderRequestValidationTest {
             null,
             List.of(new OrderItemRequest(1L, 1)),
             PaymentMethod.COD,
+            null,
             null
         );
         Set<ConstraintViolation<CreateOrderRequest>> v = validator.validate(req);
@@ -107,6 +108,7 @@ class CreateOrderRequestValidationTest {
             lng,
             List.of(new OrderItemRequest(1L, 1)),
             PaymentMethod.COD,
+            null,
             null
         );
     }

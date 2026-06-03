@@ -33,6 +33,8 @@ public record CreateOrderRequest(
     BigDecimal deliveryLng,
     @NotEmpty @Valid List<OrderItemRequest> items,
     @NotNull PaymentMethod paymentMethod,
-    String note
+    String note,
+    VoucherCodes voucherCodes
 ) {
+    public record VoucherCodes(String products, String shipping) {}
 }

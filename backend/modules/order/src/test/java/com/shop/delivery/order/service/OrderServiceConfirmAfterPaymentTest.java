@@ -46,7 +46,7 @@ class OrderServiceConfirmAfterPaymentTest {
     void setUp() {
         stateMachine = new OrderStateMachine(); // real instance — exercises whitelist
         svc = new OrderService(orderRepo, orderItemRepo, historyRepo, productSvc, shopProps,
-            distance, fee, stateMachine, codeGen, events);
+            distance, fee, stateMachine, codeGen, events, null);
     }
 
     @Test

@@ -47,13 +47,16 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse create(@CurrentUser TelegramUser user,
                                 @Valid @RequestBody CreateOrderRequest req) {
+        String voucherProducts = req.voucherCodes() != null ? req.voucherCodes().products() : null;
+        String voucherShipping = req.voucherCodes() != null ? req.voucherCodes().shipping() : null;
         CreateOrderCommand cmd = new CreateOrderCommand(
             user.getId(),
             firstNonNull(req.customerName(), user.getFirstName()),
             req.customerPhone(),
             req.deliveryAddress(), req.deliveryLat(), req.deliveryLng(),
             req.items().stream().map(i -> new OrderLineCommand(i.productId(), i.quantity())).toList(),
-            req.paymentMethod(), req.note()
+            req.paymentMethod(), req.note(),
+            voucherProducts, voucherShipping
         );
         Order order = service.create(cmd);
         return mapper.toResponse(order);
