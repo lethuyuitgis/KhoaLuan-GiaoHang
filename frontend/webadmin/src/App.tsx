@@ -13,6 +13,9 @@ import { ProductsPage } from './pages/ProductsPage';
 import { ProductFormPage } from './pages/ProductFormPage';
 import { ShippersPage } from './pages/ShippersPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { VouchersPage } from './pages/VouchersPage';
+import { VoucherFormPage } from './pages/VoucherFormPage';
+import { VoucherDetailPage } from './pages/VoucherDetailPage';
 
 // P8 IM-03 follow-up: lazy-load /reports (recharts ~80 kB gzipped).
 // Most sessions never open /reports → ship a smaller initial bundle.
@@ -41,6 +44,10 @@ export default function App() {
                 <Route path="products/:id/edit" element={<ProductFormPage />} />
                 <Route path="shippers" element={<ShippersPage />} />
                 <Route path="settings" element={<SettingsPage />} />
+                <Route path="vouchers" element={<VouchersPage />} />
+                <Route path="vouchers/new" element={<VoucherFormPage />} />
+                <Route path="vouchers/:id" element={<VoucherDetailPage />} />
+                <Route path="vouchers/:id/edit" element={<VoucherFormPage />} />
                 <Route
                   path="reports"
                   element={
