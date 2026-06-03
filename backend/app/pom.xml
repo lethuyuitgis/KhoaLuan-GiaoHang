@@ -21,6 +21,7 @@
         <dependency><groupId>com.shop.delivery</groupId><artifactId>shared</artifactId></dependency>
         <dependency><groupId>com.shop.delivery</groupId><artifactId>auth</artifactId></dependency>
         <dependency><groupId>com.shop.delivery</groupId><artifactId>order</artifactId></dependency>
+        <dependency><groupId>com.shop.delivery</groupId><artifactId>promotion</artifactId></dependency>
         <dependency><groupId>com.shop.delivery</groupId><artifactId>delivery</artifactId></dependency>
         <dependency><groupId>com.shop.delivery</groupId><artifactId>payment</artifactId></dependency>
         <dependency><groupId>com.shop.delivery</groupId><artifactId>notification</artifactId></dependency>

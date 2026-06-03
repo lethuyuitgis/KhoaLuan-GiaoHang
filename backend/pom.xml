@@ -23,6 +23,7 @@
         <module>modules/shared</module>
         <module>modules/auth</module>
         <module>modules/order</module>
+        <module>modules/promotion</module>
         <module>modules/delivery</module>
         <module>modules/payment</module>
         <module>modules/notification</module>
@@ -62,6 +63,11 @@
             <dependency>
                 <groupId>com.shop.delivery</groupId>
                 <artifactId>order</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.shop.delivery</groupId>
+                <artifactId>promotion</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
