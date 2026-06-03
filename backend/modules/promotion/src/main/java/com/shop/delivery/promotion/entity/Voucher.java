@@ -11,7 +11,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.persistence.Version;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -65,9 +64,6 @@ public class Voucher extends BaseEntity {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
-    @Version
-    private Long version;
-
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getCode() { return code; }
@@ -96,5 +92,4 @@ public class Voucher extends BaseEntity {
     public void setUsedCount(int usedCount) { this.usedCount = usedCount; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
-    public Long getVersion() { return version; }
 }
