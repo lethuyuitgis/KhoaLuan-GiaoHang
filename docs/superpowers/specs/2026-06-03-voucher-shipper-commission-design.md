@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-03
 **Author:** Le Thi Tran Thuy (thuyltt@uitgis.vn)
-**Status:** Draft awaiting user review
+**Status:** Phase 14 complete (28 tasks, branch `feat/phase-14-voucher`). Phase 15 not started.
 **Spawns plans:** Phase 14 (Voucher), Phase 15 (Shipper Commission & Earnings)
 
 ---
