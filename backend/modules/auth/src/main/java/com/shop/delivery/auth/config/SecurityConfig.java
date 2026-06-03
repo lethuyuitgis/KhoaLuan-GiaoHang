@@ -1,6 +1,7 @@
 package com.shop.delivery.auth.config;
 
 import com.shop.delivery.auth.api.TelegramAuthFilter;
+import com.shop.delivery.auth.api.ZaloAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -21,11 +22,14 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final TelegramAuthFilter telegramAuthFilter;
+    private final ZaloAuthFilter zaloAuthFilter;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
-                          TelegramAuthFilter telegramAuthFilter) {
+                          TelegramAuthFilter telegramAuthFilter,
+                          ZaloAuthFilter zaloAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.telegramAuthFilter = telegramAuthFilter;
+        this.zaloAuthFilter = zaloAuthFilter;
     }
 
     @Bean
@@ -48,7 +52,10 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(telegramAuthFilter, JwtAuthFilter.class);
+            .addFilterAfter(telegramAuthFilter, JwtAuthFilter.class)
+            // Zalo Mini App (frontend/zaloapp) — runs after Telegram filter,
+            // no-ops when the Telegram filter already attached currentUser.
+            .addFilterAfter(zaloAuthFilter, TelegramAuthFilter.class);
         return http.build();
     }
 
