@@ -48,6 +48,7 @@ class OrderRepositoryIT extends OrderTestcontainerBase {
         o.setDistanceKm(new BigDecimal("1.234"));
         o.setSubtotal(new BigDecimal("100000"));
         o.setDeliveryFee(new BigDecimal("25000"));
+        o.setDeliveryFeeOriginal(new BigDecimal("25000"));
         o.setTotal(new BigDecimal("125000"));
         o.setPaymentMethod(PaymentMethod.COD);
         orderRepo.save(o);
@@ -76,6 +77,7 @@ class OrderRepositoryIT extends OrderTestcontainerBase {
         o.setDistanceKm(new BigDecimal("5.0"));
         o.setSubtotal(new BigDecimal("50000"));
         o.setDeliveryFee(new BigDecimal("10000"));
+        o.setDeliveryFeeOriginal(new BigDecimal("10000"));
         o.setTotal(new BigDecimal("60000"));
         o.setPaymentMethod(PaymentMethod.VNPAY);
         orderRepo.save(o);
