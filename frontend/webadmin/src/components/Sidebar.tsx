@@ -1,5 +1,8 @@
 import { NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { fetchAdminShopConfig } from '@shop/shared';
 import { useAuthStore } from '@/stores/auth-store';
+import { api } from '@/lib/api';
 
 const ITEMS = [
   { to: '/',         label: 'Tổng quan',  icon: 'M3 12l9-9 9 9M5 10v10h4v-6h6v6h4V10' },
@@ -7,6 +10,7 @@ const ITEMS = [
   { to: '/reports',  label: 'Báo cáo',    icon: 'M3 3v18h18M7 14l3-3 4 4 5-6' },
   { to: '/products', label: 'Sản phẩm',   icon: 'M20 7l-8-4-8 4v10l8 4 8-4V7zm-8 4l8-4M12 11v9M4 7l8 4' },
   { to: '/shippers', label: 'Shipper',    icon: 'M3 17h2l2-7h10l2 7h2M6 17a2 2 0 104 0 2 2 0 00-4 0zm10 0a2 2 0 104 0 2 2 0 00-4 0z' },
+  { to: '/settings', label: 'Cài đặt',    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z' },
 ];
 
 function Icon({ d }: { d: string }) {
@@ -24,17 +28,36 @@ export function Sidebar() {
   const auth = useAuthStore(s => s.auth);
   const emailFirst = auth?.email?.charAt(0).toUpperCase() ?? 'A';
 
+  // Pulls shop name + tagline + brand color from /api/admin/shop-config so the
+  // header reads as the current shop, not a hardcoded label. Falls back to a
+  // safe default while loading or on error.
+  const { data: cfg } = useQuery({
+    queryKey: ['admin', 'shop-config'],
+    queryFn: () => fetchAdminShopConfig(api),
+    staleTime: 5 * 60_000,
+    enabled: !!auth?.accessToken,
+  });
+  const shopName = cfg?.name ?? 'Shop Admin';
+  const shopTagline = cfg?.tagline ?? 'Giao hàng nội thành';
+  const brandColor = cfg?.brandPrimary ?? '#D97706';
+  const brandInitial = shopName.charAt(0).toUpperCase();
+
   return (
     <aside className="w-64 bg-white border-r border-gray-200 h-screen sticky top-0 flex flex-col">
       {/* Brand */}
       <div className="px-5 py-5 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center text-white font-bold shadow-sm">
-            S
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-sm"
+            style={{ backgroundColor: brandColor }}
+            title={shopName}>
+            {cfg?.logoUrl
+              ? <img src={cfg.logoUrl} alt="" className="w-7 h-7 object-contain" />
+              : brandInitial}
           </div>
-          <div>
-            <p className="font-semibold text-gray-900 leading-tight">Shop Admin</p>
-            <p className="text-[11px] text-gray-500 leading-tight">Giao hàng nội thành</p>
+          <div className="min-w-0">
+            <p className="font-semibold text-gray-900 leading-tight truncate" title={shopName}>{shopName}</p>
+            <p className="text-[11px] text-gray-500 leading-tight truncate">{shopTagline}</p>
           </div>
         </div>
       </div>

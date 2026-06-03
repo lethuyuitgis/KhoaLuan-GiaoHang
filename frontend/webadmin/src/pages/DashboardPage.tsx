@@ -1,12 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
-import { reportsApi, formatVnd } from '@shop/shared';
+import { reportsApi, formatVnd, fetchAdminShopConfig } from '@shop/shared';
 import type { DashboardSummary, TopShipperRow } from '@shop/shared';
 import { RevenueMiniChart } from '@/components/charts/RevenueMiniChart';
 
 const reports = reportsApi(api);
 
 export function DashboardPage() {
+  const { data: cfg } = useQuery({
+    queryKey: ['admin', 'shop-config'],
+    queryFn: () => fetchAdminShopConfig(api),
+    staleTime: 5 * 60_000,
+  });
+  const shopName = cfg?.name ?? 'Shop';
+
   const { data, isLoading, isError, refetch } = useQuery<DashboardSummary>({
     queryKey: ['admin', 'dashboard', 'summary'],
     queryFn: reports.dashboardSummary,
@@ -32,7 +39,7 @@ export function DashboardPage() {
   if (isLoading) {
     return (
       <div>
-        <PageHeader title="Tổng quan" subtitle="Tóm tắt hoạt động shop trong hôm nay" />
+        <PageHeader title={`Tổng quan ${shopName}`} subtitle="Tóm tắt hoạt động shop trong hôm nay" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-24 bg-white rounded-xl border border-gray-100 animate-pulse" />
@@ -44,7 +51,7 @@ export function DashboardPage() {
   if (isError || !data) {
     return (
       <div className="max-w-md">
-        <PageHeader title="Tổng quan" subtitle="Tóm tắt hoạt động shop trong hôm nay" />
+        <PageHeader title={`Tổng quan ${shopName}`} subtitle="Tóm tắt hoạt động shop trong hôm nay" />
         <div className="bg-red-50 border border-red-200 rounded-xl p-4">
           <p className="text-red-700 font-medium">Không tải được dữ liệu Dashboard.</p>
           <button onClick={() => refetch()}

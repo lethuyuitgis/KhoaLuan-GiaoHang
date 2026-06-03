@@ -12,6 +12,7 @@ import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProductFormPage } from './pages/ProductFormPage';
 import { ShippersPage } from './pages/ShippersPage';
+import { SettingsPage } from './pages/SettingsPage';
 
 // P8 IM-03 follow-up: lazy-load /reports (recharts ~80 kB gzipped).
 // Most sessions never open /reports → ship a smaller initial bundle.
@@ -39,6 +40,7 @@ export default function App() {
                 <Route path="products/new" element={<ProductFormPage />} />
                 <Route path="products/:id/edit" element={<ProductFormPage />} />
                 <Route path="shippers" element={<ShippersPage />} />
+                <Route path="settings" element={<SettingsPage />} />
                 <Route
                   path="reports"
                   element={

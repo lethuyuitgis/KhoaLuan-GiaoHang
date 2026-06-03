@@ -7,3 +7,4 @@ export * from './assignments';
 export * from './location';
 export * from './payment';
 export * from './reports';
+export * from './shop-config';
