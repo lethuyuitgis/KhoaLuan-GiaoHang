@@ -202,6 +202,8 @@ Package `@shop/shared` cung cấp ba nhóm tài sản dùng chung: (i) các ki�
 
 Mini App được xây dựng bằng React 18 + Vite 5 + TypeScript 5.6. SDK `@twa-dev/sdk` được dùng cho các API native của Telegram WebApp: `WebApp.ready()`, `WebApp.expand()`, `WebApp.openLink()`, `WebApp.themeParams`, `BackButton`, `MainButton`, `HapticFeedback`. Ứng dụng có chín trang được route qua `react-router-dom` 6: Splash (xử lý loading initData), Catalog (danh mục), Cart (giỏ hàng), Checkout (gồm bản đồ Leaflet để ghim toạ độ giao), Orders (lịch sử đơn của khách), OrderDetail (với marker shipper realtime cập nhật qua STOMP), ShipperAssignments và ShipperAssignmentDetail (cho vai trò shipper), và NotFound. `TelegramProvider` là một React context wrapper khởi tạo `WebApp.ready()` và cung cấp `initData` cho mọi component con. State giỏ hàng được lưu qua Zustand với middleware `persist` vào `localStorage`, tránh mất giỏ khi khách thoát Mini App giữa chừng. Server state (danh mục, đơn) được TanStack Query cache theo `queryKey` phân cấp (`['products']`, `['order', orderId]`), tự động invalidate sau mutation.
 
+Để mỗi shop có thể tự "thay áo" Mini App mà không phải build lại bundle, một `ThemeProvider` được đặt ngay sau `QueryProvider` trong cây React. Provider này gọi hook `useShopConfig` (đọc public endpoint `/api/public/shop-config` với stale-time năm phút) rồi publish bốn CSS variable lên `:root` — `--brand-primary`, `--brand-primary-dark`, `--brand-primary-light` và `--brand-secondary`. Hàm `shade()` tự sinh hai biến `dark`/`light` từ màu chính theo công thức HSL ± 15% để nút bấm có hover state mà admin không phải khai báo riêng. Các trang Catalog, Cart, Checkout opt-in bằng cách dùng class Tailwind dạng `bg-[var(--brand-primary)]`, do đó khi admin đổi màu trong Settings, customer thấy ngay sau khi cache TanStack Query stale.
+
 Hình 4.2 dưới đây minh hoạ giao diện danh mục sản phẩm của Mini App, là điểm vào đầu tiên của khách hàng sau khi mở bot và bấm nút `Mini App`.
 
 ![Hình 4.2. Giao diện danh mục sản phẩm trong Mini App](screenshots/miniapp-cust-01-catalog.png)
@@ -226,11 +228,15 @@ export const useCart = create<CartState>()(
 
 Web Admin được xây dựng cũng bằng React 18 + Vite 5 + TypeScript 5.6, nhưng có bundle riêng và phục vụ qua subpath `/admin/*` của nginx. Tám trang chính: Login (form email + password, gọi `POST /api/admin/auth/login` → nhận cặp access + refresh token), Dashboard (KPI numbers và ba biểu đồ Recharts — doanh thu theo ngày, top shipper, tỉ lệ huỷ), Orders (bảng filter theo trạng thái và khoảng ngày, pagination, action gán shipper / huỷ), OrderDetail, Products (CRUD), Shippers (duyệt, khoá, mở khoá), Reports (LineChart doanh thu theo ngày tuỳ chọn), Settings (cập nhật `shop_config`). State session JWT lưu trong Zustand store riêng (`auth-store`); TanStack Query 5 quản lý mọi server state với `invalidateQueries` sau mutation. WebSocket client dùng `@stomp/stompjs` cộng `sockjs-client`, subscribe `/topic/admin/orders` ngay sau login để nhận đơn mới realtime. Để giữ kích thước bundle initial dưới 500 kilobyte, Vite được cấu hình `manualChunks` tách Recharts thành chunk riêng lazy-load chỉ khi Dashboard/Reports render — bundle initial sau tối ưu đạt khoảng 121 kilobyte gzipped.
 
-Hình 4.3 và 4.4 dưới đây minh hoạ hai giao diện chính của Web Admin: Dashboard và Reports.
+Hình 4.3, 4.4 và 4.5 dưới đây minh hoạ ba giao diện chính của Web Admin: Dashboard, Reports và Settings.
 
 ![Hình 4.3. Giao diện Dashboard của Web Admin với KPI và ba biểu đồ](screenshots/admin-02-dashboard.png)
 
 ![Hình 4.4. Giao diện Reports với biểu đồ doanh thu theo khoảng ngày](screenshots/admin-04-reports.png)
+
+![Hình 4.5. Trang Settings — chủ shop cập nhật thương hiệu, điểm pickup và phí giao không cần redeploy](screenshots/admin-08-settings.png)
+
+Trang Settings là điểm cuối cho cấu hình `shop_config` (xem V13 ở mục 4.5): admin nhập tên shop, tagline, logo URL, cặp màu thương hiệu (`brandPrimary`/`brandSecondary` với picker hex + preview nút bấm theo thời gian thực), toạ độ pickup (lat/lng được validate theo regex `#RRGGBB` ở phía client và `@Pattern` ở backend) và ba tham số phí giao (`feeBase`, `feePerKm`, `freeKm`). Khi `PUT /api/admin/shop-config` thành công, TanStack Query invalidate cache `['admin', 'shop-config']` và đồng thời customer-facing endpoint `/api/public/shop-config` cũng phản ánh ngay — Mini App sẽ nhận màu mới khi `useShopConfig` revalidate.
 
 Ví dụ STOMP client factory dùng chung:
 
@@ -250,17 +256,17 @@ export function createStompClient(url: string, headers: Record<string, string>) 
 
 ### 4.5.1. Tổng quan chiến lược migration
 
-Toàn bộ schema cơ sở dữ liệu được quản lý qua Flyway 10 — không có schema thay đổi nào được thực hiện thủ công trên môi trường production. Mỗi pha trong quy trình GSD đóng góp một (hoặc một số) file migration cho mô-đun của pha đó, đảm bảo schema thay đổi rõ ràng theo timeline phát triển. Quy ước đặt tên file là `V<n>__<snake_name>.sql` với `<n>` là số nguyên tăng tuần tự bắt đầu từ 1, không có khoảng trống. Tổng cộng hệ thống có mười hai file migration (V1 đến V12) tính đến thời điểm bảo vệ.
+Toàn bộ schema cơ sở dữ liệu được quản lý qua Flyway 10 — không có schema thay đổi nào được thực hiện thủ công trên môi trường production. Mỗi pha trong quy trình GSD đóng góp một (hoặc một số) file migration cho mô-đun của pha đó, đảm bảo schema thay đổi rõ ràng theo timeline phát triển. Quy ước đặt tên file là `V<n>__<snake_name>.sql` với `<n>` là số nguyên tăng tuần tự bắt đầu từ 1, không có khoảng trống. Tổng cộng hệ thống có mười ba file migration (V1 đến V13) tính đến thời điểm bảo vệ.
 
 Trong môi trường dev, lệnh `mvn flyway:info` hiển thị trạng thái apply hiện tại của từng migration; lệnh `mvn flyway:migrate` apply các migration còn thiếu. Trong môi trường production, Flyway tự chạy lúc Spring Boot khởi động — nếu một migration fail, backend không up được (`@SpringBootApplication` fail-fast), tránh trường hợp ứng dụng chạy trên schema không đúng phiên bản. Quy tắc bất di bất dịch: mọi thay đổi schema đều phải thông qua một file `V<n>__<name>.sql` *mới* — tuyệt đối không sửa file đã apply (vì Flyway lưu checksum và sẽ phát hiện sửa đổi, dừng ứng dụng).
 
-### 4.5.2. Danh sách mười hai migration
+### 4.5.2. Danh sách mười ba migration
 
-**Bảng 4.2. Danh sách 12 file Flyway migration (V1 đến V12)**
+**Bảng 4.2. Danh sách 13 file Flyway migration (V1 đến V13)**
 
 | Version | Tên file | Mô-đun đóng góp | Tạo bảng / chỉ mục chính |
 |---|---|---|---|
-| V1 | `init.sql` | shared | `shop_config`, baseline encoding + extension |
+| V1 | `init.sql` | shared | baseline encoding + extension |
 | V2 | `auth.sql` | auth | `admin_user`, `refresh_token` |
 | V3 | `bot.sql` | bot, auth | `telegram_user`, `user_role`, `conversation_state`, `processed_update` |
 | V4 | `order.sql` | order | `product`, `orders`, `order_item`, `status_history` |
@@ -272,10 +278,11 @@ Trong môi trường dev, lệnh `mvn flyway:info` hiển thị trạng thái ap
 | V10 | `rating.sql` | delivery | `rating` (UNIQUE order_id, CHECK stars 1..5) |
 | V11 | `demo_seed.sql` | (tất cả) | Seed demo cho reviewer |
 | V12 | `shipper_rating.sql` | delivery | `shipper_rating` + cột `rating_avg`, `rating_count` ở `telegram_user` |
+| V13 | `shop_config.sql` | order | `shop_config` (singleton row, brand + pickup + fee) |
 
 ### 4.5.3. Chi tiết các migration trọng tâm
 
-**V1 — `init.sql`** thiết lập baseline schema: tạo bảng `shop_config` (key-value đơn giản lưu `pickup_lat`, `pickup_lng`, `fee_base`, `fee_per_km`, `fee_free_km`), cấu hình encoding mặc định `UTF8`, kích hoạt extension `pg_trgm` cho full-text search trên tên sản phẩm. Đây là migration nhỏ nhất nhưng quan trọng — mọi migration sau đều giả định baseline này đã apply.
+**V1 — `init.sql`** thiết lập baseline schema: tạo bảng `app_meta(key, value, updated_at)` lưu metadata phiên bản và mốc khởi tạo, đồng thời bật Flyway version tracking. Đây là migration nhỏ nhất nhưng quan trọng — mọi migration sau đều giả định baseline này đã apply.
 
 **V2 — `auth.sql`** tạo hai bảng cho luồng xác thực Web Admin: `admin_user(id, email UNIQUE, password_hash BCrypt, role, created_at, updated_at)` và `refresh_token(id, admin_user_id FK, token_hash SHA-256, expires_at, revoked_at)`. Cột `token_hash` lưu hash thay vì token gốc — nếu DB bị leak, attacker không thể dùng lại token đã cấp.
 
@@ -306,6 +313,8 @@ VALUES (1, 'PHO-BO', 'Phở bò tái', 55000,
 ```
 
 **V12 — `shipper_rating.sql`** bổ sung khả năng shipper đánh giá khách hàng (chiều ngược lại của V10): tạo bảng `shipper_rating(id, order_id UNIQUE, shipper_id, customer_id, stars CHECK 1..5, comment, rated_at)` và thêm hai cột `rating_avg NUMERIC(3,2)`, `rating_count INT` vào `telegram_user`. Đánh giá theo chiều này không công khai — chỉ admin xem được — phục vụ cảnh báo khách hàng khó tính cho shipper khác.
+
+**V13 — `shop_config.sql`** tạo bảng `shop_config` lưu cấu hình "có thể đổi tại runtime" của shop dưới dạng *singleton row* — `id SMALLINT PRIMARY KEY CHECK (id = 1)` ràng buộc luôn chỉ có đúng một dòng. Bảng gồm bốn nhóm cột: (i) brand — `name`, `tagline`, `logo_url`, `brand_primary VARCHAR(7)`, `brand_secondary VARCHAR(7)` cùng `contact_phone`, `contact_email`, `opening_hours`; (ii) pickup — `pickup_lat NUMERIC(10,7)`, `pickup_lng`, `pickup_address` (thay cho hardcode toạ độ Hoàn Kiếm trong YAML); (iii) phí giao — `fee_base NUMERIC(12,2)`, `fee_per_km`, `free_km NUMERIC(8,3)`; (iv) `updated_at TIMESTAMPTZ`. Migration đồng thời `INSERT … ON CONFLICT DO NOTHING` cho `id=1` với default trùng giá trị hiện hành trong YAML, nên hệ thống boot ra hành vi không khác trước đến khi admin chỉnh sửa qua trang Settings (4.4.3). Đây là nền tảng để Mini App "đổi áo" theo từng shop mà không cần redeploy.
 
 ## 4.6. Triển khai bằng Docker Compose
 

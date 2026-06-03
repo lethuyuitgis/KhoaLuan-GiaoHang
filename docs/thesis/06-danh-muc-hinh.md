@@ -37,7 +37,11 @@
 | Hình 3.21 | Mini App shipper — chi tiết assignment với nút "Bắt đầu giao" và "Đã giao" |  |
 | Hình 3.22 | Mini App — môi trường dev qua Cloudflare Tunnel HTTPS để test Telegram thật |  |
 | Hình 4.1 | Cây thư mục tổng thể của dự án |  |
-| Hình 4.2 | Sơ đồ triển khai Docker Compose — 5 container |  |
+| Hình 4.2 | Mini App — danh mục sản phẩm (giao diện The Coffee House) |  |
+| Hình 4.3 | Web Admin — Dashboard với KPI và biểu đồ doanh thu |  |
+| Hình 4.4 | Web Admin — Reports với LineChart doanh thu theo khoảng ngày |  |
+| Hình 4.5 | Web Admin — trang Settings cấu hình brand, pickup và phí giao |  |
+| Hình 4.6 | Sơ đồ triển khai Docker Compose — 5 container |  |
 | Hình 5.1 | Tổng hợp tính năng đã hiện thực so với phạm vi MoSCoW |  |
 
 \newpage

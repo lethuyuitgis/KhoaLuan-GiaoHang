@@ -65,7 +65,7 @@ export function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Tổng quan" subtitle="Tóm tắt hoạt động shop trong hôm nay" />
+      <PageHeader title={`Tổng quan ${shopName}`} subtitle="Tóm tắt hoạt động shop trong hôm nay" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard icon={IconOrders}    color="blue"   label="Đơn hôm nay"             value={data.ordersToday.total} />

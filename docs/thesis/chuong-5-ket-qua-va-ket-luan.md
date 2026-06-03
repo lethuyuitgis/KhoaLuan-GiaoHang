@@ -64,7 +64,7 @@ Bảng 5.2 tổng hợp các chỉ số định lượng cuối cùng của đ�
 | Tổng số test frontend (Vitest + Testing Library) | 21 |
 | Tổng số test toàn dự án | 274 |
 | Tỉ lệ build xanh trên mỗi commit ở `main` | 100% |
-| Số file Flyway migration | 12 (V1 đến V12) |
+| Số file Flyway migration | 13 (V1 đến V13) |
 | Số bounded context | 8 |
 | Số endpoint REST | khoảng 35 |
 | Số topic WebSocket | 2 (`/user/queue/order/*/location`, `/topic/admin/orders`) |
@@ -73,7 +73,7 @@ Bảng 5.2 tổng hợp các chỉ số định lượng cuối cùng của đ�
 | Số trang Web Admin | 8 |
 | Số Dockerfile | 3 |
 | Số container trong Docker Compose | 5 |
-| Số ảnh chụp giao diện trong báo cáo | 17 |
+| Số ảnh chụp giao diện trong báo cáo | 19 |
 | Số hình vẽ và sơ đồ | 37 |
 | Số bảng biểu | 26 |
 
