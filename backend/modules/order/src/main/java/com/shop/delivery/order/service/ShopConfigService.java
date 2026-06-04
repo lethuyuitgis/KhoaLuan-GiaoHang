@@ -44,6 +44,7 @@ public class ShopConfigService {
         c.setFeeBase(req.feeBase());
         c.setFeePerKm(req.feePerKm());
         c.setFreeKm(req.freeKm());
+        c.setShipperCommissionPct(req.shipperCommissionPct());
         return toResponse(repo.save(c));
     }
 
@@ -68,7 +69,8 @@ public class ShopConfigService {
             c.getPickupAddress(),
             c.getFeeBase(),
             c.getFeePerKm(),
-            c.getFreeKm()
+            c.getFreeKm(),
+            c.getShipperCommissionPct()
         );
     }
 }

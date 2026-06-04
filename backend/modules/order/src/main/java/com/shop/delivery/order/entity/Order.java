@@ -68,6 +68,9 @@ public class Order extends BaseEntity {
     @Column(name = "delivery_fee_original", nullable = false, precision = 12, scale = 2)
     private BigDecimal deliveryFeeOriginal;
 
+    @Column(name = "shipper_commission", precision = 12, scale = 2)
+    private BigDecimal shipperCommission;
+
     @Column(name = "total", nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
 
@@ -122,6 +125,8 @@ public class Order extends BaseEntity {
     public void setDiscountShipping(BigDecimal discountShipping) { this.discountShipping = discountShipping; }
     public BigDecimal getDeliveryFeeOriginal() { return deliveryFeeOriginal; }
     public void setDeliveryFeeOriginal(BigDecimal deliveryFeeOriginal) { this.deliveryFeeOriginal = deliveryFeeOriginal; }
+    public BigDecimal getShipperCommission() { return shipperCommission; }
+    public void setShipperCommission(BigDecimal v) { this.shipperCommission = v; }
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
     public PaymentMethod getPaymentMethod() { return paymentMethod; }

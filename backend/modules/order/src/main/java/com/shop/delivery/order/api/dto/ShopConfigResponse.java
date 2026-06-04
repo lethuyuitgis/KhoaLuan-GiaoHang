@@ -22,6 +22,7 @@ public record ShopConfigResponse(
     String pickupAddress,
     BigDecimal feeBase,
     BigDecimal feePerKm,
-    BigDecimal freeKm
+    BigDecimal freeKm,
+    BigDecimal shipperCommissionPct
 ) {
 }

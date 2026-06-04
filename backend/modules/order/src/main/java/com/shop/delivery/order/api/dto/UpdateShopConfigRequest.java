@@ -1,5 +1,6 @@
 package com.shop.delivery.order.api.dto;
 
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -29,6 +30,11 @@ public record UpdateShopConfigRequest(
 
     @NotNull @DecimalMin(value = "0", inclusive = true) BigDecimal feeBase,
     @NotNull @DecimalMin(value = "0", inclusive = true) BigDecimal feePerKm,
-    @NotNull @DecimalMin(value = "0", inclusive = true) BigDecimal freeKm
+    @NotNull @DecimalMin(value = "0", inclusive = true) BigDecimal freeKm,
+
+    @NotNull
+    @DecimalMin(value = "0", message = "Tỉ lệ hoa hồng phải >= 0")
+    @DecimalMax(value = "100", message = "Tỉ lệ hoa hồng phải <= 100")
+    BigDecimal shipperCommissionPct
 ) {
 }

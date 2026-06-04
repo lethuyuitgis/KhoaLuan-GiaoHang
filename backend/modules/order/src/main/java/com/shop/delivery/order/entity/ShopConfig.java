@@ -68,6 +68,9 @@ public class ShopConfig {
     @Column(name = "free_km", nullable = false, precision = 8, scale = 3)
     private BigDecimal freeKm;
 
+    @Column(name = "shipper_commission_pct", nullable = false, precision = 5, scale = 2)
+    private BigDecimal shipperCommissionPct = new BigDecimal("80.00");
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
@@ -106,6 +109,8 @@ public class ShopConfig {
     public void setFeePerKm(BigDecimal feePerKm) { this.feePerKm = feePerKm; }
     public BigDecimal getFreeKm() { return freeKm; }
     public void setFreeKm(BigDecimal freeKm) { this.freeKm = freeKm; }
+    public BigDecimal getShipperCommissionPct() { return shipperCommissionPct; }
+    public void setShipperCommissionPct(BigDecimal v) { this.shipperCommissionPct = v; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }
