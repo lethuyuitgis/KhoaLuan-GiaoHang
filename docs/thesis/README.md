@@ -26,10 +26,11 @@ docs/thesis/
 ├── chuong-3-phan-tich-thiet-ke.md        ← Chương 3 — Phân tích & Thiết kế
 ├── chuong-4-cai-dat.md                   ← Chương 4 — Cài đặt và kiểm thử
 ├── chuong-5-ket-qua-va-ket-luan.md       ← Chương 5 — Kết quả và Kết luận
+├── chuong-6-mo-rong.md                   ← Chương 6 — Mở rộng sau bảo vệ (Phase 14 voucher + Phase 15 commission)
 ├── 08-tai-lieu-tham-khao.md              ← Tài liệu tham khảo
 ├── diem-noi-bat-va-huong-phat-trien.md   ← Nguồn tham khảo nội bộ (không ghép vào báo cáo chính)
 ├── README.md                              ← (file này)
-└── screenshots/                           ← 17 ảnh chụp giao diện được tham chiếu trong báo cáo
+└── screenshots/                           ← 30 ảnh chụp giao diện được tham chiếu trong báo cáo
 ```
 
 Thứ tự ghép trên tuân theo quy định của khoa: **trang bìa → trang bìa phụ → lời cam đoan → lời cảm ơn → danh mục viết tắt → danh mục bảng → danh mục hình → mở đầu → các chương → tài liệu tham khảo → phụ lục (nếu có)**.
@@ -124,6 +125,7 @@ pandoc \
     chuong-3-phan-tich-thiet-ke.md \
     chuong-4-cai-dat.md \
     chuong-5-ket-qua-va-ket-luan.md \
+    chuong-6-mo-rong.md \
     08-tai-lieu-tham-khao.md \
     -o khoa-luan.docx \
     --resource-path=. \
@@ -159,6 +161,7 @@ pandoc \
     chuong-3-phan-tich-thiet-ke.md \
     chuong-4-cai-dat.md \
     chuong-5-ket-qua-va-ket-luan.md \
+    chuong-6-mo-rong.md \
     08-tai-lieu-tham-khao.md \
     -o khoa-luan.pdf \
     --resource-path=. \
@@ -216,7 +219,7 @@ Trước khi nộp hội đồng, sinh viên cần thực hiện các bước sa
 9. **In đúng quy cách** — bìa cứng, gáy đóng tối thiểu 3.5 cm, đúng format khoa quy định.
 10. **Chuẩn bị bản số** — gửi kèm `.pdf` và `.docx` cho hội đồng theo quy định.
 
-## 10. Danh sách screenshot (17 ảnh)
+## 10. Danh sách screenshot (30 ảnh)
 
 Các ảnh chụp giao diện được tham chiếu trong báo cáo nằm ở thư mục `screenshots/`:
 

@@ -43,5 +43,16 @@
 | Hình 4.5 | Web Admin — trang Settings cấu hình brand, pickup và phí giao |  |
 | Hình 4.6 | Sơ đồ triển khai Docker Compose — 5 container |  |
 | Hình 5.1 | Tổng hợp tính năng đã hiện thực so với phạm vi MoSCoW |  |
+| Hình 6.1 | Web Admin — danh sách voucher với filter trạng thái và đối tượng |  |
+| Hình 6.2 | Web Admin — form tạo voucher với preview giảm giá theo thời gian thực |  |
+| Hình 6.3 | Web Admin — chi tiết voucher với thông số và lịch sử áp dụng |  |
+| Hình 6.4 | Mini App — Checkout với hai voucher GIAM20K + FREESHIP đã được áp |  |
+| Hình 6.5 | Mini App shipper — trang Earnings với hero card, 3 KPI và biểu đồ thu nhập 7 ngày |  |
+| Hình 6.6 | Mini App shipper — trang Wallet với balance + lọc loại giao dịch |  |
+| Hình 6.7 | Mini App shipper — trang Profile với rating và tổng đơn đã giao |  |
+| Hình 6.8 | Web Admin — báo cáo Thu nhập shipper với 3 KPI và 2 biểu đồ |  |
+| Hình 6.9 | Web Admin — chi tiết shipper với balance, settle modal trigger và lịch sử ledger |  |
+| Hình 6.10 | Web Admin — section Hoa hồng & thanh toán trên trang chi tiết đơn DELIVERED |  |
+| Hình 6.11 | Web Admin — trang Settings với section Hoa hồng shipper mới |  |
 
 \newpage
