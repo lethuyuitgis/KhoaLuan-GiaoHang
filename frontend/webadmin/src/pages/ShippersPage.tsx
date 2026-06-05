@@ -1,10 +1,16 @@
 import { useState, type FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { listShippers, createShipper, type CreateShipperRequest, type VehicleType } from '@shop/shared';
+import { useNavigate } from 'react-router-dom';
+import {
+  listShippers, createShipper, fetchAdminShipperBalance, fetchAdminShipperEarnings,
+  formatVnd,
+  type CreateShipperRequest, type VehicleType,
+} from '@shop/shared';
 import { api } from '@/lib/api';
 
 export function ShippersPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [telegramUserId, setTelegramUserId] = useState('');
   const [vehicleType, setVehicleType] = useState<VehicleType>('MOTORBIKE');
@@ -15,6 +21,28 @@ export function ShippersPage() {
     queryKey: ['admin', 'shippers'],
     queryFn: () => listShippers(api),
   });
+
+  const shipperIds = shippers?.map(s => s.userId) ?? [];
+
+  const { data: balances = {} } = useQuery({
+    queryKey: ['admin', 'shipper-balances', shipperIds],
+    queryFn: async () => {
+      const results = await Promise.all(shipperIds.map(id => fetchAdminShipperBalance(api, id)));
+      return Object.fromEntries(shipperIds.map((id, i) => [id, results[i].balance]));
+    },
+    enabled: shipperIds.length > 0,
+  });
+
+  const { data: agg7d = [] } = useQuery({
+    queryKey: ['admin', 'shipper-earnings', '7d'],
+    queryFn: () => fetchAdminShipperEarnings(
+      api,
+      new Date(Date.now() - 7 * 86400_000).toISOString(),
+      new Date().toISOString(),
+      'shipper'
+    ),
+  });
+  const earningsBy = new Map(agg7d.map(b => [b.groupKey, b.commission]));
 
   const createMut = useMutation({
     mutationFn: (req: CreateShipperRequest) => createShipper(api, req),
@@ -121,15 +149,17 @@ export function ShippersPage() {
               <th className="px-4 py-3 text-left font-semibold">Trạng thái</th>
               <th className="px-4 py-3 text-center font-semibold">Đánh giá</th>
               <th className="px-4 py-3 text-right font-semibold">Đơn đã giao</th>
+              <th className="px-4 py-3 text-right font-semibold">Số dư ví</th>
+              <th className="px-4 py-3 text-right font-semibold">Thu nhập 7 ngày</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {isLoading && Array.from({ length: 3 }).map((_, i) => (
-              <tr key={i}><td colSpan={6} className="px-4 py-4"><div className="h-4 bg-gray-100 rounded animate-pulse" /></td></tr>
+              <tr key={i}><td colSpan={8} className="px-4 py-4"><div className="h-4 bg-gray-100 rounded animate-pulse" /></td></tr>
             ))}
             {!isLoading && shippers?.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
                   <p className="text-3xl mb-1">🚴</p>
                   <p className="text-sm">Chưa có shipper nào — bấm "Thêm shipper" để bắt đầu</p>
                 </td>
@@ -140,8 +170,12 @@ export function ShippersPage() {
               const initial = (s.firstName ?? '?').charAt(0).toUpperCase();
               const state = STATE_LABEL[s.currentState] ?? STATE_LABEL.OFFLINE;
               const ratingShown = s.ratingCount > 0;
+              const balance = (balances as Record<number, number>)[s.userId];
+              const earnings7d = earningsBy.get(String(s.userId)) ?? 0;
               return (
-                <tr key={s.userId} className="hover:bg-orange-50/40 transition-colors">
+                <tr key={s.userId}
+                  className="hover:bg-orange-50/40 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/shippers/${s.userId}`)}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
@@ -179,6 +213,12 @@ export function ShippersPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right font-semibold text-gray-900">{s.totalDeliveries}</td>
+                  <td className={`px-4 py-3 text-right font-semibold ${balance == null ? 'text-gray-400' : balance >= 0 ? 'text-green-700' : 'text-red-600'}`}>
+                    {balance == null ? '—' : formatVnd(balance)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-gray-700">
+                    {formatVnd(earnings7d)}
+                  </td>
                 </tr>
               );
             })}

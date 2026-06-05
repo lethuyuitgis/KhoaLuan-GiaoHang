@@ -211,6 +211,19 @@ function SettingsForm({ initial, onSaved }: FormProps) {
         </p>
       </Section>
 
+      {/* Section 5: Shipper commission */}
+      <Section title="Hoa hồng shipper" subtitle="% phí ship gốc shipper được hưởng khi đơn DELIVERED">
+        <Field label="Tỉ lệ hoa hồng (%)" required>
+          <input type="number" min={0} max={100} step={0.1} required
+            value={form.shipperCommissionPct}
+            onChange={e => set('shipperCommissionPct', Number(e.target.value))}
+            className="input" />
+        </Field>
+        <p className="text-xs text-gray-500">
+          Đơn 30 000đ phí ship × {form.shipperCommissionPct}% = <strong>{Math.round(30000 * Number(form.shipperCommissionPct || 0) / 100).toLocaleString('vi-VN')}đ</strong>
+        </p>
+      </Section>
+
       {/* Sticky submit bar */}
       <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg z-10">
         <div className="max-w-3xl flex items-center gap-3">

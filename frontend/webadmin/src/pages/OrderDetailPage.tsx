@@ -160,6 +160,35 @@ export function OrderDetailPage() {
           )}
         </div>
       </div>
+      {order.status === 'DELIVERED' && (
+        <section className="bg-white rounded-xl p-5 mt-4 border border-gray-200">
+          <h3 className="font-semibold mb-3">Hoa hồng & thanh toán</h3>
+          <dl className="grid grid-cols-2 gap-y-2 text-sm">
+            <dt className="text-gray-500">Phí ship gốc</dt>
+            <dd className="text-right">{formatVnd(order.deliveryFeeOriginal ?? order.deliveryFee)}</dd>
+            {Number(order.discountShipping ?? 0) > 0 && (
+              <>
+                <dt className="text-gray-500">Giảm phí ship (voucher)</dt>
+                <dd className="text-right text-orange-600">−{formatVnd(order.discountShipping ?? 0)}</dd>
+              </>
+            )}
+            <dt className="text-gray-500">Phí ship khách trả</dt>
+            <dd className="text-right">{formatVnd(order.deliveryFee)}</dd>
+            <dt className="text-gray-500 border-t border-gray-100 pt-2 mt-2">Hoa hồng shipper</dt>
+            <dd className="text-right font-bold text-green-700 border-t border-gray-100 pt-2 mt-2">
+              {formatVnd(order.shipperCommission ?? 0)}
+            </dd>
+            <dt className="text-gray-500">Hình thức thanh toán</dt>
+            <dd className="text-right">{order.paymentMethod}</dd>
+            {order.paymentMethod === 'COD' && (
+              <>
+                <dt className="text-gray-500">Shipper đã thu từ khách</dt>
+                <dd className="text-right">{formatVnd(order.total)}</dd>
+              </>
+            )}
+          </dl>
+        </section>
+      )}
       {showAssign && (
         <AssignShipperModal orderId={order.id} orderCode={order.code} onClose={() => setShowAssign(false)} />
       )}

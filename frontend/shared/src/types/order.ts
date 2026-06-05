@@ -29,6 +29,8 @@ export interface OrderResponse {
   distanceKm: string;
   subtotal: number;
   deliveryFee: number;
+  deliveryFeeOriginal?: number | null;
+  discountShipping?: number | null;
   total: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
@@ -36,6 +38,7 @@ export interface OrderResponse {
   note: string | null;
   createdAt: string;
   items: OrderItemResponse[];
+  shipperCommission?: number | null;
 }
 
 export interface OrderSummary {

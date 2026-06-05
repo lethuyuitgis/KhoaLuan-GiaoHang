@@ -12,6 +12,8 @@ import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { ProductFormPage } from './pages/ProductFormPage';
 import { ShippersPage } from './pages/ShippersPage';
+import { ShipperDetailPage } from './pages/ShipperDetailPage';
+import { ShipperEarningsPage } from './pages/ShipperEarningsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { VouchersPage } from './pages/VouchersPage';
 import { VoucherFormPage } from './pages/VoucherFormPage';
@@ -43,6 +45,8 @@ export default function App() {
                 <Route path="products/new" element={<ProductFormPage />} />
                 <Route path="products/:id/edit" element={<ProductFormPage />} />
                 <Route path="shippers" element={<ShippersPage />} />
+                <Route path="shippers/:id" element={<ShipperDetailPage />} />
+                <Route path="shipper-earnings" element={<ShipperEarningsPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="vouchers" element={<VouchersPage />} />
                 <Route path="vouchers/new" element={<VoucherFormPage />} />

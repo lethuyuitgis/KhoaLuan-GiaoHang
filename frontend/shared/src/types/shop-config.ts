@@ -19,6 +19,7 @@ export interface ShopConfig {
   feeBase: number;
   feePerKm: number;
   freeKm: number;
+  shipperCommissionPct: number;
 }
 
 /** Body for PUT /api/admin/shop-config — same shape as ShopConfig. */

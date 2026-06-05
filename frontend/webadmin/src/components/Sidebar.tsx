@@ -8,6 +8,7 @@ const ITEMS = [
   { to: '/',         label: 'Tổng quan',  icon: 'M3 12l9-9 9 9M5 10v10h4v-6h6v6h4V10' },
   { to: '/orders',   label: 'Đơn hàng',   icon: 'M3 7l9-4 9 4-9 4-9-4zm0 5l9 4 9-4M3 17l9 4 9-4' },
   { to: '/reports',  label: 'Báo cáo',    icon: 'M3 3v18h18M7 14l3-3 4 4 5-6' },
+  { to: '/shipper-earnings', label: 'Thu nhập', icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
   { to: '/vouchers', label: 'Khuyến mãi', icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z' },
   { to: '/products', label: 'Sản phẩm',   icon: 'M20 7l-8-4-8 4v10l8 4 8-4V7zm-8 4l8-4M12 11v9M4 7l8 4' },
   { to: '/shippers', label: 'Shipper',    icon: 'M3 17h2l2-7h10l2 7h2M6 17a2 2 0 104 0 2 2 0 00-4 0zm10 0a2 2 0 104 0 2 2 0 00-4 0z' },
