@@ -16,6 +16,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -76,6 +77,15 @@ public class GlobalExceptionHandler {
         log.warn("Malformed request body [{}]: {}", traceId, e.getMostSpecificCause().getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(new ApiError("MALFORMED_REQUEST", "Yêu cầu không hợp lệ (JSON sai định dạng)", traceId));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiError> handleResponseStatus(ResponseStatusException e) {
+        String traceId = newTraceId();
+        log.warn("ResponseStatusException [{}] status={} reason={}", traceId, e.getStatusCode(), e.getReason());
+        return ResponseEntity.status(e.getStatusCode())
+            .body(new ApiError(e.getReason() != null ? e.getReason() : "ERROR",
+                               e.getReason() != null ? e.getReason() : e.getMessage(), traceId));
     }
 
     @ExceptionHandler(Exception.class)
