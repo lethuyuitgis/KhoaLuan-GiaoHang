@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   listMyAssignments, acceptAssignment, rejectAssignment,
   formatVnd, formatRelative, type AssignmentResponse
@@ -8,7 +8,26 @@ import { api } from '@/lib/api';
 import { tg } from '@/lib/telegram';
 import { useToast } from '@/components/Toast';
 
+const STATUS_LABEL: Record<string, string> = {
+  OFFERED:   'Có offer',
+  ACCEPTED:  'Đã nhận',
+  STARTED:   'Đang giao',
+  COMPLETED: 'Hoàn tất',
+  CANCELLED: 'Đã huỷ',
+  REJECTED:  'Đã từ chối',
+};
+
+const STATUS_BADGE: Record<string, string> = {
+  OFFERED:   'bg-amber-100 text-amber-700',
+  ACCEPTED:  'bg-blue-100 text-blue-700',
+  STARTED:   'bg-purple-100 text-purple-700',
+  COMPLETED: 'bg-green-100 text-green-700',
+  CANCELLED: 'bg-red-100 text-red-700',
+  REJECTED:  'bg-red-100 text-red-700',
+};
+
 export function ShipperAssignmentsPage() {
+  const nav = useNavigate();
   const qc = useQueryClient();
   const toast = useToast();
 
@@ -54,144 +73,122 @@ export function ShipperAssignmentsPage() {
   const past = list.filter(a => ['COMPLETED', 'REJECTED', 'CANCELLED'].includes(a.status));
 
   return (
-    <div className="-mx-4 -mt-4">
-      {/* Hero strip — shipper variant: green/teal */}
-      <div className="bg-gradient-to-br from-emerald-500 to-teal-600 px-4 pt-5 pb-6 text-white">
-        <p className="text-xs opacity-90">🛵 Shipper</p>
-        <h1 className="text-2xl font-bold mt-0.5">Đơn của tôi</h1>
-        <p className="text-xs opacity-90 mt-1">
+    <div className="p-4 space-y-4">
+      <header>
+        <h1 className="text-xl font-bold">📋 Đơn của tôi</h1>
+        <p className="text-xs text-gray-500 mt-0.5">
           {offered.length > 0
             ? `${offered.length} đơn mới đang chờ bạn nhận`
             : active.length > 0
               ? `${active.length} đơn đang giao`
-              : 'Chưa có đơn mới — bật trạng thái AVAILABLE để nhận'}
+              : 'Chưa có đơn mới'}
         </p>
-      </div>
+      </header>
 
-      <div className="px-4 pt-5 pb-6">
-        {isLoading && (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-32 bg-white rounded-2xl animate-pulse border border-gray-100" />
-            ))}
-          </div>
-        )}
+      {isLoading && (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-20 bg-white rounded-xl animate-pulse" />
+          ))}
+        </div>
+      )}
 
-        {error && (
-          <div className="rounded-2xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-            <p className="font-medium mb-1">Không tải được danh sách đơn.</p>
-            <p className="text-xs opacity-80">Vui lòng thử lại sau.</p>
-          </div>
-        )}
+      {error && (
+        <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+          <p className="font-medium mb-1">Không tải được danh sách đơn.</p>
+          <p className="text-xs opacity-80">Vui lòng thử lại sau.</p>
+        </div>
+      )}
 
-        {!isLoading && !error && list.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-5xl mb-3">🛵</p>
-            <p className="font-medium text-gray-700 mb-1">Chưa có đơn nào</p>
-            <p className="text-xs text-gray-500">Bật trạng thái AVAILABLE để nhận đơn từ shop</p>
-          </div>
-        )}
+      {!isLoading && !error && list.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-5xl mb-3">🛵</p>
+          <p className="font-medium text-gray-700 mb-1">Chưa có đơn nào</p>
+          <p className="text-xs text-gray-500">Bật trạng thái AVAILABLE để nhận đơn từ shop</p>
+        </div>
+      )}
 
-        {offered.length > 0 && (
-          <Section title="🔥 Đơn mới">
-            {offered.map(a => (
-              <AssignmentCard
-                key={a.id}
-                a={a}
-                onAccept={() => acceptMut.mutate(a.id)}
-                onReject={() => confirmAndReject(a.id)}
-              />
-            ))}
-          </Section>
-        )}
-        {active.length > 0 && (
-          <Section title="🚀 Đang giao">
-            {active.map(a => (
-              <AssignmentCard key={a.id} a={a} onAccept={() => {}} onReject={() => {}} />
-            ))}
-          </Section>
-        )}
-        {past.length > 0 && (
-          <Section title="📜 Lịch sử">
-            {past.map(a => (
-              <AssignmentCard key={a.id} a={a} onAccept={() => {}} onReject={() => {}} />
-            ))}
-          </Section>
-        )}
-      </div>
+      {offered.length > 0 && (
+        <Section title="🔥 Đơn mới">
+          {offered.map(a => (
+            <AssignmentCard
+              key={a.id}
+              a={a}
+              onNav={() => nav(`/shipper/assignments/${a.id}`)}
+              onAccept={() => acceptMut.mutate(a.id)}
+              onReject={() => confirmAndReject(a.id)}
+            />
+          ))}
+        </Section>
+      )}
+      {active.length > 0 && (
+        <Section title="🚀 Đang giao">
+          {active.map(a => (
+            <AssignmentCard key={a.id} a={a} onNav={() => nav(`/shipper/assignments/${a.id}`)} onAccept={() => {}} onReject={() => {}} />
+          ))}
+        </Section>
+      )}
+      {past.length > 0 && (
+        <Section title="📜 Lịch sử">
+          {past.map(a => (
+            <AssignmentCard key={a.id} a={a} onNav={() => nav(`/shipper/assignments/${a.id}`)} onAccept={() => {}} onReject={() => {}} />
+          ))}
+        </Section>
+      )}
     </div>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-5">
+    <div className="mb-2">
       <h2 className="text-sm font-semibold text-gray-500 mb-2 px-1">{title}</h2>
-      <div className="space-y-3">{children}</div>
+      <div className="space-y-2">{children}</div>
     </div>
   );
 }
 
-function AssignmentCard({ a, onAccept, onReject }: {
+function AssignmentCard({ a, onNav, onAccept, onReject }: {
   a: AssignmentResponse;
+  onNav: () => void;
   onAccept: () => void;
   onReject: () => void;
 }) {
   return (
-    <Link
-      to={`/shipper/assignments/${a.id}`}
-      className="block bg-white rounded-2xl shadow-sm border border-gray-100 p-3.5 active:scale-[0.99] transition"
+    <article
+      className="bg-white rounded-xl p-3 space-y-1.5 shadow-sm active:scale-[0.98] transition cursor-pointer"
+      onClick={onNav}
     >
-      <div className="flex items-start justify-between mb-2 gap-2">
-        <div className="min-w-0">
-          <p className="font-bold truncate">{a.orderCode}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{formatRelative(a.assignedAt)}</p>
-        </div>
-        <StatusBadge status={a.status} />
-      </div>
-
-      <p className="text-sm flex items-start gap-1.5">
-        <span>📍</span>
-        <span className="truncate">{a.deliveryAddress}</span>
+      <header className="flex justify-between items-center">
+        <span className={`text-xs uppercase font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[a.status] ?? 'bg-gray-100 text-gray-700'}`}>
+          {STATUS_LABEL[a.status] ?? a.status}
+        </span>
+        {a.status !== 'COMPLETED' && a.status !== 'CANCELLED' && a.status !== 'REJECTED' && (
+          <span className="text-sm font-bold text-[var(--brand-primary)]">
+            +{formatVnd(Math.round(Number(a.deliveryFee ?? 0) * 0.8))} dự kiến
+          </span>
+        )}
+      </header>
+      <p className="text-sm font-mono">{a.orderCode}</p>
+      <p className="text-xs text-gray-500">
+        {formatRelative(a.assignedAt)} · {Number(a.distanceKm ?? 0).toFixed(1)} km
       </p>
-      <div className="flex justify-between mt-1 text-xs text-gray-500">
-        <span>📏 {a.distanceKm} km</span>
-        <span className="font-semibold text-orange-600">{formatVnd(a.deliveryFee)}</span>
-      </div>
-
       {a.status === 'OFFERED' && (
-        <div className="flex gap-2 mt-3" onClick={e => e.preventDefault()}>
+        <div className="flex gap-2 pt-1" onClick={e => e.stopPropagation()}>
           <button
             onClick={onAccept}
-            className="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold shadow-sm active:scale-[0.97] transition"
+            className="flex-1 py-2 bg-emerald-600 text-white rounded-xl text-sm font-semibold shadow-sm active:scale-[0.97] transition"
           >
             ✅ Nhận đơn
           </button>
           <button
             onClick={onReject}
-            className="flex-1 py-2.5 border border-red-300 text-red-600 rounded-xl text-sm font-semibold active:scale-[0.97] transition"
+            className="flex-1 py-2 border border-red-300 text-red-600 rounded-xl text-sm font-semibold active:scale-[0.97] transition"
           >
             ❌ Từ chối
           </button>
         </div>
       )}
-    </Link>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const labels: Record<string, { label: string; cls: string }> = {
-    OFFERED:    { label: 'Mới',         cls: 'bg-yellow-100 text-yellow-800' },
-    ACCEPTED:   { label: 'Đã nhận',     cls: 'bg-blue-100 text-blue-800' },
-    STARTED:    { label: 'Đang giao',   cls: 'bg-purple-100 text-purple-800' },
-    COMPLETED:  { label: 'Đã giao',     cls: 'bg-green-100 text-green-800' },
-    REJECTED:   { label: 'Đã từ chối',  cls: 'bg-gray-100 text-gray-700' },
-    CANCELLED:  { label: 'Đã hủy',      cls: 'bg-red-100 text-red-700' },
-  };
-  const info = labels[status] ?? { label: status, cls: 'bg-gray-100 text-gray-700' };
-  return (
-    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${info.cls}`}>
-      {info.label}
-    </span>
+    </article>
   );
 }

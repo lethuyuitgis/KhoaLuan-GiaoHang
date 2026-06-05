@@ -26,7 +26,7 @@ export function SplashPage() {
   useEffect(() => {
     if (data) {
       if (data.roles.includes('SHIPPER')) {
-        navigate('/shipper/assignments', { replace: true });
+        navigate('/shipper/earnings', { replace: true });
       } else {
         navigate('/customer/shop', { replace: true });
       }
