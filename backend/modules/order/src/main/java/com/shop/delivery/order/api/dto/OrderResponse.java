@@ -27,6 +27,7 @@ public record OrderResponse(
     BigDecimal deliveryFeeOriginal,
     BigDecimal deliveryFee,
     BigDecimal total,
+    BigDecimal shipperCommission,
     PaymentMethod paymentMethod,
     PaymentStatus paymentStatus,
     OrderStatus status,

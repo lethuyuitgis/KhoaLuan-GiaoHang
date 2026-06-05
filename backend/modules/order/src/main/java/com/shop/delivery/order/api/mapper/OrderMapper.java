@@ -43,7 +43,7 @@ public class OrderMapper {
             o.getDeliveryAddress(), o.getDeliveryLat(), o.getDeliveryLng(),
             o.getDistanceKm(), o.getSubtotal(),
             o.getDiscountProducts(), o.getDiscountShipping(), o.getDeliveryFeeOriginal(),
-            o.getDeliveryFee(), o.getTotal(),
+            o.getDeliveryFee(), o.getTotal(), o.getShipperCommission(),
             o.getPaymentMethod(), o.getPaymentStatus(), o.getStatus(), o.getNote(),
             o.getCreatedAt(), items
         );
