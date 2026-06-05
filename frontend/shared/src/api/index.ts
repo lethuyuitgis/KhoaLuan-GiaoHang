@@ -9,3 +9,4 @@ export * from './payment';
 export * from './reports';
 export * from './shop-config';
 export * from './vouchers';
+export * from './shipper-earnings';
