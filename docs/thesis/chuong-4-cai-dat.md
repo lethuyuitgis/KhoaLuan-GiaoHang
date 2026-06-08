@@ -1,6 +1,6 @@
 # Chương 4. Cài đặt hệ thống
 
-Chương này trình bày các quyết định hiện thực cụ thể của hệ thống quản lý giao hàng dựa trên nền tảng Telegram, bao gồm môi trường phát triển và công cụ, cấu trúc dự án, hiện thực chi tiết của tám mô-đun backend, hiện thực phía frontend (Mini App và Web Admin), quản lý schema cơ sở dữ liệu qua mười hai file Flyway migration, đóng gói triển khai bằng Docker Compose, cấu hình biến môi trường và chiến lược kiểm thử nhiều tầng. Mục tiêu của chương là chứng minh rằng các quyết định thiết kế đã đề ra ở Chương 3 được hiện thực đầy đủ và nhất quán, đồng thời hệ thống đạt mức độ sẵn sàng triển khai (deployment-ready) — chỉ cần ba lệnh để dựng toàn bộ stack chạy được trên một máy chủ đơn lẻ.
+Chương này trình bày các quyết định hiện thực cụ thể của hệ thống quản lý giao hàng dựa trên nền tảng Telegram, bao gồm môi trường phát triển và công cụ, cấu trúc dự án, hiện thực chi tiết của chín mô-đun backend, hiện thực phía frontend (Mini App và Web Admin), quản lý schema cơ sở dữ liệu qua mười lăm file Flyway migration, đóng gói triển khai bằng Docker Compose, cấu hình biến môi trường và chiến lược kiểm thử nhiều tầng. Mục tiêu của chương là chứng minh rằng các quyết định thiết kế đã đề ra ở Chương 3 được hiện thực đầy đủ và nhất quán, đồng thời hệ thống đạt mức độ sẵn sàng triển khai (deployment-ready) — chỉ cần ba lệnh để dựng toàn bộ stack chạy được trên một máy chủ đơn lẻ.
 
 ## 4.1. Môi trường phát triển và công cụ
 
@@ -98,7 +98,7 @@ KhoaLuan-GiaoHang/
 
 ### 4.2.2. Backend Maven multi-module
 
-Backend là một project Maven multi-module với mười submodule con (tám bounded context nghiệp vụ cộng hai stub serving static resource và một module `app` đóng gói executable jar). Parent `pom.xml` ở thư mục `backend/` không chứa source code mà chỉ đảm nhận hai nhiệm vụ: (i) khai báo thứ tự build qua thẻ `<modules>` đảm bảo `shared` luôn build trước, sau đó là các module nghiệp vụ song hàng, cuối cùng là `app`; (ii) tập trung quản lý phiên bản dependency qua `<dependencyManagement>` để mọi module con tham chiếu cùng một phiên bản — tránh tình trạng version drift. Mỗi module con có package gốc theo dạng `com.shop.delivery.<module>` (ví dụ `com.shop.delivery.payment`), ranh giới module được Maven enforce tại thời điểm biên dịch: module `bot` muốn dùng class của `order` thì phải khai báo dependency trong `pom.xml`, không thể tự tiện import.
+Backend là một project Maven multi-module với mười một submodule con (chín bounded context nghiệp vụ cộng hai stub serving static resource và một module `app` đóng gói executable jar). Parent `pom.xml` ở thư mục `backend/` không chứa source code mà chỉ đảm nhận hai nhiệm vụ: (i) khai báo thứ tự build qua thẻ `<modules>` đảm bảo `shared` luôn build trước, sau đó là các module nghiệp vụ song hàng, cuối cùng là `app`; (ii) tập trung quản lý phiên bản dependency qua `<dependencyManagement>` để mọi module con tham chiếu cùng một phiên bản — tránh tình trạng version drift. Mỗi module con có package gốc theo dạng `com.shop.delivery.<module>` (ví dụ `com.shop.delivery.payment`), ranh giới module được Maven enforce tại thời điểm biên dịch: module `bot` muốn dùng class của `order` thì phải khai báo dependency trong `pom.xml`, không thể tự tiện import.
 
 ### 4.2.3. Frontend pnpm workspace
 
@@ -110,7 +110,7 @@ Thư mục `infra/` chứa cấu hình hạ tầng triển khai: hai file Docker
 
 ## 4.3. Cài đặt module backend
 
-Backend hệ thống được tổ chức thành tám bounded context tuân thủ đồ thị phụ thuộc một chiều (DAG, không có chu trình) đã trình bày ở Chương 3 mục 3.2. Các mục dưới đây mô tả chi tiết hiện thực của từng module theo cùng một cấu trúc gồm: trách nhiệm chính, các thành phần (entity / repository / service / controller) cốt lõi, đóng góp vào schema cơ sở dữ liệu (Flyway migration tương ứng) và đặc điểm thiết kế đáng chú ý.
+Backend hệ thống được tổ chức thành chín bounded context tuân thủ đồ thị phụ thuộc một chiều (DAG, không có chu trình) đã trình bày ở Chương 3 mục 3.2. Các mục dưới đây mô tả chi tiết hiện thực của từng module theo cùng một cấu trúc gồm: trách nhiệm chính, các thành phần (entity / repository / service / controller) cốt lõi, đóng góp vào schema cơ sở dữ liệu (Flyway migration tương ứng) và đặc điểm thiết kế đáng chú ý.
 
 ### 4.3.1. Module `shared`
 
@@ -188,7 +188,7 @@ Module `notification` là nơi tập trung mọi listener cross-module — khôn
 
 ### 4.3.8. Module `app`
 
-Module `app` là executable jar duy nhất của hệ thống, đóng vai trò wire toàn bộ thành phần lại với nhau. Class `Application` chứa `main()` method với annotation `@SpringBootApplication` (scan các package `com.shop.delivery.*`), `@EnableScheduling` (kích hoạt `PaymentExpiryScheduler`), `@EnableJpaAuditing`. Module chứa: `SecurityConfig` định nghĩa filter chain với hai filter chain song song (Mini App API qua `TelegramAuthFilter`, Web Admin API qua `JwtAuthFilter`); `WebSocketConfig` cấu hình STOMP broker với channel interceptor `WebSocketAuthInterceptor` xác thực CONNECT frame (dual auth: Telegram initData hoặc JWT Bearer); hai file properties `application.yml` (chung) và `application-prod.yml` (fail-fast cho secret); và thư mục `db/migration/` chứa toàn bộ mười hai file Flyway V1 đến V12. Khi build qua `./mvnw package`, plugin `spring-boot-maven-plugin` đóng gói tất cả module phụ thuộc vào một fat jar dung lượng khoảng 70 megabyte, có thể chạy bằng `java -jar app.jar` hoặc đóng vào Docker image.
+Module `app` là executable jar duy nhất của hệ thống, đóng vai trò wire toàn bộ thành phần lại với nhau. Class `Application` chứa `main()` method với annotation `@SpringBootApplication` (scan các package `com.shop.delivery.*`), `@EnableScheduling` (kích hoạt `PaymentExpiryScheduler`), `@EnableJpaAuditing`. Module chứa: `SecurityConfig` định nghĩa filter chain với hai filter chain song song (Mini App API qua `TelegramAuthFilter`, Web Admin API qua `JwtAuthFilter`); `WebSocketConfig` cấu hình STOMP broker với channel interceptor `WebSocketAuthInterceptor` xác thực CONNECT frame (dual auth: Telegram initData hoặc JWT Bearer); hai file properties `application.yml` (chung) và `application-prod.yml` (fail-fast cho secret); và thư mục `db/migration/` chứa toàn bộ mười lăm file Flyway V1 đến V15. Khi build qua `./mvnw package`, plugin `spring-boot-maven-plugin` đóng gói tất cả module phụ thuộc vào một fat jar dung lượng khoảng 70 megabyte, có thể chạy bằng `java -jar app.jar` hoặc đóng vào Docker image.
 
 ## 4.4. Cài đặt module frontend
 
@@ -256,13 +256,13 @@ export function createStompClient(url: string, headers: Record<string, string>) 
 
 ### 4.5.1. Tổng quan chiến lược migration
 
-Toàn bộ schema cơ sở dữ liệu được quản lý qua Flyway 10 — không có schema thay đổi nào được thực hiện thủ công trên môi trường production. Mỗi pha trong quy trình GSD đóng góp một (hoặc một số) file migration cho mô-đun của pha đó, đảm bảo schema thay đổi rõ ràng theo timeline phát triển. Quy ước đặt tên file là `V<n>__<snake_name>.sql` với `<n>` là số nguyên tăng tuần tự bắt đầu từ 1, không có khoảng trống. Tổng cộng hệ thống có mười ba file migration (V1 đến V13) tính đến thời điểm bảo vệ.
+Toàn bộ schema cơ sở dữ liệu được quản lý qua Flyway 10 — không có schema thay đổi nào được thực hiện thủ công trên môi trường production. Mỗi pha trong quy trình GSD đóng góp một (hoặc một số) file migration cho mô-đun của pha đó, đảm bảo schema thay đổi rõ ràng theo timeline phát triển. Quy ước đặt tên file là `V<n>__<snake_name>.sql` với `<n>` là số nguyên tăng tuần tự bắt đầu từ 1, không có khoảng trống. Tổng cộng hệ thống có mười lăm file migration (V1 đến V15) tính đến thời điểm bảo vệ.
 
 Trong môi trường dev, lệnh `mvn flyway:info` hiển thị trạng thái apply hiện tại của từng migration; lệnh `mvn flyway:migrate` apply các migration còn thiếu. Trong môi trường production, Flyway tự chạy lúc Spring Boot khởi động — nếu một migration fail, backend không up được (`@SpringBootApplication` fail-fast), tránh trường hợp ứng dụng chạy trên schema không đúng phiên bản. Quy tắc bất di bất dịch: mọi thay đổi schema đều phải thông qua một file `V<n>__<name>.sql` *mới* — tuyệt đối không sửa file đã apply (vì Flyway lưu checksum và sẽ phát hiện sửa đổi, dừng ứng dụng).
 
-### 4.5.2. Danh sách mười ba migration
+### 4.5.2. Danh sách mười lăm migration
 
-**Bảng 4.2. Danh sách 13 file Flyway migration (V1 đến V13)**
+**Bảng 4.2. Danh sách 15 file Flyway migration (V1 đến V15)**
 
 | Version | Tên file | Mô-đun đóng góp | Tạo bảng / chỉ mục chính |
 |---|---|---|---|
@@ -279,6 +279,8 @@ Trong môi trường dev, lệnh `mvn flyway:info` hiển thị trạng thái ap
 | V11 | `demo_seed.sql` | (tất cả) | Seed demo cho reviewer |
 | V12 | `shipper_rating.sql` | delivery | `shipper_rating` + cột `rating_avg`, `rating_count` ở `telegram_user` |
 | V13 | `shop_config.sql` | order | `shop_config` (singleton row, brand + pickup + fee) |
+| V14 | `voucher.sql` | promotion | `voucher`, `voucher_redemption` + cột `discount_products`/`discount_shipping`/`delivery_fee_original` ở `orders` |
+| V15 | `shipper_ledger.sql` | delivery | `shipper_ledger` + cột `shipper_commission_pct` ở `shop_config` và `shipper_commission` ở `orders` |
 
 ### 4.5.3. Chi tiết các migration trọng tâm
 
@@ -389,7 +391,7 @@ Bốn biến VNPay được nạp riêng để cô lập credential cổng thanh
 
 ### 4.8.1. Backend testing pyramid
 
-Backend hệ thống áp dụng mô hình *testing pyramid* tiêu chuẩn với ba tầng. Tầng đáy gồm khoảng 190 *unit test* sử dụng Mockito 5 và AssertJ 3, kiểm thử các service, handler và helper ở mức class đơn lẻ — mọi dependency được mock và assertion tập trung vào logic chuyển trạng thái. Tầng giữa gồm khoảng 28 *integration test* (suffix `IT.java`, chạy bởi Maven Failsafe plugin) sử dụng Testcontainers PostgreSQL 16 thật và `@SpringBootTest` — kiểm thử các tương tác đa-component (repository + service + listener + transaction propagation) trên một schema thật, đã apply đầy đủ mười hai Flyway migration. Tầng đỉnh là các *slice test* dùng `@WebMvcTest` để kiểm thử controller validation và JSON shape mà không cần boot toàn bộ context Spring — phương án này nhanh hơn `@SpringBootTest` nhưng vẫn xác minh được binding và serialization.
+Backend hệ thống áp dụng mô hình *testing pyramid* tiêu chuẩn với ba tầng. Tầng đáy gồm khoảng 190 *unit test* sử dụng Mockito 5 và AssertJ 3, kiểm thử các service, handler và helper ở mức class đơn lẻ — mọi dependency được mock và assertion tập trung vào logic chuyển trạng thái. Tầng giữa gồm khoảng 28 *integration test* (suffix `IT.java`, chạy bởi Maven Failsafe plugin) sử dụng Testcontainers PostgreSQL 16 thật và `@SpringBootTest` — kiểm thử các tương tác đa-component (repository + service + listener + transaction propagation) trên một schema thật, đã apply đầy đủ mười lăm Flyway migration. Tầng đỉnh là các *slice test* dùng `@WebMvcTest` để kiểm thử controller validation và JSON shape mà không cần boot toàn bộ context Spring — phương án này nhanh hơn `@SpringBootTest` nhưng vẫn xác minh được binding và serialization.
 
 ### 4.8.2. Frontend testing
 
@@ -430,4 +432,4 @@ Bên cạnh test tự động, hệ thống có file `RUNBOOK.md` ở thư mục
 
 ## 4.9. Kết luận chương
 
-Chương 4 đã trình bày đầy đủ các quyết định hiện thực then chốt của hệ thống: môi trường phát triển thống nhất với JDK 17, Node 22 và Docker; cấu trúc dự án ba lớp tách bạch backend, frontend và infra; hiện thực tám mô-đun backend theo đúng đồ thị DAG đã thiết kế ở Chương 3, với các đặc điểm thiết kế đáng chú ý gồm State Machine cho `Order` và `DeliveryAssignment`, IPN-as-source-of-truth cho VNPay, FSM hội thoại với payload JSONB cho luồng đăng ký shipper, và `@TransactionalEventListener(AFTER_COMMIT)` cho mọi giao tiếp cross-module; hiện thực Mini App và Web Admin với cùng nền tảng React 18 nhưng có bundle và route tách bạch; quản lý schema qua mười hai file Flyway migration với V11 seed dữ liệu demo và V12 bổ sung shipper rating; đóng gói triển khai bằng Docker Compose năm container với healthcheck chain ba lệnh; cấu hình biến môi trường với fail-fast cho production; và chiến lược kiểm thử nhiều tầng với 253 test backend cộng 21 test frontend, tổng cộng 274 test, đảm bảo tỉ lệ build green 100% trên mỗi commit. Chương 5 tiếp theo tổng kết các kết quả đạt được, hạn chế đã nhận diện trung thực và đề xuất các hướng phát triển tiếp theo cho hệ thống.
+Chương 4 đã trình bày đầy đủ các quyết định hiện thực then chốt của hệ thống: môi trường phát triển thống nhất với JDK 17, Node 22 và Docker; cấu trúc dự án ba lớp tách bạch backend, frontend và infra; hiện thực chín mô-đun backend theo đúng đồ thị DAG đã thiết kế ở Chương 3, với các đặc điểm thiết kế đáng chú ý gồm State Machine cho `Order` và `DeliveryAssignment`, IPN-as-source-of-truth cho VNPay, FSM hội thoại với payload JSONB cho luồng đăng ký shipper, và `@TransactionalEventListener(AFTER_COMMIT)` cho mọi giao tiếp cross-module; hiện thực Mini App và Web Admin với cùng nền tảng React 18 nhưng có bundle và route tách bạch; quản lý schema qua mười lăm file Flyway migration với V11 seed dữ liệu demo, V12 bổ sung shipper rating, V13 cấu hình shop động, V14 voucher và V15 sổ kế toán shipper; đóng gói triển khai bằng Docker Compose năm container với healthcheck chain ba lệnh; cấu hình biến môi trường với fail-fast cho production; và chiến lược kiểm thử nhiều tầng với 318 test backend cộng 27 test frontend, tổng cộng 345 test, đảm bảo tỉ lệ build green 100% trên mỗi commit. Chương 5 tiếp theo tổng kết các kết quả đạt được, hạn chế đã nhận diện trung thực và đề xuất các hướng phát triển tiếp theo cho hệ thống; Chương 6 đi sâu vào hai pha mở rộng nghiệp vụ cuối (voucher và hoa hồng shipper).

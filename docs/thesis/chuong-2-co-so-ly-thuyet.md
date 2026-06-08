@@ -359,7 +359,7 @@ Tham khảo: tài liệu kỹ thuật VNPay sandbox phiên bản 2.1.0 [6].
 
 ### 2.6.3. Đồ thị phụ thuộc DAG (không có chu trình)
 
-Đề tài tổ chức 8 module thành đồ thị phụ thuộc một chiều: `shared` là cơ sở, không phụ thuộc module nào; các module nghiệp vụ (`auth`, `order`, `delivery`, `payment`) phụ thuộc `shared`; `bot` phụ thuộc `auth`, `order`, `delivery`; `notification` phụ thuộc các module qua *event interface*; cuối cùng `app` là module thực thi (executable jar) wire mọi thứ. Đồ thị này không có chu trình — đây là kiểm tra tự động được Maven enforce qua thứ tự khai báo trong `pom.xml`.
+Đề tài tổ chức 9 module thành đồ thị phụ thuộc một chiều: `shared` là cơ sở, không phụ thuộc module nào; các module nghiệp vụ (`auth`, `order`, `delivery`, `payment`, `promotion`) phụ thuộc `shared`; `bot` phụ thuộc `auth`, `order`, `delivery`; `notification` phụ thuộc các module qua *event interface*; cuối cùng `app` là module thực thi (executable jar) wire mọi thứ. Đồ thị này không có chu trình — đây là kiểm tra tự động được Maven enforce qua thứ tự khai báo trong `pom.xml`.
 
 ### 2.6.4. Giao tiếp cross-module qua domain events
 
@@ -511,7 +511,7 @@ Tham khảo: tài liệu Docker Compose specification chính thức [10].
 
 ![Hình 2.5. VNPay sandbox — luồng thanh toán điện tử với HMAC-SHA512 và IPN](screenshots/miniapp-cust-06-checkout.png)
 
-![Hình 2.6. Modular Monolith — 8 bounded context trong cùng một process](screenshots/admin-07-order-detail.png)
+![Hình 2.6. Modular Monolith — 9 bounded context trong cùng một process](screenshots/admin-07-order-detail.png)
 
 ![Hình 2.7. Test-Driven Development — manual smoke test trên môi trường tunnel HTTPS](screenshots/miniapp-tunnel-via-https.png)
 

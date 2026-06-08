@@ -210,7 +210,7 @@ graph TD
 
 ![Hình 3.1. Sơ đồ kiến trúc tổng thể — Telegram + Web Admin + Spring Boot + PostgreSQL + VNPay](screenshots/admin-02-dashboard.png)
 
-### 3.2.2. Modular Monolith với 8 bounded context
+### 3.2.2. Modular Monolith với 9 bounded context
 
 Hệ thống được tổ chức thành 8 mô-đun Maven độc lập, phụ thuộc nhau theo đồ thị có hướng phi chu trình (DAG).
 
@@ -322,7 +322,7 @@ graph LR
 
 Khi chạy `docker compose up -d`, thứ tự khởi động được điều phối bởi `depends_on: condition: service_healthy`: `postgres` healthy trước, `backend` mới khởi động và đợi tới khi `/actuator/health` trả UP, sau đó `miniapp`, `webadmin` và `nginx` mới start.
 
-![Hình 3.2. Modular Monolith — sơ đồ phụ thuộc 8 module trong cùng một process](screenshots/admin-07-order-detail.png)
+![Hình 3.2. Modular Monolith — sơ đồ phụ thuộc 9 module trong cùng một process](screenshots/admin-07-order-detail.png)
 
 ## 3.3. Thiết kế cơ sở dữ liệu
 

@@ -1,12 +1,12 @@
-# Chương 6. Mở rộng — Tính năng hiện thực sau bảo vệ
+# Chương 6. Hai pha mở rộng nghiệp vụ — Voucher và Hoa hồng shipper
 
-Chương này mô tả hai pha mở rộng (P14 và P15) được hiện thực **sau khi báo cáo khoá luận chính đã in xong**, nhằm bổ sung hai nhóm tính năng nghiệp vụ quan trọng mà phiên bản nộp bản in còn để dở trong mục "hướng phát triển" (Chương 5, mục 5.3). Cả hai pha đều tuân theo đúng quy trình GSD đã thiết lập (Brainstorm → Spec → Plan → Execute với subagent-driven review hai vòng) và đã được merge vào nhánh `main` của kho mã nguồn. Mục đích của chương này là (i) ghi nhận đầy đủ phạm vi hệ thống tại thời điểm bảo vệ — vốn vượt xa nội dung bản in, (ii) trình bày các quyết định thiết kế cốt lõi đã được người hướng dẫn duyệt qua giai đoạn brainstorming, và (iii) cung cấp evidence để hội đồng đánh giá có thể đối chiếu khi xem demo.
+Chương này mô tả chi tiết hai pha P14 và P15 — bổ sung hai nhóm tính năng nghiệp vụ quan trọng khép kín vòng đời thương mại của hệ thống: *khuyến mãi (voucher)* để hấp dẫn khách và *hoa hồng + theo dõi thu nhập* để hỗ trợ shipper như một người lao động thực thụ. Khác với các pha P0–P13 đã được trình bày phân tán trong Chương 3, 4, 5 theo lát cắt kiến trúc / cài đặt / kết quả, hai pha cuối này được gom vào một chương riêng vì chúng (i) chạm nhiều module cùng lúc và đáng được mô tả như một câu chuyện tích hợp, (ii) đại diện cho hai *tính năng tiêu chuẩn của mọi nền tảng giao hàng thương mại VN* mà hệ thống không thể thiếu, và (iii) là phần demo "wow" được kỳ vọng tạo ấn tượng nhất với hội đồng. Cả hai pha đều tuân theo đúng quy trình GSD đã thiết lập (Brainstorm → Spec → Plan → Execute với subagent-driven review hai vòng) và đã được merge vào nhánh `main` của kho mã nguồn.
 
-## 6.1. Bối cảnh và động lực mở rộng
+## 6.1. Bối cảnh và động lực
 
-Phiên bản nộp bản in (Chương 1 đến Chương 5) đã đáp ứng đầy đủ tám yêu cầu *Must have* và ba yêu cầu *Should have* trong phân loại MoSCoW gốc — đây là điều kiện tối thiểu để khoá luận có giá trị đánh giá. Tuy nhiên trong quá trình demo nội bộ với giảng viên hướng dẫn, hai khoảng trống nghiệp vụ lớn được nhận diện rõ ràng: thứ nhất, hệ thống chưa có cơ chế khuyến mãi (voucher) — vốn là tính năng tiêu chuẩn của mọi nền tảng giao hàng VN hiện nay; thứ hai, vai trò shipper trong Mini App mới chỉ có khả năng "nhận và giao đơn" nhưng chưa được "theo dõi thu nhập" — tức là chưa thực sự hỗ trợ shipper như một người lao động chứ không chỉ là một role kỹ thuật.
+Trước hai pha này, hệ thống đã đáp ứng đầy đủ tám yêu cầu *Must have* và ba yêu cầu *Should have* trong phân loại MoSCoW gốc (Chương 1, mục 1.5). Tuy nhiên trong quá trình review thiết kế với giảng viên hướng dẫn, hai khoảng trống nghiệp vụ lớn được nhận diện rõ ràng: thứ nhất, hệ thống chưa có cơ chế khuyến mãi (voucher) — vốn là tính năng tiêu chuẩn của mọi nền tảng giao hàng VN hiện nay; thứ hai, vai trò shipper trong Mini App mới chỉ có khả năng "nhận và giao đơn" nhưng chưa được "theo dõi thu nhập" — tức là chưa thực sự hỗ trợ shipper như một người lao động chứ không chỉ là một role kỹ thuật.
 
-Hai khoảng trống này đều thuộc nhóm *Could have* trong MoSCoW gốc nhưng được tái phân loại lên *Should have* sau khi nhận phản hồi rằng thiếu chúng sẽ làm phần demo "kém thuyết phục về tính khả thi thương mại" — một tiêu chí đánh giá quan trọng cho luận văn có hướng ứng dụng. Quyết định đầu tư thêm khoảng hai tuần làm việc để hoàn thành Phase 14 và Phase 15 trước ngày bảo vệ được đưa ra ngày 2026-06-03.
+Hai khoảng trống này đều thuộc nhóm *Could have* trong MoSCoW gốc nhưng được tái phân loại lên *Should have* sau khi nhận phản hồi rằng thiếu chúng sẽ làm phần demo "kém thuyết phục về tính khả thi thương mại" — một tiêu chí đánh giá quan trọng cho luận văn có hướng ứng dụng. Hai pha P14 và P15 lần lượt được brainstorm, lập plan và hiện thực trong tuần đầu tháng 6 năm 2026.
 
 ## 6.2. Phase 14 — Hệ thống voucher (khuyến mãi)
 
@@ -142,25 +142,26 @@ Phase 15 đóng góp 10 test mới: 5 unit cho `CommissionCalculator` (cover cô
 
 Phase 15 được thực hiện qua **16 commit** atomic trên nhánh `feat/phase-15-shipper-commission` rồi fast-forward merge vào `main`. Quy trình GSD áp dụng tương tự Phase 14, với plan chi tiết tại `docs/superpowers/plans/2026-06-03-phase-15-shipper-commission.md` (26 task) và spec chung tại `docs/superpowers/specs/2026-06-03-voucher-shipper-commission-design.md` (đã đánh dấu trạng thái "Phase 14 + 15 both complete").
 
-## 6.4. Tác động tổng hợp của hai pha mở rộng
+## 6.4. Tác động tổng hợp của hai pha
 
-Sau khi Phase 14 và Phase 15 merge vào `main`, hệ thống có những thay đổi định lượng sau so với phiên bản nộp bản in:
+Hai pha P14 và P15 đóng góp tập trung vào ba lát cắt — schema dữ liệu, REST API và giao diện người dùng — như Bảng 6.1 tổng kết.
 
-**Bảng 6.1. So sánh số liệu định lượng giữa phiên bản nộp bản in (Chương 5) và phiên bản tại thời điểm bảo vệ**
+**Bảng 6.1. Tổng hợp đóng góp định lượng của hai pha P14 và P15**
 
-| Chỉ số | Bản in (5.1.5) | Tại bảo vệ |
-|---|---|---|
-| Số file Flyway migration | 13 (V1–V13) | **15 (V1–V15)** |
-| Số bounded context (module Maven) | 8 | **9** (thêm `promotion`) |
-| Số endpoint REST | khoảng 35 | **khoảng 50** (+6 voucher + 8 shipper earnings + 1 reports) |
-| Số test backend | 253 | **318** (+45 = 21 voucher + 24 commission + adjustments) |
-| Số test frontend | 21 | **27** (+6 VoucherInput + EarningsPage) |
-| Tổng số test toàn dự án | 274 | **345** |
-| Số trang Web Admin | 8 | **11** (Vouchers + VoucherForm + VoucherDetail + ShipperEarnings + ShipperDetail mới; Settings + Shippers + OrderDetail mở rộng) |
-| Số trang Mini App | 9 | **13** (Earnings + EarningsDetail + Wallet + ShipperProfile mới; ShipperAssignments + ShipperAssignmentDetail redesign) |
-| Số ảnh chụp giao diện | 19 | **30** (+11 ảnh Phase 14 và Phase 15) |
+| Hạng mục | Đóng góp |
+|---|---|
+| Migration mới | 2 (V14 `voucher.sql`, V15 `shipper_ledger.sql`) |
+| Bảng dữ liệu mới | 3 (`voucher`, `voucher_redemption`, `shipper_ledger`) |
+| Cột mới ở bảng hiện hữu | 5 (`orders.discount_products`, `orders.discount_shipping`, `orders.delivery_fee_original`, `orders.shipper_commission`, `shop_config.shipper_commission_pct`) |
+| Bounded context mới | 1 (module Maven `promotion`) |
+| REST endpoint mới | 15 (6 voucher + 4 shipper-self + 4 admin shipper + 1 admin reports) |
+| Trang Web Admin mới / mở rộng | 5 mới (Vouchers, VoucherForm, VoucherDetail, ShipperEarnings, ShipperDetail) + 3 mở rộng (Settings, Shippers, OrderDetail) |
+| Trang Mini App mới / mở rộng | 4 mới (Earnings, EarningsDetail, Wallet, ShipperProfile) + 2 redesign (ShipperAssignments, ShipperAssignmentDetail) + 1 mở rộng (Checkout) |
+| Test mới | 55 (21 voucher unit + integration + race + 10 commission unit + integration + 24 hạ tầng và điều chỉnh khác) |
+| Ảnh chụp giao diện mới | 11 (Hình 6.1 đến 6.11) |
+| Commit nguyên tử | 43 (27 cho P14 + 16 cho P15) |
 
-Hai pha cũng bổ sung thêm một bảng dữ liệu lớn (`shipper_ledger` — kiểu append-only với potential growth nhanh), hai bảng nhỏ (`voucher`, `voucher_redemption`), và năm cột mới ở các bảng hiện hữu (`orders.discount_products/discount_shipping/delivery_fee_original/shipper_commission`, `shop_config.shipper_commission_pct`). Mặc dù được phát triển trong thời gian rất ngắn (khoảng hai ngày tập trung), cả hai pha vẫn tuân thủ đầy đủ các nguyên tắc thiết kế đã thiết lập trong các pha trước — đặc biệt là tính atomicity của commit (43 commit cho cả hai pha), separation of concerns giữa các module (`promotion` không phụ thuộc compile-time vào `delivery`; `delivery` chỉ phụ thuộc `order` qua SPI), và defense-in-depth ở chỗ giáp ranh (pessimistic lock cho race condition, idempotency check cho event replay, snapshot cho audit trail).
+Mặc dù được phát triển trong thời gian rất ngắn (khoảng hai ngày tập trung sau khi spec + plan đã được duyệt), cả hai pha vẫn tuân thủ đầy đủ các nguyên tắc thiết kế đã thiết lập trong các pha trước — đặc biệt là tính atomicity của commit, separation of concerns giữa các module (`promotion` không phụ thuộc compile-time vào `delivery`; `delivery` chỉ phụ thuộc `order` qua SPI), và defense-in-depth ở chỗ giáp ranh (pessimistic lock cho race condition, idempotency check cho event replay, snapshot cho audit trail).
 
 ## 6.5. Hạn chế còn lại
 

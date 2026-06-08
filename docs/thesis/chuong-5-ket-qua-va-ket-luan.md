@@ -32,11 +32,11 @@ Hình 5.2 minh hoạ giao diện danh mục của Mini App khi khách hàng mở
 
 ### 5.1.2. Kết quả về kỹ thuật
 
-Hệ thống đem lại tám đóng góp kỹ thuật chính, tương ứng với chín điểm nổi bật được phân tích chi tiết ở phần A của tài liệu *điểm nổi bật và hướng phát triển*. Thứ nhất, **mô hình triển khai lai trên nền tảng Telegram** sử dụng đồng thời ba kênh có vai trò bổ trợ nhau (Mini App cho khách và shipper, Bot cho thao tác nhanh và FSM hội thoại, Web Admin cho desktop của chủ shop) — phá vỡ ràng buộc "một ứng dụng giải quyết mọi vai trò" của các app giao hàng thương mại, cho phép mỗi vai trò được tối ưu thay vì compromise. Thứ hai, **theo dõi GPS realtime bằng Telegram Live Location native** — tận dụng tính năng có sẵn của Telegram thay vì lập trình streaming GPS phía client (tiết kiệm khoảng 80% công sức so với phương án tự build, đồng thời thừa hưởng tính bảo mật HMAC của Telegram). Thứ ba, **kiến trúc Modular Monolith với tám bounded context** giao tiếp một chiều theo đồ thị DAG qua Spring Application Events `@TransactionalEventListener(AFTER_COMMIT)` — vừa giữ ưu điểm "một container, một lệnh deploy" của monolith, vừa đạt mức độ cô lập trách nhiệm theo DDD, đồng thời tạo lối thoát chuyển sang microservices trong tương lai mà gần như không phải sửa code nghiệp vụ.
+Hệ thống đem lại tám đóng góp kỹ thuật chính, tương ứng với chín điểm nổi bật được phân tích chi tiết ở phần A của tài liệu *điểm nổi bật và hướng phát triển*. Thứ nhất, **mô hình triển khai lai trên nền tảng Telegram** sử dụng đồng thời ba kênh có vai trò bổ trợ nhau (Mini App cho khách và shipper, Bot cho thao tác nhanh và FSM hội thoại, Web Admin cho desktop của chủ shop) — phá vỡ ràng buộc "một ứng dụng giải quyết mọi vai trò" của các app giao hàng thương mại, cho phép mỗi vai trò được tối ưu thay vì compromise. Thứ hai, **theo dõi GPS realtime bằng Telegram Live Location native** — tận dụng tính năng có sẵn của Telegram thay vì lập trình streaming GPS phía client (tiết kiệm khoảng 80% công sức so với phương án tự build, đồng thời thừa hưởng tính bảo mật HMAC của Telegram). Thứ ba, **kiến trúc Modular Monolith với chín bounded context** giao tiếp một chiều theo đồ thị DAG qua Spring Application Events `@TransactionalEventListener(AFTER_COMMIT)` — vừa giữ ưu điểm "một container, một lệnh deploy" của monolith, vừa đạt mức độ cô lập trách nhiệm theo DDD, đồng thời tạo lối thoát chuyển sang microservices trong tương lai mà gần như không phải sửa code nghiệp vụ.
 
 Thứ tư, **tích hợp VNPay sandbox với IPN làm nguồn sự thật** — không chỉ "redirect rồi tin tưởng Return URL" mà áp dụng đúng pattern *IPN-as-source-of-truth* mà VNPay khuyến nghị, với các đảm bảo kỹ thuật cụ thể: `MessageDigest.isEqual` so sánh hash constant-time chống timing attack (V6 ASVS L1), idempotent IPN trả `RspCode 02` cho replay, audit trail bắt buộc mọi payload IPN vào cột JSONB `payment_transaction.raw_payload` kể cả khi chữ ký không hợp lệ, `Propagation.REQUIRES_NEW` trên `OrderService.confirmAfterPayment` để tránh phantom commit trong `AFTER_COMMIT` phase, và `PaymentExpiryScheduler` cron 60 giây tự đánh dấu `Payment(PENDING)` quá 15 phút thành `FAILED`. Thứ năm, **bảo mật defense-in-depth qua mười một lớp đối phó song song** — từ `TelegramAuthFilter` HMAC ở rìa, qua `JwtAuthFilter` cho admin, `SecurityConfig` allowlist filter chain, `@PreAuthorize` ở controller, `@CurrentUser` resolver chống forge customer ID, WebSocket CONNECT dual auth, WebSocket SUBSCRIBE allowlist (catch ở code review P6), VNPay HMAC constant-time, enum whitelist trước `DATE_TRUNC` chống SQL injection, `vnp_TxnRef UNIQUE` chống replay, đến partial unique index `uq_assignment_shipper_started` chống wrong-shipper attribution.
 
-Thứ sáu, **bộ test suite 274 case** (253 backend + 21 frontend) bao phủ unit, integration với Testcontainers PostgreSQL thật, slice test cho controller validation, security regression test cho mỗi lớp defense-in-depth — đảm bảo tỉ lệ build green 100% trên mỗi commit. Thứ bảy, **mười hai Flyway migration** quản lý toàn bộ schema từ V1 init đến V12 shipper_rating — không có thay đổi schema thủ công nào trên môi trường production. Thứ tám, **đóng gói Docker Compose năm container** với healthcheck chain (postgres → backend → miniapp + webadmin → nginx) và quy trình deploy chỉ ba lệnh — sẵn sàng triển khai trên mọi VPS có Docker.
+Thứ sáu, **bộ test suite 345 case** (318 backend + 27 frontend) bao phủ unit, integration với Testcontainers PostgreSQL thật, slice test cho controller validation, security regression test cho mỗi lớp defense-in-depth — đảm bảo tỉ lệ build green 100% trên mỗi commit. Thứ bảy, **mười lăm Flyway migration** quản lý toàn bộ schema từ V1 init đến V15 shipper_ledger — không có thay đổi schema thủ công nào trên môi trường production. Thứ tám, **đóng gói Docker Compose năm container** với healthcheck chain (postgres → backend → miniapp + webadmin → nginx) và quy trình deploy chỉ ba lệnh — sẵn sàng triển khai trên mọi VPS có Docker.
 
 ### 5.1.3. Kết quả về quy trình phát triển
 
@@ -56,26 +56,26 @@ Bảng 5.2 tổng hợp các chỉ số định lượng cuối cùng của đ�
 
 | Chỉ số | Giá trị |
 |---|---|
-| Tổng số commit nguyên tử | hơn 160 |
-| Tổng số dòng mã (Java + TypeScript) | khoảng 21 000 |
-| Tổng số từ báo cáo khoá luận | khoảng 24 000 |
-| Tổng số dòng tài liệu plan + research + review | khoảng 42 000 |
-| Tổng số test backend (unit + integration) | 253 |
-| Tổng số test frontend (Vitest + Testing Library) | 21 |
-| Tổng số test toàn dự án | 274 |
+| Tổng số commit nguyên tử | hơn 290 |
+| Tổng số dòng mã (Java + TypeScript) | khoảng 25 000 |
+| Tổng số từ báo cáo khoá luận | khoảng 28 000 |
+| Tổng số dòng tài liệu plan + research + review + spec | khoảng 47 000 |
+| Tổng số test backend (unit + integration) | 318 |
+| Tổng số test frontend (Vitest + Testing Library) | 27 |
+| Tổng số test toàn dự án | 345 |
 | Tỉ lệ build xanh trên mỗi commit ở `main` | 100% |
-| Số file Flyway migration | 13 (V1 đến V13) |
-| Số bounded context | 8 |
-| Số endpoint REST | khoảng 35 |
+| Số file Flyway migration | 15 (V1 đến V15) |
+| Số bounded context | 9 |
+| Số endpoint REST | khoảng 50 |
 | Số topic WebSocket | 2 (`/user/queue/order/*/location`, `/topic/admin/orders`) |
 | Số sự kiện cross-module | 9 |
-| Số trang Mini App | 9 |
-| Số trang Web Admin | 8 |
+| Số trang Mini App | 13 |
+| Số trang Web Admin | 13 |
 | Số Dockerfile | 3 |
 | Số container trong Docker Compose | 5 |
-| Số ảnh chụp giao diện trong báo cáo | 19 |
-| Số hình vẽ và sơ đồ | 37 |
-| Số bảng biểu | 26 |
+| Số ảnh chụp giao diện trong báo cáo | 30 |
+| Số hình vẽ và sơ đồ | 52 |
+| Số bảng biểu | 27 |
 
 ## 5.2. Hạn chế của hệ thống
 
@@ -209,7 +209,7 @@ Mỗi hạng mục dưới đây có thể là một đề tài khoá luận ho�
 
 ## 5.4. Kết luận
 
-Đề tài *"Hệ thống quản lý giao hàng tích hợp Telegram Mini App, Web Admin và VNPay"* đã hoàn thành toàn bộ mục tiêu kỹ thuật đặt ra ở Chương 1: hỗ trợ đặt đơn với hai phương thức thanh toán COD và VNPay sử dụng ký HMAC-SHA512 và mô hình IPN-as-source-of-truth; theo dõi vị trí shipper thời gian thực qua Telegram Live Location với độ trễ end-to-end dưới ba giây; áp dụng máy trạng thái hữu hạn cho bốn thực thể chính (`Order`, `DeliveryAssignment`, `Payment` và FSM hội thoại đăng ký shipper); thông báo realtime qua Spring WebSocket STOMP cho admin và Telegram Bot cho khách hàng và shipper; đóng gói đầy đủ bằng Docker Compose năm container chạy được chỉ với ba lệnh shell. Toàn bộ tám yêu cầu Must và ba yêu cầu Should của phân loại MoSCoW đều đã được hiện thực, kiểm thử qua 274 test (253 backend cộng 21 frontend) với tỉ lệ build green 100% trên mỗi commit, và minh hoạ bằng 17 ảnh chụp giao diện thực tế kèm bộ dữ liệu seed V11 phục vụ demo.
+Đề tài *"Hệ thống quản lý giao hàng tích hợp Telegram Mini App, Web Admin và VNPay"* đã hoàn thành toàn bộ mục tiêu kỹ thuật đặt ra ở Chương 1: hỗ trợ đặt đơn với hai phương thức thanh toán COD và VNPay sử dụng ký HMAC-SHA512 và mô hình IPN-as-source-of-truth; theo dõi vị trí shipper thời gian thực qua Telegram Live Location với độ trễ end-to-end dưới ba giây; áp dụng máy trạng thái hữu hạn cho bốn thực thể chính (`Order`, `DeliveryAssignment`, `Payment` và FSM hội thoại đăng ký shipper); thông báo realtime qua Spring WebSocket STOMP cho admin và Telegram Bot cho khách hàng và shipper; đóng gói đầy đủ bằng Docker Compose năm container chạy được chỉ với ba lệnh shell. Toàn bộ tám yêu cầu Must và ba yêu cầu Should của phân loại MoSCoW đều đã được hiện thực, kiểm thử qua 345 test (318 backend cộng 27 frontend) với tỉ lệ build green 100% trên mỗi commit, và minh hoạ bằng 30 ảnh chụp giao diện thực tế kèm bộ dữ liệu seed V11 phục vụ demo.
 
 Về mặt khoa học, đề tài đem lại bốn đóng góp kỹ thuật chính: (i) **mô hình triển khai lai trên nền tảng Telegram** sử dụng đồng thời ba kênh (Mini App, Bot, Web Admin) với phân vai theo thiết bị — một hướng tiếp cận khả thi và kinh tế cho phân khúc shop F&B và tạp hoá quy mô nhỏ–vừa tại Việt Nam; (ii) **kiến trúc Modular Monolith với DDD-lite** chứng minh là lựa chọn phù hợp cho đề tài khoá luận hoặc dự án MVP quy mô tương tự — vừa giữ ưu điểm "một container, một lệnh deploy", vừa đạt mức độ cô lập theo Domain-Driven Design, đồng thời tạo lối thoát chuyển sang microservices trong tương lai mà không phải viết lại nghiệp vụ; (iii) **tích hợp VNPay với IPN-as-source-of-truth** kèm các đảm bảo kỹ thuật cụ thể (constant-time hash comparison, idempotent IPN, JSONB audit trail bắt buộc, `Propagation.REQUIRES_NEW` trong AFTER_COMMIT phase); (iv) **mô hình bảo mật defense-in-depth gồm mười một lớp** đối phó song song, với mỗi lớp đều có regression test khoá đảm bảo. Đề tài cũng minh hoạ một quy trình phát triển có kỷ luật theo phương pháp **GSD (Get Shit Done)** với mười pha P0 đến P9, mỗi pha trải qua sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 160 commit nguyên tử và khoảng 42 000 dòng tài liệu thiết kế cho 21 000 dòng mã — tỉ lệ tài liệu trên mã hai phần một chứng tỏ kỷ luật "thiết kế trước khi viết mã" được tuân thủ nghiêm túc.
 

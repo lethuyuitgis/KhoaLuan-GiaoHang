@@ -36,7 +36,7 @@ Xuất phát từ thực tiễn này, đề tài lựa chọn nghiên cứu và 
 
 ## 5. Đóng góp của đề tài
 
-Đề tài có những đóng góp chính sau: (1) đề xuất mô hình triển khai lai sử dụng đồng thời ba kênh Telegram (Bot, Mini App, Live Location) cho ba vai trò khác nhau; (2) hiện thực tích hợp VNPay với IPN làm nguồn sự thật và audit JSONB cho mọi giao dịch; (3) áp dụng kiến trúc Modular Monolith với 8 bounded context và giao tiếp qua Spring Application Events; (4) thiết kế bảo mật defense-in-depth gồm mười một lớp đối phó song song; (5) đóng gói toàn bộ hệ thống bằng Docker Compose chạy được chỉ với ba lệnh; và (6) minh hoạ một quy trình phát triển phần mềm có kỷ luật theo phương pháp GSD có thể áp dụng cho khoá luận tốt nghiệp.
+Đề tài có những đóng góp chính sau: (1) đề xuất mô hình triển khai lai sử dụng đồng thời ba kênh Telegram (Bot, Mini App, Live Location) cho ba vai trò khác nhau; (2) hiện thực tích hợp VNPay với IPN làm nguồn sự thật và audit JSONB cho mọi giao dịch; (3) áp dụng kiến trúc Modular Monolith với 9 bounded context và giao tiếp qua Spring Application Events; (4) thiết kế bảo mật defense-in-depth gồm mười một lớp đối phó song song; (5) đóng gói toàn bộ hệ thống bằng Docker Compose chạy được chỉ với ba lệnh; và (6) minh hoạ một quy trình phát triển phần mềm có kỷ luật theo phương pháp GSD có thể áp dụng cho khoá luận tốt nghiệp.
 
 ## 6. Bố cục báo cáo
 

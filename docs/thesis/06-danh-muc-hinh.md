@@ -11,11 +11,11 @@
 | Hình 2.3 | React 18 + Recharts — biểu đồ doanh thu và thống kê trong Web Admin |  |
 | Hình 2.4 | PostgreSQL 16 — quản lý đơn với JSONB, partial index và TIMESTAMPTZ |  |
 | Hình 2.5 | VNPay sandbox — luồng thanh toán điện tử với HMAC-SHA512 và IPN |  |
-| Hình 2.6 | Modular Monolith — 8 bounded context trong cùng một process |  |
+| Hình 2.6 | Modular Monolith — 9 bounded context trong cùng một process |  |
 | Hình 2.7 | Test-Driven Development — manual smoke test trên môi trường tunnel HTTPS |  |
 | Hình 2.8 | Docker Compose — 5 service được dựng bằng một lệnh duy nhất |  |
 | Hình 3.1 | Sơ đồ kiến trúc tổng thể — Telegram + Web Admin + Spring Boot + PostgreSQL + VNPay |  |
-| Hình 3.2 | Modular Monolith — sơ đồ phụ thuộc 8 module trong cùng một process |  |
+| Hình 3.2 | Modular Monolith — sơ đồ phụ thuộc 9 module trong cùng một process |  |
 | Hình 3.3 | Sơ đồ `OrderStatus` FSM — bảy trạng thái với chuyển dịch được whitelist |  |
 | Hình 3.4 | Sequence đặt đơn COD — từ Mini App đến Web Admin realtime |  |
 | Hình 3.5 | Sequence gán shipper và giao đơn — luồng từ admin đến completion |  |
