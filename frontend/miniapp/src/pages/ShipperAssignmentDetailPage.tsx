@@ -166,7 +166,7 @@ export function ShipperAssignmentDetailPage() {
         <button
           onClick={() => startMut.mutate()}
           disabled={startMut.isPending}
-          className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
+          className="fixed bottom-20 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
         >
           {startMut.isPending ? 'Đang xử lý…' : '🚀 Bắt đầu giao'}
         </button>
@@ -176,7 +176,7 @@ export function ShipperAssignmentDetailPage() {
         <button
           onClick={() => completeMut.mutate()}
           disabled={completeMut.isPending}
-          className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
+          className="fixed bottom-20 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
         >
           {completeMut.isPending ? 'Đang xử lý…' : '✅ Đã giao xong'}
         </button>
