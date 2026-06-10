@@ -1,5 +1,5 @@
 import { useState, type FormEvent, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchAdminVoucherDetail, createVoucher, updateVoucher, formatVnd,
@@ -18,7 +18,7 @@ interface FormState {
   discountValue: number;
   maxDiscount: number | null;
   minOrderAmount: number;
-  validFrom: string;      // YYYY-MM-DDTHH:mm
+  validFrom: string;
   validUntil: string;
   maxUsesTotal: number | null;
   maxUsesPerCustomer: number;
@@ -32,6 +32,8 @@ const empty: FormState = {
   validUntil: new Date(Date.now() + 30 * 86400_000).toISOString().slice(0, 16),
   maxUsesTotal: 100, maxUsesPerCustomer: 1, active: true,
 };
+
+const PREVIEW_SAMPLES = [50000, 100000, 200000, 500000];
 
 export function VoucherFormPage() {
   const { id } = useParams();
@@ -51,12 +53,8 @@ export function VoucherFormPage() {
     if (!detail) return;
     const s = detail.summary;
     setForm({
-      code: s.code,
-      name: s.name,
-      target: s.target,
-      discountType: s.discountType,
-      discountValue: Number(s.discountValue),
-      maxDiscount: s.maxDiscount,
+      code: s.code, name: s.name, target: s.target, discountType: s.discountType,
+      discountValue: Number(s.discountValue), maxDiscount: s.maxDiscount,
       minOrderAmount: Number(s.minOrderAmount ?? 0),
       validFrom: s.validFrom.slice(0, 16),
       validUntil: s.validUntil.slice(0, 16),
@@ -94,230 +92,271 @@ export function VoucherFormPage() {
       return;
     }
     if (new Date(form.validUntil) <= new Date(form.validFrom)) {
-      setErr('valid_until phải sau valid_from');
+      setErr('Ngày hết hạn phải sau ngày bắt đầu');
       return;
     }
     if (form.discountType === 'PERCENT' && form.discountValue > 100) {
-      setErr('PERCENT phải ≤ 100');
+      setErr('Phần trăm phải ≤ 100');
       return;
     }
-
     const fromIso = new Date(form.validFrom).toISOString();
     const untilIso = new Date(form.validUntil).toISOString();
-
     if (isEdit) {
       update.mutate({
-        name: form.name,
-        discountValue: form.discountValue,
-        maxDiscount: form.maxDiscount ?? null,
-        minOrderAmount: form.minOrderAmount,
-        validFrom: fromIso,
-        validUntil: untilIso,
+        name: form.name, discountValue: form.discountValue,
+        maxDiscount: form.maxDiscount ?? null, minOrderAmount: form.minOrderAmount,
+        validFrom: fromIso, validUntil: untilIso,
         maxUsesTotal: form.maxUsesTotal ?? null,
         maxUsesPerCustomer: form.maxUsesPerCustomer,
         active: form.active,
       });
     } else {
       create.mutate({
-        code: form.code.toUpperCase(),
-        name: form.name,
-        target: form.target,
-        discountType: form.discountType,
-        discountValue: form.discountValue,
-        maxDiscount: form.maxDiscount,
+        code: form.code.toUpperCase(), name: form.name,
+        target: form.target, discountType: form.discountType,
+        discountValue: form.discountValue, maxDiscount: form.maxDiscount,
         minOrderAmount: form.minOrderAmount,
-        validFrom: fromIso,
-        validUntil: untilIso,
+        validFrom: fromIso, validUntil: untilIso,
         maxUsesTotal: form.maxUsesTotal,
         maxUsesPerCustomer: form.maxUsesPerCustomer,
       });
     }
   };
 
-  const preview = (() => {
-    const sample = 200000;
-    if (form.discountType === 'FIXED') return Math.min(form.discountValue, sample);
-    const raw = Math.round(sample * form.discountValue / 100);
+  const computeDiscount = (subtotal: number): number => {
+    if (form.discountType === 'FIXED') return Math.min(form.discountValue, subtotal);
+    const raw = Math.round((subtotal * form.discountValue) / 100);
     return form.maxDiscount ? Math.min(raw, form.maxDiscount) : raw;
-  })();
+  };
 
   return (
-    <form onSubmit={submit} className="max-w-2xl space-y-4">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {isEdit ? 'Sửa voucher' : 'Tạo voucher mới'}
-        </h1>
+    <form onSubmit={submit} className="max-w-3xl mx-auto pb-32">
+      {/* ─────────── Back link + header ─────────── */}
+      <Link to="/vouchers" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3">
+        ← Tất cả voucher
+      </Link>
+      <header className="mb-6 flex items-center gap-3">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xl shadow-md">
+          🎟️
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            {isEdit ? 'Sửa voucher' : 'Tạo voucher mới'}
+          </h1>
+          <p className="text-sm text-gray-500">
+            {isEdit ? 'Cập nhật điều kiện áp dụng + tên + trạng thái' : 'Khách sẽ gõ mã ở Checkout để giảm tiền hàng hoặc phí ship'}
+          </p>
+        </div>
       </header>
 
-      <Section title="Thông tin chung">
-        <Field label="Mã voucher" required>
-          <input
-            value={form.code}
-            disabled={isEdit}
-            onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
-            className="input font-mono"
-            placeholder="VD: HELLO20K"
-            maxLength={32}
-            required
-          />
-        </Field>
-        <Field label="Tên hiển thị" required>
-          <input
-            value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })}
-            className="input"
-            maxLength={128}
-            required
-          />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Đối tượng" required>
-            <select
-              value={form.target}
+      <div className="space-y-4">
+        {/* ─────────── Section 1: Thông tin chung ─────────── */}
+        <Section icon="📝" title="Thông tin chung" hint="Mã + tên + đối tượng — không sửa được sau khi tạo">
+          <Field label="Mã voucher" required hint="VIẾT HOA, A-Z 0-9 _ -">
+            <input
+              value={form.code}
               disabled={isEdit}
-              onChange={e => setForm({ ...form, target: e.target.value as VoucherTarget })}
-              className="input"
-            >
-              <option value="PRODUCTS">🛍️ Giảm tiền hàng</option>
-              <option value="SHIPPING">🚚 Giảm phí ship</option>
-            </select>
+              onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })}
+              className="input font-mono uppercase tracking-wider"
+              placeholder="HELLO20K"
+              maxLength={32}
+              required
+            />
           </Field>
-          <Field label="Loại giảm" required>
-            <select
-              value={form.discountType}
-              disabled={isEdit}
-              onChange={e => setForm({ ...form, discountType: e.target.value as DiscountType })}
+          <Field label="Tên hiển thị" required>
+            <input
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
               className="input"
-            >
-              <option value="FIXED">Số tiền cố định (đ)</option>
-              <option value="PERCENT">Phần trăm (%)</option>
-            </select>
+              maxLength={128}
+              placeholder="VD: Chào khách mới — giảm 20 000đ"
+              required
+            />
           </Field>
-        </div>
-      </Section>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Đối tượng" required>
+              <SegmentedControl
+                value={form.target}
+                disabled={isEdit}
+                options={[
+                  { value: 'PRODUCTS', label: '🛍️ Tiền hàng' },
+                  { value: 'SHIPPING', label: '🚚 Phí ship' },
+                ]}
+                onChange={v => setForm({ ...form, target: v as VoucherTarget })}
+              />
+            </Field>
+            <Field label="Loại giảm" required>
+              <SegmentedControl
+                value={form.discountType}
+                disabled={isEdit}
+                options={[
+                  { value: 'FIXED', label: 'Số tiền (đ)' },
+                  { value: 'PERCENT', label: 'Phần trăm (%)' },
+                ]}
+                onChange={v => setForm({ ...form, discountType: v as DiscountType })}
+              />
+            </Field>
+          </div>
+        </Section>
 
-      <Section title="Mức giảm">
-        <Field label={`Giá trị ${form.discountType === 'PERCENT' ? '(%)' : '(đ)'}`} required>
-          <input
-            type="number"
-            min={1}
-            value={form.discountValue}
-            onChange={e => setForm({ ...form, discountValue: Number(e.target.value) })}
-            className="input"
-            required
-          />
-        </Field>
-        {form.discountType === 'PERCENT' && (
-          <Field label="Giảm tối đa (cap, đ)">
+        {/* ─────────── Section 2: Mức giảm ─────────── */}
+        <Section icon="💸" title="Mức giảm">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={`Giá trị ${form.discountType === 'PERCENT' ? '(%)' : '(đ)'}`} required>
+              <input
+                type="number"
+                min={1}
+                value={form.discountValue}
+                onChange={e => setForm({ ...form, discountValue: Number(e.target.value) })}
+                className="input"
+                required
+              />
+            </Field>
+            {form.discountType === 'PERCENT' && (
+              <Field label="Giảm tối đa (đ)" hint="Để trống = không giới hạn">
+                <input
+                  type="number"
+                  min={0}
+                  value={form.maxDiscount ?? ''}
+                  onChange={e => setForm({ ...form, maxDiscount: e.target.value ? Number(e.target.value) : null })}
+                  className="input"
+                  placeholder="∞"
+                />
+              </Field>
+            )}
+          </div>
+
+          {/* Preview table — 4 sample subtotals */}
+          <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-4">
+            <p className="text-xs font-semibold text-orange-700 uppercase tracking-wide mb-2">
+              📊 Xem trước với 4 mức đơn
+            </p>
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-orange-100">
+                {PREVIEW_SAMPLES.map(sample => {
+                  const discount = computeDiscount(sample);
+                  const finalAmt = sample - discount;
+                  return (
+                    <tr key={sample}>
+                      <td className="py-1.5 text-gray-600 tabular-nums">Đơn {formatVnd(sample)}</td>
+                      <td className="py-1.5 text-emerald-700 tabular-nums font-semibold">
+                        −{formatVnd(discount)}
+                      </td>
+                      <td className="py-1.5 text-right font-bold text-gray-900 tabular-nums">
+                        = {formatVnd(finalAmt)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Section>
+
+        {/* ─────────── Section 3: Điều kiện ─────────── */}
+        <Section icon="⚙️" title="Điều kiện áp dụng">
+          <Field label="Đơn tối thiểu (đ)" hint="Khách phải đặt từ số tiền này mới được áp">
             <input
               type="number"
               min={0}
-              value={form.maxDiscount ?? ''}
-              onChange={e =>
-                setForm({ ...form, maxDiscount: e.target.value ? Number(e.target.value) : null })
-              }
+              step={1000}
+              value={form.minOrderAmount}
+              onChange={e => setForm({ ...form, minOrderAmount: Number(e.target.value) })}
               className="input"
-              placeholder="Để trống = không giới hạn"
             />
           </Field>
-        )}
-        <div className="rounded-xl bg-gray-50 border border-gray-200 p-3 text-sm">
-          📊 <strong>Xem trước:</strong> đơn 200 000đ → giảm{' '}
-          <strong>{formatVnd(preview)}</strong>
-        </div>
-      </Section>
-
-      <Section title="Điều kiện áp dụng">
-        <Field label="Đơn tối thiểu (đ)">
-          <input
-            type="number"
-            min={0}
-            value={form.minOrderAmount}
-            onChange={e => setForm({ ...form, minOrderAmount: Number(e.target.value) })}
-            className="input"
-          />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Hiệu lực từ" required>
-            <input
-              type="datetime-local"
-              value={form.validFrom}
-              onChange={e => setForm({ ...form, validFrom: e.target.value })}
-              className="input"
-              required
-            />
-          </Field>
-          <Field label="Hết hạn" required>
-            <input
-              type="datetime-local"
-              value={form.validUntil}
-              onChange={e => setForm({ ...form, validUntil: e.target.value })}
-              className="input"
-              required
-            />
-          </Field>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Tổng số lần dùng (max_uses_total)">
-            <input
-              type="number"
-              min={1}
-              value={form.maxUsesTotal ?? ''}
-              onChange={e =>
-                setForm({ ...form, maxUsesTotal: e.target.value ? Number(e.target.value) : null })
-              }
-              className="input"
-              placeholder="Để trống = không giới hạn"
-            />
-          </Field>
-          <Field label="Mỗi khách dùng tối đa" required>
-            <input
-              type="number"
-              min={1}
-              value={form.maxUsesPerCustomer}
-              onChange={e => setForm({ ...form, maxUsesPerCustomer: Number(e.target.value) })}
-              className="input"
-              required
-            />
-          </Field>
-        </div>
-      </Section>
-
-      {isEdit && (
-        <Section title="Trạng thái">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.active}
-              onChange={e => setForm({ ...form, active: e.target.checked })}
-              className="w-4 h-4"
-            />
-            <span className="text-sm text-gray-700">Active</span>
-          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Hiệu lực từ" required>
+              <input
+                type="datetime-local"
+                value={form.validFrom}
+                onChange={e => setForm({ ...form, validFrom: e.target.value })}
+                className="input"
+                required
+              />
+            </Field>
+            <Field label="Hết hạn" required>
+              <input
+                type="datetime-local"
+                value={form.validUntil}
+                onChange={e => setForm({ ...form, validUntil: e.target.value })}
+                className="input"
+                required
+              />
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Tổng lượt áp" hint="Trên toàn shop — để trống = ∞">
+              <input
+                type="number"
+                min={1}
+                value={form.maxUsesTotal ?? ''}
+                onChange={e => setForm({ ...form, maxUsesTotal: e.target.value ? Number(e.target.value) : null })}
+                className="input"
+                placeholder="∞"
+              />
+            </Field>
+            <Field label="Mỗi khách tối đa" required hint="Vd: 1 = chỉ áp được 1 lần/khách">
+              <input
+                type="number"
+                min={1}
+                value={form.maxUsesPerCustomer}
+                onChange={e => setForm({ ...form, maxUsesPerCustomer: Number(e.target.value) })}
+                className="input"
+                required
+              />
+            </Field>
+          </div>
         </Section>
-      )}
 
-      {err && (
-        <div className="bg-red-50 border border-red-200 rounded p-3 text-sm text-red-700">
-          {err}
+        {/* ─────────── Section 4: Trạng thái (edit only) ─────────── */}
+        {isEdit && (
+          <Section icon="🔘" title="Trạng thái">
+            <label className="flex items-center justify-between p-3 rounded-xl bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+              <div>
+                <p className="text-sm font-medium text-gray-900">Voucher đang hoạt động</p>
+                <p className="text-xs text-gray-500 mt-0.5">Tắt để ẩn voucher khỏi danh sách + chặn áp mới</p>
+              </div>
+              <input
+                type="checkbox"
+                checked={form.active}
+                onChange={e => setForm({ ...form, active: e.target.checked })}
+                className="w-5 h-5 accent-orange-500"
+              />
+            </label>
+          </Section>
+        )}
+
+        {err && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700 flex items-start gap-2">
+            <span className="text-base">⚠️</span>
+            <span>{err}</span>
+          </div>
+        )}
+      </div>
+
+      {/* ─────────── Sticky submit bar ─────────── */}
+      <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] z-10">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => nav(-1)}
+            className="px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
+          >
+            Huỷ
+          </button>
+          <button
+            type="submit"
+            disabled={create.isPending || update.isPending}
+            className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors shadow-sm inline-flex items-center gap-2"
+          >
+            {(create.isPending || update.isPending) ? (
+              <><Spinner /> Đang lưu…</>
+            ) : (
+              <>{isEdit ? '💾 Lưu thay đổi' : '+ Tạo voucher'}</>
+            )}
+          </button>
         </div>
-      )}
-
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={create.isPending || update.isPending}
-          className="px-5 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-semibold disabled:opacity-50 transition-colors"
-        >
-          {isEdit ? 'Lưu thay đổi' : 'Tạo voucher'}
-        </button>
-        <button
-          type="button"
-          onClick={() => nav(-1)}
-          className="px-5 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl transition-colors"
-        >
-          Huỷ
-        </button>
       </div>
 
       <style>{`
@@ -325,15 +364,16 @@ export function VoucherFormPage() {
           margin-top: 0.25rem;
           width: 100%;
           padding: 0.5rem 0.75rem;
-          border: 1px solid #d1d5db;
-          border-radius: 0.5rem;
+          border: 1px solid #e5e7eb;
+          border-radius: 0.625rem;
           font-size: 0.875rem;
           background: white;
+          transition: border-color 0.15s, box-shadow 0.15s;
         }
         .input:focus {
           outline: none;
           border-color: #fb923c;
-          box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.2);
+          box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.15);
         }
         .input:disabled {
           background: #f9fafb;
@@ -345,10 +385,28 @@ export function VoucherFormPage() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+// ───────────── Components ─────────────
+
+function Section({
+  icon,
+  title,
+  hint,
+  children,
+}: {
+  icon: string;
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="bg-white rounded-xl border border-gray-200 p-5">
-      <h2 className="font-semibold text-gray-900 mb-4">{title}</h2>
+    <section className="bg-white rounded-2xl border border-gray-200 p-5">
+      <header className="flex items-start gap-3 mb-4 pb-3 border-b border-gray-100">
+        <span className="text-xl">{icon}</span>
+        <div>
+          <h2 className="font-semibold text-gray-900">{title}</h2>
+          {hint && <p className="text-xs text-gray-500 mt-0.5">{hint}</p>}
+        </div>
+      </header>
       <div className="space-y-3">{children}</div>
     </section>
   );
@@ -357,19 +415,63 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({
   label,
   required,
+  hint,
   children,
 }: {
   label: string;
   required?: boolean;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <label className="block">
-      <span className="text-sm text-gray-700">
+      <span className="text-xs font-medium text-gray-700">
         {label}
         {required && <span className="text-red-500 ml-0.5">*</span>}
       </span>
       {children}
+      {hint && <p className="text-[11px] text-gray-400 mt-1">{hint}</p>}
     </label>
+  );
+}
+
+function SegmentedControl({
+  value,
+  options,
+  onChange,
+  disabled,
+}: {
+  value: string;
+  options: { value: string; label: string }[];
+  onChange: (v: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className={`mt-1 inline-flex w-full gap-1 bg-gray-100 p-1 rounded-lg ${disabled ? 'opacity-60' : ''}`}>
+      {options.map(o => (
+        <button
+          key={o.value}
+          type="button"
+          disabled={disabled}
+          onClick={() => onChange(o.value)}
+          className={`flex-1 text-xs px-3 py-1.5 rounded-md font-medium transition-all ${
+            value === o.value
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          } ${disabled ? 'cursor-not-allowed' : ''}`}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+    </svg>
   );
 }
