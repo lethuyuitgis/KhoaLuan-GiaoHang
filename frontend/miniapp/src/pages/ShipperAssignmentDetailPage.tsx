@@ -98,14 +98,29 @@ export function ShipperAssignmentDetailPage() {
     );
   }
 
+  const STATUS_LABEL: Record<string, string> = {
+    OFFERED: 'Có offer', ACCEPTED: 'Đã nhận', STARTED: 'Đang giao',
+    COMPLETED: 'Hoàn tất', CANCELLED: 'Đã huỷ', REJECTED: 'Đã từ chối',
+  };
+  const STATUS_BADGE: Record<string, string> = {
+    OFFERED: 'bg-amber-100 text-amber-700', ACCEPTED: 'bg-blue-100 text-blue-700',
+    STARTED: 'bg-purple-100 text-purple-700', COMPLETED: 'bg-green-100 text-green-700',
+    CANCELLED: 'bg-red-100 text-red-700', REJECTED: 'bg-red-100 text-red-700',
+  };
+
   return (
-    <div className="pb-24">
+    <div className="px-4 pt-4 pb-28">
       <button onClick={() => navigate(-1)} className="mb-3 text-sm text-gray-500 active:text-gray-700">
         ← Quay lại
       </button>
 
-      <h1 className="text-2xl font-bold">{assignment.orderCode}</h1>
-      <p className="text-xs text-gray-500 mt-1 mb-4">{formatDateTime(assignment.assignedAt)}</p>
+      <div className="flex items-center justify-between gap-3 mb-1">
+        <h1 className="text-2xl font-bold font-mono tracking-tight">{assignment.orderCode}</h1>
+        <span className={`shrink-0 text-xs uppercase font-semibold px-2.5 py-1 rounded-full ${STATUS_BADGE[assignment.status] ?? 'bg-gray-100 text-gray-700'}`}>
+          {STATUS_LABEL[assignment.status] ?? assignment.status}
+        </span>
+      </div>
+      <p className="text-xs text-gray-500 mb-4">{formatDateTime(assignment.assignedAt)}</p>
 
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
         <h2 className="text-sm font-semibold text-gray-500 mb-2">Khách hàng</h2>
@@ -149,6 +164,18 @@ export function ShipperAssignmentDetailPage() {
           <span className="font-medium">{formatVnd(assignment.total)}</span>
         </div>
       </section>
+
+      {assignment.status === 'ACCEPTED' && (
+        <section className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-4 mb-3 text-sm text-emerald-900">
+          <p className="font-semibold mb-2">🛵 Các bước tiếp theo</p>
+          <ol className="list-decimal list-inside space-y-1 text-emerald-900/90 text-xs">
+            <li>Đến shop lấy hàng cho đơn này</li>
+            <li>Gọi khách trước khi đi nếu cần xác nhận địa chỉ</li>
+            <li>Nhấn <span className="font-semibold">"Bắt đầu giao"</span> để thông báo cho khách</li>
+            <li>Chia sẻ vị trí trực tiếp trên bot để khách theo dõi</li>
+          </ol>
+        </section>
+      )}
 
       {assignment.status === 'STARTED' && (
         <section className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 mb-3 text-sm text-blue-900">
