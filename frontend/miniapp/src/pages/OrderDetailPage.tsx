@@ -102,7 +102,7 @@ export function OrderDetailPage() {
         onClick={() => navigate(-1)}
         className="text-sm text-brand-500 font-medium active:text-brand-700"
       >
-        ← {t('orderDetail.back')}
+        {t('orderDetail.back')}
       </button>
 
       {/* Header card */}
