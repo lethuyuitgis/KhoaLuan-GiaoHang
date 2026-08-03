@@ -51,6 +51,46 @@ Chủ shop quản trị toàn hệ thống qua Web Admin, xác thực bằng ema
 
 Việc gom nhóm theo vai trò cho thấy ba tác nhân có mối liên hệ tuần tự chặt chẽ: khách hàng khởi tạo nhu cầu (đặt đơn), chủ shop điều phối (xác nhận, gán), shipper thực thi (giao hàng), và vòng lặp khép lại khi khách đánh giá. Chính sự đan xen này đòi hỏi một cơ chế đồng bộ trạng thái xuyên suốt — được hiện thực bằng máy trạng thái đơn hàng bảy trạng thái.
 
+**d) Bảng yêu cầu chức năng**
+
+Từ ba nhóm chức năng theo vai trò, các yêu cầu được hệ thống hoá thành 15 yêu cầu chức năng (Functional Requirement — FR) đánh mã FR1 đến FR15. Mỗi yêu cầu là một đơn vị có thể kiểm chứng độc lập; toàn bộ 15 yêu cầu này về sau được hiện thực qua 39 REST endpoint của hệ thống.
+
+**Bảng 2.1. Bảng yêu cầu chức năng theo vai trò**
+
+| Mã | Vai trò | Yêu cầu chức năng |
+|---|---|---|
+| FR1 | Khách hàng | Đăng nhập tự động khi mở Mini App qua xác minh `initData` ký HMAC-SHA256 |
+| FR2 | Khách hàng | Duyệt danh mục sản phẩm (ảnh, mô tả, giá, tình trạng còn hàng) |
+| FR3 | Khách hàng | Thêm, sửa, xoá sản phẩm trong giỏ; giỏ lưu `localStorage` qua Zustand |
+| FR4 | Khách hàng | Đặt đơn COD (tiền mặt khi nhận) hoặc thanh toán VNPay |
+| FR5 | Khách hàng | Xem lịch sử và chi tiết đơn hàng |
+| FR6 | Khách hàng | Theo dõi vị trí shipper thời gian thực trên bản đồ Leaflet khi đơn ở trạng thái `DELIVERING` |
+| FR7 | Khách hàng | Đánh giá shipper 1–5 sao kèm bình luận tuỳ chọn sau khi đơn `DELIVERED`, qua bot Telegram |
+| FR8 | Shipper | Nhận hoặc từ chối offer đơn qua bot Telegram bằng bàn phím inline hai nút |
+| FR9 | Shipper | Bấm "Bắt đầu giao" và "Đã giao" qua Mini App hoặc bot |
+| FR10 | Shipper | Hệ thống ghi `location_ping` mỗi khi Telegram phát Live Location của shipper trong phiên giao đang thực hiện |
+| FR11 | Chủ shop | Đăng nhập Web Admin bằng email và mật khẩu, nhận access token (JWT hạn 15 phút) và refresh token (lưu cơ sở dữ liệu, hạn 7 ngày) |
+| FR12 | Chủ shop | Xem dashboard KPI và ba biểu đồ: doanh thu theo ngày, top shipper, tỉ lệ huỷ |
+| FR13 | Chủ shop | Quản lý đơn: xem, lọc theo trạng thái và khoảng ngày, xác nhận, gán shipper, huỷ |
+| FR14 | Chủ shop | CRUD sản phẩm; quản lý shipper (duyệt, khoá, mở khoá) |
+| FR15 | Chủ shop | Xem báo cáo doanh thu, top shipper, tỉ lệ huỷ theo khoảng thời gian chọn trước |
+
+**e) Bảng yêu cầu phi chức năng**
+
+Bên cạnh các yêu cầu chức năng, hệ thống phải thoả mãn bảy yêu cầu phi chức năng (Non-Functional Requirement — NFR) về hiệu năng, khả dụng, bảo mật, khả mở rộng và trải nghiệm người dùng. Mỗi NFR đều gắn với một tiêu chí đo lường cụ thể để có thể kiểm chứng khách quan khi đánh giá kết quả.
+
+**Bảng 2.2. Bảng yêu cầu phi chức năng (NFR) kèm tiêu chí đo lường**
+
+| Mã | Loại | Yêu cầu | Tiêu chí đo lường |
+|---|---|---|---|
+| NFR1 | Hiệu năng | Độ trễ tracking GPS end-to-end | Dưới 3 giây từ lúc Telegram phát cập nhật vị trí đến lúc khách hàng thấy chấm di chuyển trên bản đồ |
+| NFR2 | Hiệu năng | Thời gian phản hồi REST trung bình | Dưới 200 ms ở trạng thái idle (P50) |
+| NFR3 | Khả dụng | Uptime mong muốn | Từ 99% trở lên (một VPS đơn, chưa cấu hình HA) |
+| NFR4 | Bảo mật | Mọi yêu cầu thay đổi trạng thái phải xác thực | 100% endpoint thay đổi dữ liệu đều qua filter xác thực; chỉ ba endpoint không qua filter xác thực người dùng là Return URL và IPN của VNPay (xác thực bằng chữ ký HMAC-SHA512 của VNPay) và webhook bot (xác thực bằng header secret token của Telegram) |
+| NFR5 | Khả mở rộng | Số shipper tối đa | 50 với một instance đơn; 500+ sau khi bật khoá phân tán và scale ngang |
+| NFR6 | Khả dụng | Số đơn mỗi ngày hệ thống xử lý mượt | 50–500 đơn |
+| NFR7 | Trải nghiệm | Mini App khởi động mượt | Dưới 2 giây time-to-interactive trên thiết bị 4G phổ thông |
+
 ### 2.1.2. Sơ đồ phân cấp chức năng
 
 Sau khi gom theo vai trò, các chức năng được tổ chức lại theo phân hệ nghiệp vụ để phục vụ thiết kế kiến trúc. Toàn hệ thống được phân rã theo cây phân cấp: cấp gốc là **Hệ thống quản lý giao hàng**, cấp hai là sáu phân hệ nghiệp vụ, cấp ba là các chức năng con cụ thể. Sơ đồ phân cấp chức năng (Function Hierarchy Diagram) dưới đây thể hiện cấu trúc phân rã đó.
@@ -99,11 +139,11 @@ graph TD
   F --> F4[6.4 Tỉ lệ huỷ đơn]
 ```
 
-Sơ đồ phân cấp trên phản ánh nguyên tắc gom nhóm theo miền nghiệp vụ (bounded context) đã áp dụng khi thiết kế kiến trúc: mỗi phân hệ cấp hai tương ứng gần như một-một với một mô-đun trong kiến trúc Modular Monolith. Cụ thể, phân hệ "Quản lý người dùng và xác thực" ánh xạ sang mô-đun `auth`; "Quản lý sản phẩm và đơn hàng" và "Đặt hàng và thanh toán" ánh xạ sang `order` và `payment`; "Giao hàng và theo dõi vị trí" ánh xạ sang `delivery`; "Thông báo và đánh giá" ánh xạ sang `notification` và `bot`; "Báo cáo thống kê" nằm trong `delivery`. Cách phân rã này bảo đảm mỗi chức năng con đều có một chủ sở hữu rõ ràng, tránh chồng chéo trách nhiệm.
+Sơ đồ phân cấp trên phản ánh nguyên tắc gom nhóm theo miền nghiệp vụ (bounded context) đã áp dụng khi thiết kế kiến trúc: mỗi phân hệ cấp hai tương ứng gần như một-một với một mô-đun trong kiến trúc Modular Monolith. Cụ thể, phân hệ "Quản lý người dùng và xác thực" ánh xạ sang mô-đun `auth`; "Quản lý sản phẩm và đơn hàng" và "Đặt hàng và thanh toán" ánh xạ sang `order` và `payment`; "Giao hàng và theo dõi vị trí" ánh xạ sang `delivery`; "Thông báo và đánh giá" ánh xạ sang `notification` và `bot`; "Báo cáo thống kê" nằm trong `delivery`. Ở tầng mã nguồn, sáu phân hệ nghiệp vụ này được hiện thực bằng tám bounded context — `shared`, `auth`, `order`, `delivery`, `payment`, `bot`, `notification` và `app` — trong đó hai mô-đun `shared` và `app` đóng vai trò hạ tầng dùng chung và lắp ráp, không mang nghiệp vụ riêng; chi tiết kiến trúc được trình bày ở Chương 3. Cách phân rã này bảo đảm mỗi chức năng con đều có một chủ sở hữu rõ ràng, tránh chồng chéo trách nhiệm.
 
 ## 2.2. Quy trình xử lý các chức năng
 
-Mục này mô tả bằng lời kết hợp sơ đồ cho năm quy trình nghiệp vụ trọng tâm của hệ thống. Đây là các quy trình có độ phức tạp cao, liên quan nhiều tác nhân và nhiều bước chuyển trạng thái, do đó cần được phân tích kỹ trước khi đặc tả use case.
+Mục này mô tả bằng lời kết hợp sơ đồ cho bảy quy trình nghiệp vụ trọng tâm của hệ thống. Đây là các quy trình có độ phức tạp cao, liên quan nhiều tác nhân và nhiều bước chuyển trạng thái, do đó cần được phân tích kỹ trước khi đặc tả use case.
 
 ### 2.2.1. Quy trình đặt đơn COD
 
@@ -224,127 +264,167 @@ flowchart TD
     CANCEL --> ENDC([Đơn CANCELLED])
 ```
 
+### 2.2.6. Quy trình đăng ký và duyệt shipper
+
+Trước khi có thể nhận đơn, một ứng viên shipper phải trải qua quy trình đăng ký hai giai đoạn: tự khai báo hồ sơ qua bot Telegram và chờ chủ shop phê duyệt trên Web Admin. Giai đoạn khai báo được hiện thực bằng một máy trạng thái hội thoại (FSM) bốn bước tuần tự: họ tên → số điện thoại → loại xe → biển số. Ứng viên gõ `/start` với bot và chọn "Đăng ký shipper"; bot lần lượt hỏi từng trường thông tin, mỗi câu trả lời được lưu tạm vào cột JSONB của bảng trạng thái hội thoại (payload dạng `{name, phone, vehicle, plate}`) rồi chuyển sang bước kế tiếp. Bộ xử lý văn bản của luồng đăng ký được đặt độ ưu tiên cao để bắt câu trả lời trước các bộ xử lý lệnh chung, tránh trường hợp ứng viên gõ một lệnh khác giữa chừng làm hỏng phiên khai báo.
+
+Khi hoàn tất bốn bước, hệ thống tạo hồ sơ shipper ở trạng thái chờ duyệt, xoá trạng thái hội thoại và thông báo cho chủ shop. Chủ shop mở trang quản lý shipper trên Web Admin, xem thông tin hồ sơ và bấm duyệt; hệ thống cấp vai trò SHIPPER, kích hoạt hồ sơ (trạng thái ACTIVE) và bot gửi thông báo chúc mừng cho shipper. Từ thời điểm này, shipper có thể bật trạng thái sẵn sàng `AVAILABLE` để được gán đơn. Ở chiều ngược lại, chủ shop có quyền khoá một shipper vi phạm và mở khoá khi cần — thao tác khoá loại shipper khỏi danh sách gán đơn nhưng không xoá dữ liệu lịch sử.
+
+Sơ đồ tuần tự dưới đây mô tả toàn bộ quy trình đăng ký và duyệt:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor UV as Ứng viên shipper
+    participant Bot as Telegram Bot
+    participant BE as Backend
+    participant DB as PostgreSQL
+    actor CS as Chủ shop (Web Admin)
+
+    UV->>Bot: /start và chọn Đăng ký shipper
+    Bot->>BE: Callback bắt đầu đăng ký
+    BE->>DB: Tạo trạng thái hội thoại bước 1 (JSONB)
+    loop Bốn bước: họ tên, số điện thoại, loại xe, biển số
+        Bot-->>UV: Hỏi thông tin của bước hiện tại
+        UV->>Bot: Nhập câu trả lời
+        Bot->>BE: Chuyển tiếp văn bản
+        BE->>DB: Lưu vào payload JSONB, chuyển bước kế tiếp
+    end
+    BE->>DB: Tạo hồ sơ shipper trạng thái chờ duyệt, xoá trạng thái hội thoại
+    BE->>Bot: Thông báo chủ shop có đăng ký mới
+    CS->>BE: Xem danh sách shipper chờ duyệt
+    CS->>BE: Bấm Duyệt shipper
+    BE->>DB: Cấp vai trò SHIPPER, kích hoạt hồ sơ ACTIVE
+    BE->>Bot: Gửi thông báo kết quả duyệt
+    Bot-->>UV: Bạn đã trở thành shipper, có thể nhận đơn
+```
+
+### 2.2.7. Quy trình hết hạn thanh toán PENDING
+
+Với đơn thanh toán VNPay, tồn tại một tình huống nghiệp vụ cần xử lý riêng: khách tạo yêu cầu thanh toán nhưng bỏ ngang giữa chừng (thoát Mini App, không nhập OTP), khiến VNPay không bao giờ gửi IPN về. Nếu không có cơ chế dọn dẹp, bản ghi payment sẽ treo ở trạng thái `PENDING` vô thời hạn và khách không thể tạo lại thanh toán cho đơn đó.
+
+Hệ thống giải quyết bằng một bộ lập lịch (scheduler) chạy định kỳ mỗi 60 giây, quét các bản ghi payment `PENDING` được tạo quá 15 phút và đánh dấu chúng là `FAILED`. Ngưỡng 15 phút được chọn khớp với thời gian sống của phiên thanh toán trên cổng VNPay sandbox. Điểm quan trọng là đơn hàng vẫn giữ nguyên trạng thái `PENDING` — chỉ payment bị đánh dấu thất bại — nên khách có thể chủ động tạo lại thanh toán mới (bản ghi payment mới sinh `vnp_txn_ref` mới nhờ hậu tố thời gian epoch, không xung đột với mã cũ) hoặc chủ shop huỷ đơn nếu khách không quay lại. Cơ chế này bảo đảm bất biến nghiệp vụ: không có payment nào treo `PENDING` quá 16 phút, và mọi chuyển trạng thái payment đều đi qua máy trạng thái hợp lệ (`PENDING → FAILED` do quá hạn hoặc do IPN báo lỗi, `PENDING → SUCCESS` chỉ do IPN hợp lệ).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant SCH as Scheduler hết hạn thanh toán
+    participant DB as PostgreSQL
+    actor KH as Khách hàng
+    participant BE as Backend
+
+    Note over SCH: Chạy định kỳ mỗi 60 giây
+    SCH->>DB: Quét payment PENDING tạo quá 15 phút
+    alt Có payment quá hạn
+        SCH->>DB: UPDATE payment sang FAILED
+        Note over SCH,DB: Đơn hàng vẫn giữ trạng thái PENDING
+    end
+    opt Khách quay lại thanh toán
+        KH->>BE: Tạo lại thanh toán cho đơn
+        BE->>DB: INSERT payment PENDING mới (vnp_txn_ref mới)
+        BE-->>KH: paymentUrl mới
+    end
+```
+
 ## 2.3. Đặc tả chức năng
 
-Mục này đặc tả chi tiết sáu use case trọng yếu nhất theo chuẩn UML, mỗi đặc tả gồm sáu thành phần: Tên chức năng, Tác nhân, Điều kiện trước, Luồng chính (đánh số bước), Luồng thay thế và Điều kiện sau. Sáu use case được chọn vì bao phủ đầy đủ vòng đời đơn hàng và tương tác của cả ba vai trò.
+Mục này đặc tả chi tiết sáu use case trọng yếu nhất theo chuẩn UML. Mỗi use case được trình bày dưới dạng một bảng đặc tả gồm bảy thành phần: Tên use case, Tác nhân, Điều kiện trước, Luồng chính (đánh số bước), Luồng thay thế, Ngoại lệ và Điều kiện sau; trong đó luồng thay thế là các nhánh rẽ hợp lệ do người dùng lựa chọn, còn ngoại lệ là các tình huống lỗi hoặc vi phạm ràng buộc mà hệ thống phải chặn. Sáu use case được chọn vì bao phủ đầy đủ vòng đời đơn hàng và tương tác của cả ba vai trò: đặt đơn (COD và VNPay), thanh toán VNPay, chủ shop gán đơn, shipper nhận hoặc từ chối đơn, giao hàng kèm Live Location và đánh giá shipper.
 
 ### 2.3.1. Đặc tả UC — Đặt đơn
 
-- **Tên chức năng:** Đặt đơn (COD hoặc VNPay).
-- **Tác nhân:** Khách hàng.
-- **Điều kiện trước:** Khách đã đăng nhập Mini App với `initData` hợp lệ; giỏ hàng có ít nhất một sản phẩm; cấu hình shop có toạ độ điểm xuất phát.
-- **Luồng chính:**
-  1. Khách vào trang Checkout từ giỏ hàng.
-  2. Khách nhập địa chỉ giao và ghim toạ độ trên bản đồ Leaflet.
-  3. Khách nhập số điện thoại liên hệ và ghi chú (tuỳ chọn).
-  4. Hệ thống tính phí ship theo công thức Haversine: `delivery_fee = base_fee + max(0, distance_km − free_km) × fee_per_km`.
-  5. Khách chọn phương thức thanh toán (COD hoặc VNPay).
-  6. Khách bấm "Xác nhận".
-  7. Nếu chọn COD: hệ thống tạo đơn ở trạng thái `PENDING`, phát sự kiện `OrderCreatedEvent`, gửi thông báo đến chủ shop qua bot và đẩy đơn mới lên Web Admin realtime.
-  8. Nếu chọn VNPay: hệ thống tạo đơn `PENDING` và payment `PENDING`, ký URL VNPay và trả về `paymentUrl`; Mini App mở URL để chuyển khách sang cổng thanh toán.
-- **Luồng thay thế:**
-  - 4a. Khoảng cách vượt bán kính giao hàng cho phép → hệ thống trả lỗi `OUT_OF_DELIVERY_RANGE` (HTTP 422), không tạo đơn.
-  - 6a. Thiếu thông tin bắt buộc → giao diện hiển thị lỗi kiểm tra dữ liệu, không gọi API.
-  - 8a. Khách thoát Mini App giữa luồng VNPay → đơn vẫn ở `PENDING`; sau 15 phút, scheduler đánh dấu payment là `FAILED`.
-- **Điều kiện sau:** Đơn đã được lưu bền vững ở trạng thái `PENDING`; thông báo đã gửi đến chủ shop (với COD) hoặc URL thanh toán đã sẵn sàng (với VNPay).
+Đây là use case khởi đầu toàn bộ vòng đời đơn hàng, bao phủ cả hai phương thức thanh toán COD và VNPay.
+
+**Bảng 2.3. Đặc tả use case "Đặt đơn (COD hoặc VNPay)"**
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên use case | Đặt đơn (COD hoặc VNPay) |
+| Tác nhân | Khách hàng |
+| Điều kiện trước | Khách đã đăng nhập Mini App với `initData` hợp lệ; giỏ hàng có ít nhất một sản phẩm; cấu hình shop có toạ độ điểm xuất phát |
+| Luồng chính | 1. Khách vào trang Checkout từ giỏ hàng.<br/>2. Khách nhập địa chỉ giao và ghim toạ độ trên bản đồ Leaflet.<br/>3. Khách nhập số điện thoại liên hệ và ghi chú (tuỳ chọn).<br/>4. Hệ thống tính phí ship theo công thức Haversine: `delivery_fee = base_fee + max(0, distance_km − free_km) × fee_per_km`.<br/>5. Khách chọn phương thức thanh toán (COD hoặc VNPay).<br/>6. Khách bấm "Xác nhận".<br/>7. Nếu chọn COD: hệ thống tạo đơn ở trạng thái `PENDING`, phát sự kiện `OrderCreatedEvent`, gửi thông báo đến chủ shop qua bot và đẩy đơn mới lên Web Admin realtime.<br/>8. Nếu chọn VNPay: hệ thống tạo đơn `PENDING` và payment `PENDING`, ký URL VNPay và trả về `paymentUrl`; Mini App mở URL để chuyển khách sang cổng thanh toán |
+| Luồng thay thế | 8a. Khách thoát Mini App giữa luồng VNPay → đơn vẫn ở `PENDING`; sau 15 phút, scheduler đánh dấu payment là `FAILED` (quy trình 2.2.7) |
+| Ngoại lệ | 4a. Khoảng cách vượt bán kính giao hàng cho phép → hệ thống trả lỗi `OUT_OF_DELIVERY_RANGE` (HTTP 422), không tạo đơn.<br/>6a. Thiếu thông tin bắt buộc → giao diện hiển thị lỗi kiểm tra dữ liệu, không gọi API |
+| Điều kiện sau | Đơn đã được lưu bền vững ở trạng thái `PENDING`; thông báo đã gửi đến chủ shop (với COD) hoặc URL thanh toán đã sẵn sàng (với VNPay) |
 
 ### 2.3.2. Đặc tả UC — Thanh toán VNPay
 
-- **Tên chức năng:** Thanh toán đơn hàng qua cổng VNPay.
-- **Tác nhân:** Khách hàng (chủ động), VNPay (hệ thống ngoài, gửi Return và IPN).
-- **Điều kiện trước:** Đơn đã tồn tại ở trạng thái `PENDING`; khách đã chọn phương thức VNPay; đã tạo payment `PENDING` với `vnp_txn_ref` duy nhất.
-- **Luồng chính:**
-  1. Hệ thống ký các tham số thanh toán bằng HMAC-SHA512 và trả về `paymentUrl`.
-  2. Mini App mở `paymentUrl`; khách được chuyển sang cổng VNPay sandbox.
-  3. Khách nhập thông tin thẻ và OTP, hoàn tất giao dịch trên VNPay.
-  4. VNPay chuyển trình duyệt khách về Return URL `/api/payment/vnpay/return`; backend verify chữ ký và hiển thị trang kết quả (không cập nhật cơ sở dữ liệu).
-  5. Song song, VNPay gọi IPN `/api/payment/vnpay/ipn` (server-to-server).
-  6. Backend verify chữ ký HMAC bằng so sánh thời gian hằng số, tra bản ghi payment theo `vnp_txn_ref`.
-  7. Backend cập nhật payment sang `SUCCESS`, ghi audit vào `payment_transaction` (payload thô JSONB), phát sự kiện `PaymentSucceededEvent`.
-  8. Trình lắng nghe cập nhật đơn sang `CONFIRMED` và ghi lịch sử trạng thái.
-  9. Backend trả về VNPay mã phản hồi `{RspCode: "00"}`.
-- **Luồng thay thế:**
-  - 6a. Chữ ký không hợp lệ → backend ghi payload vào audit trail nhưng không cập nhật payment; trả mã lỗi cho VNPay.
-  - 7a. IPN đến lần thứ hai cho cùng `vnp_txn_ref` (retry) → hệ thống nhận ra payment đã `SUCCESS`, xử lý idempotent, không cập nhật trùng.
-  - 7b. Mã phản hồi VNPay khác `00` → cập nhật payment sang `FAILED`, đơn giữ nguyên `PENDING`.
-- **Điều kiện sau:** Trạng thái payment và đơn phản ánh đúng kết quả giao dịch; mọi sự kiện VNPay đều được lưu vào audit trail.
+Use case này đặc tả riêng pha thanh toán điện tử, với nguyên tắc IPN là nguồn sự thật duy nhất đã phân tích ở quy trình 2.2.2.
+
+**Bảng 2.4. Đặc tả use case "Thanh toán đơn hàng qua cổng VNPay"**
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên use case | Thanh toán đơn hàng qua cổng VNPay |
+| Tác nhân | Khách hàng (chủ động); VNPay (hệ thống ngoài, gửi Return và IPN) |
+| Điều kiện trước | Đơn đã tồn tại ở trạng thái `PENDING`; khách đã chọn phương thức VNPay; đã tạo payment `PENDING` với `vnp_txn_ref` duy nhất |
+| Luồng chính | 1. Hệ thống ký các tham số thanh toán bằng HMAC-SHA512 và trả về `paymentUrl`.<br/>2. Mini App mở `paymentUrl`; khách được chuyển sang cổng VNPay sandbox.<br/>3. Khách nhập thông tin thẻ và OTP, hoàn tất giao dịch trên VNPay.<br/>4. VNPay chuyển trình duyệt khách về Return URL `/api/payment/vnpay/return`; backend verify chữ ký và hiển thị trang kết quả (không cập nhật cơ sở dữ liệu).<br/>5. Song song, VNPay gọi IPN `/api/payment/vnpay/ipn` (server-to-server).<br/>6. Backend verify chữ ký HMAC bằng so sánh thời gian hằng số, tra bản ghi payment theo `vnp_txn_ref`.<br/>7. Backend cập nhật payment sang `SUCCESS`, ghi audit vào `payment_transaction` (payload thô JSONB), phát sự kiện `PaymentSucceededEvent`.<br/>8. Trình lắng nghe cập nhật đơn sang `CONFIRMED` và ghi lịch sử trạng thái.<br/>9. Backend trả về VNPay mã phản hồi `{RspCode: "00"}` |
+| Luồng thay thế | 7b. Mã phản hồi VNPay khác `00` (khách huỷ giao dịch, hết tiền, sai OTP nhiều lần) → cập nhật payment sang `FAILED`, đơn giữ nguyên `PENDING` |
+| Ngoại lệ | 6a. Chữ ký không hợp lệ → backend ghi payload vào audit trail nhưng không cập nhật payment; trả mã lỗi cho VNPay.<br/>7a. IPN đến lần thứ hai cho cùng `vnp_txn_ref` (retry) → hệ thống nhận ra payment đã `SUCCESS`, xử lý idempotent, không cập nhật trùng |
+| Điều kiện sau | Trạng thái payment và đơn phản ánh đúng kết quả giao dịch; mọi sự kiện VNPay đều được lưu vào audit trail |
 
 ### 2.3.3. Đặc tả UC — Shipper nhận đơn
 
-- **Tên chức năng:** Shipper nhận (hoặc từ chối) offer đơn hàng.
-- **Tác nhân:** Shipper.
-- **Điều kiện trước:** Shipper đã đăng ký và được duyệt (vai trò SHIPPER, trạng thái ACTIVE); chủ shop vừa gán đơn cho shipper.
-- **Luồng chính:**
-  1. Backend tạo bản ghi `DeliveryAssignment` ở trạng thái `OFFERED`.
-  2. Bot gửi shipper thông báo kèm bàn phím inline `[Nhận đơn]` và `[Từ chối]`.
-  3. Shipper bấm "Nhận đơn"; bot gửi callback `OFFER_ACCEPT:<assignmentId>`.
-  4. Backend khoá bản ghi assignment và kiểm tra: shipper không có assignment `STARTED` nào khác; assignment vẫn ở `OFFERED`.
-  5. Backend chuyển assignment sang `ACCEPTED` và đơn sang `ASSIGNED`.
-  6. Bot thông báo khách "Shipper [Tên] đã nhận đơn" và đẩy cập nhật lên Web Admin.
-- **Luồng thay thế:**
-  - 3a. Shipper bấm "Từ chối" → assignment chuyển `REJECTED`, đơn quay về hàng chờ để chủ shop gán shipper khác.
-  - 4a. Shipper đã có một assignment `STARTED` khác → partial unique index từ chối, backend bắt ngoại lệ và trả lỗi "Bạn đang giao một đơn khác".
-  - 4b. Assignment đã được xử lý bởi thao tác trước (tranh chấp) → backend trả lỗi "Đơn đã có shipper khác nhận" hoặc "Offer không còn hiệu lực".
-- **Điều kiện sau:** Đơn ở trạng thái `ASSIGNED`; assignment ở `ACCEPTED`; khách đã nhận thông báo.
+Use case này là điểm tiếp nhận của shipper trong chuỗi gán — nhận — giao, nơi tập trung các ràng buộc chống tranh chấp dữ liệu.
+
+**Bảng 2.5. Đặc tả use case "Shipper nhận (hoặc từ chối) offer đơn hàng"**
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên use case | Shipper nhận (hoặc từ chối) offer đơn hàng |
+| Tác nhân | Shipper |
+| Điều kiện trước | Shipper đã đăng ký và được duyệt (vai trò SHIPPER, trạng thái ACTIVE); chủ shop vừa gán đơn cho shipper |
+| Luồng chính | 1. Backend tạo bản ghi `DeliveryAssignment` ở trạng thái `OFFERED`.<br/>2. Bot gửi shipper thông báo kèm bàn phím inline `[Nhận đơn]` và `[Từ chối]`.<br/>3. Shipper bấm "Nhận đơn"; bot gửi callback `OFFER_ACCEPT:<assignmentId>`.<br/>4. Backend khoá bản ghi assignment và kiểm tra: shipper không có assignment `STARTED` nào khác; assignment vẫn ở `OFFERED`.<br/>5. Backend chuyển assignment sang `ACCEPTED` và đơn sang `ASSIGNED`.<br/>6. Bot thông báo khách "Shipper [Tên] đã nhận đơn" và đẩy cập nhật lên Web Admin |
+| Luồng thay thế | 3a. Shipper bấm "Từ chối" → assignment chuyển `REJECTED`, đơn quay về hàng chờ để chủ shop gán shipper khác |
+| Ngoại lệ | 4a. Shipper đã có một assignment `STARTED` khác → partial unique index `uq_assignment_shipper_started` ở tầng cơ sở dữ liệu từ chối, backend bắt ngoại lệ và trả lỗi "Bạn đang giao một đơn khác".<br/>4b. Assignment đã được xử lý bởi thao tác trước (tranh chấp) → backend trả lỗi "Đơn đã có shipper khác nhận" hoặc "Offer không còn hiệu lực" |
+| Điều kiện sau | Đơn ở trạng thái `ASSIGNED`; assignment ở `ACCEPTED`; khách đã nhận thông báo |
 
 ### 2.3.4. Đặc tả UC — Giao hàng và chia sẻ Live Location
 
-- **Tên chức năng:** Giao hàng và chia sẻ vị trí trực tiếp.
-- **Tác nhân:** Shipper (chính), Khách hàng (theo dõi bản đồ), Telegram (nguồn Live Location).
-- **Điều kiện trước:** Assignment ở trạng thái `ACCEPTED`; shipper đã đến điểm xuất phát.
-- **Luồng chính:**
-  1. Shipper bấm "Bắt đầu giao" trên Mini App.
-  2. Backend chuyển assignment `ACCEPTED → STARTED` và đơn `ASSIGNED → DELIVERING`.
-  3. Bot gửi shipper hướng dẫn chia sẻ Live Location.
-  4. Shipper chia sẻ Live Location qua Telegram (đính kèm → Location → Share Live Location for 1 hour).
-  5. Telegram bắn cập nhật vị trí đầu tiên đến webhook; `LiveLocationHandler` lưu `location_ping` đầu tiên và phát sự kiện.
-  6. Mỗi 5–10 giây, Telegram bắn cập nhật vị trí mới; backend lưu ping và phát sự kiện.
-  7. Bộ phát tin đẩy toạ độ qua STOMP đến kênh riêng của khách.
-  8. Mini App khách cập nhật vị trí marker shipper trên bản đồ Leaflet.
-  9. Shipper đến nơi, bấm "Đã giao".
-  10. Backend chuyển assignment `STARTED → COMPLETED`, đơn `DELIVERING → DELIVERED`, tăng biến đếm số đơn đã giao và đặt shipper về `AVAILABLE`.
-  11. Bot gửi khách bàn phím năm sao để đánh giá.
-- **Luồng thay thế:**
-  - 4a. Shipper không chia sẻ Live Location → hệ thống vẫn hoạt động, chỉ thiếu bản đồ realtime; khách vẫn nhận cập nhật trạng thái đơn.
-  - 9a. Shipper báo "Không liên lạc được khách" → assignment `STARTED → CANCELLED` và đơn `DELIVERING → RETURNED` kèm lý do.
-- **Điều kiện sau:** Đơn ở trạng thái `DELIVERED`; shipper trở về `AVAILABLE`; khách nhận lời mời đánh giá.
+Use case này gộp ba hành vi liền mạch của shipper (bắt đầu giao, chia sẻ vị trí, đánh dấu đã giao) vì chúng cùng thuộc một phiên giao hàng không thể tách rời.
+
+**Bảng 2.6. Đặc tả use case "Giao hàng và chia sẻ vị trí trực tiếp"**
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên use case | Giao hàng và chia sẻ vị trí trực tiếp (Live Location) |
+| Tác nhân | Shipper (chính); Khách hàng (theo dõi bản đồ); Telegram (nguồn Live Location) |
+| Điều kiện trước | Assignment ở trạng thái `ACCEPTED`; shipper đã đến điểm xuất phát |
+| Luồng chính | 1. Shipper bấm "Bắt đầu giao" trên Mini App.<br/>2. Backend chuyển assignment `ACCEPTED → STARTED` và đơn `ASSIGNED → DELIVERING`.<br/>3. Bot gửi shipper hướng dẫn chia sẻ Live Location.<br/>4. Shipper chia sẻ Live Location qua Telegram (đính kèm → Location → Share Live Location for 1 hour).<br/>5. Telegram bắn cập nhật vị trí đầu tiên đến webhook; `LiveLocationHandler` lưu `location_ping` đầu tiên và phát sự kiện.<br/>6. Mỗi 5–10 giây, Telegram bắn cập nhật vị trí mới; backend lưu ping và phát sự kiện.<br/>7. Bộ phát tin đẩy toạ độ qua STOMP đến kênh riêng của khách.<br/>8. Mini App khách cập nhật vị trí marker shipper trên bản đồ Leaflet.<br/>9. Shipper đến nơi, bấm "Đã giao".<br/>10. Backend chuyển assignment `STARTED → COMPLETED`, đơn `DELIVERING → DELIVERED`, tăng biến đếm số đơn đã giao và đặt shipper về `AVAILABLE`.<br/>11. Bot gửi khách bàn phím năm sao để đánh giá |
+| Luồng thay thế | 4a. Shipper không chia sẻ Live Location → hệ thống vẫn hoạt động, chỉ thiếu bản đồ realtime; khách vẫn nhận cập nhật trạng thái đơn.<br/>9a. Shipper báo "Không liên lạc được khách" → assignment `STARTED → CANCELLED` và đơn `DELIVERING → RETURNED` kèm lý do |
+| Ngoại lệ | Mọi yêu cầu chuyển trạng thái sai trình tự (ví dụ "Đã giao" khi assignment chưa `STARTED`) đều bị máy trạng thái từ chối và trả lỗi trạng thái không hợp lệ |
+| Điều kiện sau | Đơn ở trạng thái `DELIVERED`; shipper trở về `AVAILABLE`; khách nhận lời mời đánh giá |
 
 ### 2.3.5. Đặc tả UC — Đánh giá shipper
 
-- **Tên chức năng:** Đánh giá shipper sau khi giao hàng.
-- **Tác nhân:** Khách hàng.
-- **Điều kiện trước:** Đơn ở trạng thái `DELIVERED`; chưa có đánh giá nào cho đơn này (ràng buộc UNIQUE trên `rating.order_id`).
-- **Luồng chính:**
-  1. Bot gửi khách bàn phím inline năm sao kèm nút "Bỏ qua".
-  2. Khách bấm số sao N (1 ≤ N ≤ 5); bot phát callback `RATE:<orderId>:<N>`.
-  3. Hệ thống chèn một dòng `rating(order_id, customer_id, shipper_id, stars=N)`.
-  4. Hệ thống tính lại điểm trung bình và số lượng đánh giá của shipper từ truy vấn tổng hợp, rồi cập nhật vào hồ sơ shipper.
-  5. Bot chỉnh sửa tin nhắn gốc, gỡ bàn phím và hiển thị "Cảm ơn bạn đã đánh giá N sao!".
-  6. Bot mời khách nhập bình luận kèm gợi ý gõ `/skip`; hệ thống chuyển trạng thái hội thoại sang `CUSTOMER_RATING_COMMENT`, lưu `{orderId}` vào JSONB.
-  7. Nếu khách gõ văn bản: bộ xử lý ưu tiên cao cập nhật cột bình luận và xoá trạng thái hội thoại.
-  8. Nếu khách gõ `/skip`: hệ thống chỉ xoá trạng thái hội thoại.
-- **Luồng thay thế:**
-  - 3a. Đánh giá đã tồn tại cho đơn (vi phạm UNIQUE) → bot trả "Bạn đã đánh giá đơn này rồi".
-  - 1a. Khách bấm "Bỏ qua" ngay từ đầu → không tạo đánh giá, kết thúc luồng.
-- **Điều kiện sau:** Đánh giá được lưu; điểm trung bình của shipper đã cập nhật; trạng thái hội thoại đã được xoá.
+Use case này khép lại vòng đời đơn hàng, với cơ chế FSM hội thoại hai pha (chấm sao rồi bình luận) đã phân tích ở quy trình 2.2.4.
+
+**Bảng 2.7. Đặc tả use case "Đánh giá shipper sau khi giao hàng"**
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên use case | Đánh giá shipper sau khi giao hàng |
+| Tác nhân | Khách hàng |
+| Điều kiện trước | Đơn ở trạng thái `DELIVERED`; chưa có đánh giá nào cho đơn này (ràng buộc UNIQUE trên `rating.order_id`) |
+| Luồng chính | 1. Bot gửi khách bàn phím inline năm sao kèm nút "Bỏ qua".<br/>2. Khách bấm số sao N (1 ≤ N ≤ 5); bot phát callback `RATE:<orderId>:<N>`.<br/>3. Hệ thống chèn một dòng `rating(order_id, customer_id, shipper_id, stars=N)`.<br/>4. Hệ thống tính lại điểm trung bình và số lượng đánh giá của shipper từ truy vấn tổng hợp, rồi cập nhật vào hồ sơ shipper.<br/>5. Bot chỉnh sửa tin nhắn gốc, gỡ bàn phím và hiển thị "Cảm ơn bạn đã đánh giá N sao!".<br/>6. Bot mời khách nhập bình luận kèm gợi ý gõ `/skip`; hệ thống chuyển trạng thái hội thoại sang `CUSTOMER_RATING_COMMENT`, lưu `{orderId}` vào JSONB.<br/>7. Nếu khách gõ văn bản: bộ xử lý ưu tiên cao cập nhật cột bình luận và xoá trạng thái hội thoại.<br/>8. Nếu khách gõ `/skip`: hệ thống chỉ xoá trạng thái hội thoại |
+| Luồng thay thế | 1a. Khách bấm "Bỏ qua" ngay từ đầu → không tạo đánh giá, kết thúc luồng |
+| Ngoại lệ | 3a. Đánh giá đã tồn tại cho đơn (vi phạm UNIQUE) → bot trả "Bạn đã đánh giá đơn này rồi" |
+| Điều kiện sau | Đánh giá được lưu; điểm trung bình của shipper đã cập nhật; trạng thái hội thoại đã được xoá |
 
 ### 2.3.6. Đặc tả UC — Chủ shop gán đơn
 
-- **Tên chức năng:** Chủ shop gán shipper cho đơn hàng.
-- **Tác nhân:** Chủ shop.
-- **Điều kiện trước:** Chủ shop đã đăng nhập Web Admin (JWT hợp lệ); đơn ở trạng thái `CONFIRMED`; tồn tại ít nhất một shipper ở trạng thái `AVAILABLE`.
-- **Luồng chính:**
-  1. Chủ shop mở chi tiết đơn cần gán trên Web Admin.
-  2. Chủ shop mở danh sách shipper đang sẵn sàng và chọn một shipper.
-  3. Chủ shop gọi `POST /api/admin/orders/{id}/assign` kèm `shipperId`.
-  4. Backend tạo bản ghi `delivery_assignment` ở trạng thái `OFFERED` và phát sự kiện `OrderAssignedEvent`.
-  5. Sau khi giao dịch commit, bot gửi shipper offer kèm bàn phím inline.
-  6. Web Admin hiển thị đơn ở trạng thái "Đã gửi offer, chờ shipper nhận".
-- **Luồng thay thế:**
-  - 3a. Đơn không ở trạng thái `CONFIRMED` → backend từ chối, trả lỗi trạng thái không hợp lệ.
-  - 4a. Shipper được chọn không còn `AVAILABLE` → backend trả lỗi, chủ shop chọn shipper khác.
-  - 5a. Shipper từ chối offer → assignment chuyển `REJECTED`, đơn quay về hàng chờ để gán lại.
-- **Điều kiện sau:** Tồn tại một assignment ở trạng thái `OFFERED` cho đơn; shipper đã nhận offer qua bot.
+Use case này là mắt xích điều phối trung tâm, nối pha xác nhận đơn với pha giao hàng của shipper.
+
+**Bảng 2.8. Đặc tả use case "Chủ shop gán shipper cho đơn hàng"**
+
+| Thành phần | Nội dung |
+|---|---|
+| Tên use case | Chủ shop gán shipper cho đơn hàng |
+| Tác nhân | Chủ shop |
+| Điều kiện trước | Chủ shop đã đăng nhập Web Admin (JWT hợp lệ); đơn ở trạng thái `CONFIRMED`; tồn tại ít nhất một shipper ở trạng thái `AVAILABLE` |
+| Luồng chính | 1. Chủ shop mở chi tiết đơn cần gán trên Web Admin.<br/>2. Chủ shop mở danh sách shipper đang sẵn sàng và chọn một shipper.<br/>3. Chủ shop gọi `POST /api/admin/orders/{id}/assign` kèm `shipperId`.<br/>4. Backend tạo bản ghi `delivery_assignment` ở trạng thái `OFFERED` và phát sự kiện `OrderAssignedEvent`.<br/>5. Sau khi giao dịch commit, bot gửi shipper offer kèm bàn phím inline.<br/>6. Web Admin hiển thị đơn ở trạng thái "Đã gửi offer, chờ shipper nhận" |
+| Luồng thay thế | 5a. Shipper từ chối offer → assignment chuyển `REJECTED`, đơn quay về hàng chờ để gán lại |
+| Ngoại lệ | 3a. Đơn không ở trạng thái `CONFIRMED` → backend từ chối, trả lỗi trạng thái không hợp lệ.<br/>4a. Shipper được chọn không còn `AVAILABLE` → backend trả lỗi, chủ shop chọn shipper khác |
+| Điều kiện sau | Tồn tại một assignment ở trạng thái `OFFERED` cho đơn; shipper đã nhận offer qua bot |
 
 ## 2.4. Sơ đồ luồng dữ liệu (DFD)
 
@@ -486,6 +566,6 @@ Sơ đồ mức dưới đỉnh làm rõ ba điểm thiết kế then chốt c�
 
 ## 2.5. Kết luận chương
 
-Chương 2 đã hoàn thành việc phân tích hệ thống quản lý giao hàng theo trình tự phương pháp luận chặt chẽ. Trước hết, các chức năng được xác định và gom nhóm theo ba vai trò (khách hàng, shipper, chủ shop) rồi tổ chức lại thành sáu phân hệ nghiệp vụ qua sơ đồ phân cấp chức năng. Tiếp đó, năm quy trình nghiệp vụ trọng tâm — đặt đơn COD, đặt đơn và thanh toán VNPay với IPN, gán shipper và giao hàng kèm Live Location, đánh giá shipper, chủ shop quản lý và gán đơn — được mô tả bằng lời kết hợp sơ đồ tuần tự và lưu đồ. Sáu use case quan trọng nhất được đặc tả chi tiết theo chuẩn UML với đầy đủ tác nhân, điều kiện trước, luồng chính, luồng thay thế và điều kiện sau. Cuối cùng, dòng dữ liệu trong hệ thống được biểu diễn qua ba mức DFD, làm rõ ranh giới hệ thống, các tiến trình xử lý, sáu kho dữ liệu chính và cơ chế tích hợp cổng thanh toán VNPay.
+Chương 2 đã hoàn thành việc phân tích hệ thống quản lý giao hàng theo trình tự phương pháp luận chặt chẽ. Trước hết, các chức năng được xác định và gom nhóm theo ba vai trò (khách hàng, shipper, chủ shop), hệ thống hoá thành 15 yêu cầu chức năng và 7 yêu cầu phi chức năng kèm tiêu chí đo lường (Bảng 2.1 và Bảng 2.2), rồi tổ chức lại thành sáu phân hệ nghiệp vụ qua sơ đồ phân cấp chức năng. Tiếp đó, bảy quy trình nghiệp vụ trọng tâm — đặt đơn COD, đặt đơn và thanh toán VNPay với IPN, gán shipper và giao hàng kèm Live Location, đánh giá shipper, chủ shop quản lý và gán đơn, đăng ký và duyệt shipper, hết hạn thanh toán PENDING — được mô tả bằng lời kết hợp sơ đồ tuần tự và lưu đồ. Sáu use case quan trọng nhất được đặc tả chi tiết dưới dạng bảng theo chuẩn UML (Bảng 2.3 đến Bảng 2.8) với đầy đủ tác nhân, điều kiện trước, luồng chính, luồng thay thế, ngoại lệ và điều kiện sau. Cuối cùng, dòng dữ liệu trong hệ thống được biểu diễn qua ba mức DFD, làm rõ ranh giới hệ thống, các tiến trình xử lý, sáu kho dữ liệu chính và cơ chế tích hợp cổng thanh toán VNPay.
 
 Toàn bộ kết quả phân tích trong chương này — đặc biệt là máy trạng thái đơn hàng bảy trạng thái, ranh giới phân hệ và cấu trúc dòng dữ liệu — là cơ sở trực tiếp để Chương 3 trình bày thiết kế chi tiết kiến trúc, cơ sở dữ liệu, API và các cơ chế bảo mật của hệ thống.

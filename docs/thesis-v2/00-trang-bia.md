@@ -26,15 +26,17 @@ LỜI MỞ ĐẦU
 - 1.4. Các đề tài liên quan
 - 1.5. Kế hoạch thực hiện
 - 1.6. Phân công công việc
+- 1.7. Đóng góp của đề tài
 
 **CHƯƠNG 2: PHÂN TÍCH HỆ THỐNG**
 
 - 2.1. Phân tích hệ thống
   - 2.1.1. Xác định và gom các chức năng
   - 2.1.2. Sơ đồ phân cấp chức năng
-- 2.2. Quy trình xử lý các chức năng
-- 2.3. Đặc tả chức năng
+- 2.2. Quy trình xử lý các chức năng (bảy quy trình nghiệp vụ trọng tâm)
+- 2.3. Đặc tả chức năng (sáu đặc tả use case)
 - 2.4. Sơ đồ luồng dữ liệu (DFD)
+- 2.5. Kết luận chương
 
 **CHƯƠNG 3: THIẾT KẾ HỆ THỐNG**
 
@@ -42,11 +44,20 @@ LỜI MỞ ĐẦU
   - 3.1.1. Mô hình thực thể liên kết (ERD)
   - 3.1.2. Mô hình thực thể logic
 - 3.2. Mô hình quan hệ
+- 3.3. Thiết kế kiến trúc tổng thể
+- 3.4. Thiết kế API
+- 3.5. Thiết kế máy trạng thái
+- 3.6. Thiết kế bảo mật
+- 3.7. Kết luận chương
 
 **CHƯƠNG 4: KẾT QUẢ SẢN PHẨM**
 
 - 4.1. Công nghệ sử dụng
-- 4.2. Giao diện chương trình
+- 4.2. Cấu trúc dự án và tổ chức mã nguồn
+- 4.3. Cài đặt các mô-đun chính
+- 4.4. Kiểm thử
+- 4.5. Đóng gói và triển khai
+- 4.6. Giao diện chương trình
 
 KẾT LUẬN
 

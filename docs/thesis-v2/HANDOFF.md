@@ -37,7 +37,11 @@ Build: `bash docs/thesis/build.sh` → `docs/thesis/build/out/`
 - Backup trước condense: `docs/thesis/.backup-precondense/`.
 - `chuong-6-mo-rong.md` đã XOÁ (2026-08-03); nội dung sống duy nhất là Phụ lục I trong `09-phu-luc.md`.
 
-### 3. Báo cáo bản 4 chương theo mẫu — `docs/thesis-v2/`  ✅ (`BAO-CAO-KLTN.docx`, 74 trang)
+### 3. Báo cáo bản 4 chương theo mẫu — `docs/thesis-v2/`  ✅ (`BAO-CAO-KLTN.docx`, 114 trang)
+- Đã hợp nhất nội dung đầy đủ từ bản 5 chương (2026-08-03): CH1 +bảng so sánh/MoSCoW/1.7 Đóng góp;
+  CH2 +bảng FR/NFR, 7 quy trình, 6 bảng đặc tả UC; CH3 +3.3 kiến trúc, 3.4 API (bảng 39 endpoint),
+  3.5 ba FSM, 3.6 bảo mật 11 lớp+STRIDE; CH4 +cấu trúc dự án, cài đặt module, kiểm thử 274 test,
+  đóng gói; Kết luận +bảng MoSCoW 11/11 và bảng 14 chỉ số.
 - Khung mẫu 4 chương (CH1 Phát biểu bài toán / CH2 Phân tích / CH3 Thiết kế / CH4 Kết quả sản phẩm
   + Kết luận + TLTK). 8 sơ đồ Mermaid, 15 ảnh, 17 bảng thực thể.
 - Build: `bash docs/thesis-v2/build.sh` → `docs/thesis-v2/build/out/BAO-CAO-KLTN.docx` (+pdf, đếm trang).
