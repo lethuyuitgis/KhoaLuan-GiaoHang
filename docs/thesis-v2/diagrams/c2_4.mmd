@@ -1,0 +1,13 @@
+flowchart TD
+    START([Đơn mới đẩy lên Web Admin]) --> CHECK{Phương thức<br/>thanh toán?}
+    CHECK -->|COD| PENDING[Đơn ở trạng thái PENDING]
+    CHECK -->|VNPay| WAITIPN[Chờ IPN xác nhận]
+    PENDING --> CONFIRM[Chủ shop bấm Xác nhận]
+    WAITIPN -->|IPN 00| CONFIRMED[Đơn CONFIRMED]
+    CONFIRM --> CONFIRMED
+    CONFIRMED --> DECIDE{Xử lý đơn?}
+    DECIDE -->|Gán shipper| ASSIGN[Chọn shipper AVAILABLE và gán]
+    DECIDE -->|Huỷ| CANCEL[Huỷ kèm lý do]
+    ASSIGN --> OFFER[Bot gửi offer cho shipper]
+    OFFER --> DONE([Theo dõi realtime tới khi giao xong])
+    CANCEL --> ENDC([Đơn CANCELLED])

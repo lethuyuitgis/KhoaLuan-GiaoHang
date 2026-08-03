@@ -10,19 +10,15 @@
 | Bảng 2.3 | So sánh Modular Monolith với Microservices |  |
 | Bảng 3.1 | Bảng yêu cầu phi chức năng (NFR) kèm tiêu chí đo lường |  |
 | Bảng 3.2 | Bảng trách nhiệm 8 mô-đun (bounded context) của hệ thống |  |
-| Bảng 3.3 | Bảng tech stack — công nghệ và phiên bản |  |
-| Bảng 3.4 | Phân vùng URL và cơ chế xác thực |  |
-| Bảng 3.5 | Danh sách endpoint REST đầy đủ của hệ thống |  |
-| Bảng 3.6 | Ma trận chuyển trạng thái `OrderStatus` |  |
-| Bảng 3.7 | Ma trận chuyển trạng thái `DeliveryAssignment` |  |
-| Bảng 3.8 | Ma trận chuyển trạng thái `PaymentStatus` |  |
-| Bảng 3.9 | Mô hình đe doạ và 11 lớp đối phó (defense-in-depth) |  |
-| Bảng 3.10 | Ma trận đối chiếu STRIDE — lớp đối phó — test bao phủ |  |
-| Bảng 4.1 | Môi trường phát triển và phiên bản công cụ |  |
-| Bảng 4.2 | Danh sách 11 file Flyway migration (V1 đến V11) |  |
-| Bảng 4.3 | Danh sách biến môi trường trong `.env.example` |  |
-| Bảng 5.1 | Tổng hợp các chỉ số định lượng kết quả đạt được |  |
-| Bảng 5.2 | Hiện trạng các tính năng theo phân loại MoSCoW |  |
-| Bảng 5.3 | Bảng tổng hợp các hạn chế và hướng khắc phục |  |
+| Bảng 3.3 | Phân vùng URL và cơ chế xác thực |  |
+| Bảng 3.4 | Mô hình đe doạ và 11 lớp đối phó (defense-in-depth) |  |
+| Bảng 3.5 | Ma trận đối chiếu STRIDE — lớp đối phó — test bao phủ |  |
+| Bảng 5.1 | Hiện trạng các tính năng theo phân loại MoSCoW |  |
+| Bảng 5.2 | Tổng hợp các chỉ số định lượng kết quả đạt được |  |
+| Bảng 5.3 | Tổng hợp các hạn chế hiện tại và phương án xử lý |  |
+| Bảng 5.4 | Các hạng mục production hardening |  |
+
+Các bảng tra cứu chi tiết được đặt trong phần Phụ lục và đánh số riêng theo dạng
+Bảng PL.1 đến Bảng PL.9, liệt kê tại đầu mỗi phụ lục tương ứng.
 
 \newpage

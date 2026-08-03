@@ -39,7 +39,7 @@
 "`@EventListener` thuần fire **đồng bộ ngay khi `publishEvent` được gọi**, kể cả khi transaction chưa commit. Vấn đề: nếu listener gửi notification (ví dụ Telegram bot ack 'Đơn của bạn đã xác nhận') nhưng sau đó transaction rollback do exception, khách nhận noti nhưng DB không có đơn — inconsistent state. `@TransactionalEventListener(phase = AFTER_COMMIT)` fire **chỉ khi transaction outer đã commit thành công** — không bao giờ rollback. Đây là pattern bắt buộc cho mọi side-effect ngoài DB (notification, broadcast, external API call). Có một subtlety: nếu listener cần ghi DB, phải `Propagation.REQUIRES_NEW` vì outer transaction đã đóng — em đã catch điều này ở Wave 1 Task 9 IT của P7 (OrderService.confirmAfterPayment)."
 
 **Tham chiếu:**
-- Chương 4 §4.7 — Module notification.
+- Chương 4 §4.3.7 — Module notification.
 - `diem-noi-bat-va-huong-phat-trien.md` mục A.4.4.
 - Code: `backend/payment/src/main/java/.../service/OrderService.java` — `@Transactional(propagation = REQUIRES_NEW)`.
 
@@ -51,7 +51,7 @@
 "Vì *UX khác nhau cho từng tình huống*. Mini App tốt cho UI phong phú: catalog có ảnh, giỏ hàng, bản đồ Leaflet, biểu đồ — những thứ cần screen real estate. Bot tốt cho *thao tác 1-tap* và *notification push tự nhiên* — shipper nhận offer đang đi xe, không thể mở Mini App rồi click; inline keyboard 'Nhận / Từ chối' là tối ưu. Bot cũng là kênh duy nhất cho push noti — Telegram không push noti cho Mini App nếu user không mở. Cuối cùng, Bot hỗ trợ FSM hội thoại (đăng ký shipper, đánh giá comment) tự nhiên hơn nhiều so với Mini App. Việc dùng cả hai là tận dụng thế mạnh của từng kênh chứ không phải redundant."
 
 **Tham chiếu:**
-- Chương 1 §1.7.1 — Mô hình triển khai lai.
+- Chương 1 §1.4.1 — Mô hình triển khai lai.
 - `diem-noi-bat-va-huong-phat-trien.md` mục A.1.
 - Screenshots: `screenshots/miniapp-*` (Mini App) + bot mock.
 
@@ -166,7 +166,7 @@
 "Tự build GPS streaming phía client đòi hỏi rất nhiều thứ: xin permission location, foreground service trên Android (notification thường xuyên), background sync khi Wifi/4G chập chờn, battery optimization, handle lost-signal, retry queue. Ước lượng riêng phần này 2–3 tuần effort. Telegram Live Location đã giải quyết hết — shipper bấm 📎 → Vị trí → Chia sẻ trực tiếp, Telegram tự handle hết, gửi `edited_message.location` đến webhook bot mỗi 5–10s. Em chỉ cần code `LiveLocationHandler` parse `lat/lng/accuracy/heading`, lưu `location_ping`, phát event. Tiết kiệm ~80% effort. Lợi ích phụ: *bảo mật cao* vì Telegram đã sign HMAC, kẻ tấn công không thể giả vị trí; *tiết kiệm pin* vì Telegram đã chạy nền, không có process mới. Trade-off duy nhất: giới hạn 8h/lần share (8h là quá đủ cho giao nội thành)."
 
 **Tham chiếu:**
-- Chương 1 §1.7.2 + Chương 4 §4.4 — Module delivery.
+- Chương 1 §1.4.2 + Chương 4 §4.4 — Module delivery.
 - `diem-noi-bat-va-huong-phat-trien.md` mục A.2.
 - Code: `backend/bot/src/main/java/.../handler/LiveLocationHandler.java`.
 
@@ -228,7 +228,7 @@
 "GSD (Get Shit Done) là quy trình *cá nhân* cho dự án solo, không phải framework team như Scrum. Cốt lõi: mỗi *phase* (đại loại tương đương 1 sprint) trải qua 6 bước tuần tự — Research → Plan → Plan-check → Execute → Code-review → Fix. Khác Scrum: (1) không có daily standup, sprint review, retrospective; (2) artefact là *document* (research.md, plan.md, REVIEW.md) chứ không phải user story trong Jira; (3) *plan-check* là một bước riêng — AI/đồng nghiệp review plan *trước khi gõ code* — em catch 12 blocker ở khâu này. Khác Waterfall: (1) chia thành 10 phase nhỏ (P0–P9) thay vì 1 cycle dài; (2) sau mỗi phase có code review + fix, build green; (3) cho phép adjust scope theo phase. Phù hợp solo dev hoặc team nhỏ 1–3 người."
 
 **Tham chiếu:**
-- Chương 1 §1.5 — Phương pháp tiếp cận.
+- Mở đầu §4 — Phương pháp nghiên cứu.
 - `diem-noi-bat-va-huong-phat-trien.md` mục A.7.
 - Thư mục `docs/superpowers/` — plans + research + reviews.
 
@@ -338,7 +338,7 @@
 "Bài học lớn nhất: *đầu tư vào quy trình bằng đầu tư vào code*. Lúc bắt đầu em nghĩ 'plan dài 4700 dòng cho 1 phase là quá thừa, gõ code nhanh hơn'. Nhưng sau khi plan-check catch 12 blocker và code review catch 5 critical bug, em nhận ra mỗi giờ bỏ vào plan + review tiết kiệm khoảng 3–5 giờ debug + refactor. Đặc biệt với dev solo, quy trình GSD đóng vai trò 'second pair of eyes' mà em không có team. Bài học thứ hai: *defense-in-depth là multiplier*, không phải single point. 11 lớp bảo mật mỗi lớp đơn giản (HMAC, JWT, `@PreAuthorize`, ...), nhưng cộng lại làm hệ thống cực khó break. Bài học thứ ba: *thừa nhận hạn chế là điểm cộng* — em liệt kê 10 hạn chế trong báo cáo (4 đã khắc phục, 6 còn lại), điều này chứng tỏ em hiểu hệ thống chứ không phóng đại. Trong nghề kỹ sư, không ai tin người nói 'sản phẩm của tôi không có lỗi'."
 
 **Tham chiếu:**
-- Chương 1 §1.5 — Phương pháp tiếp cận.
+- Mở đầu §4 — Phương pháp nghiên cứu.
 - Chương 5 §5.1.3 — Hiệu quả quy trình GSD.
 - Chương 5 §5.2 — Hạn chế honestly liệt kê.
 
@@ -375,13 +375,13 @@
 | Câu | Chương / mục chính |
 |---|---|
 | Q1, Q2, Q3 | Chương 3 §3.2 (Kiến trúc) |
-| Q4 | Chương 1 §1.7.1 (Mô hình lai) |
+| Q4 | Chương 1 §1.4.1 (Mô hình lai) |
 | Q5, Q10, Q11, Q12 | Chương 3 §3.3 (Database) |
 | Q6, Q7, Q8, Q9 | Chương 3 §3.7 (Bảo mật defense-in-depth) |
-| Q13 | Chương 1 §1.7.2 + Chương 4 §4.4 (Live Location) |
+| Q13 | Chương 1 §1.4.2 + Chương 4 §4.4 (Live Location) |
 | Q14 | Chương 4 §4.5 (Module payment) |
 | Q15, Q16 | Chương 4 §4.6 (Module bot) |
 | Q17 | Chương 4 §4.10 + Chương 5 §5.1.5 |
-| Q18, Q19, Q20 | Chương 1 §1.5 + Chương 5 §5.1.3 (Quy trình GSD) |
+| Q18, Q19, Q20 | Mở đầu §4 + Chương 5 §5.1.3 (Quy trình GSD) |
 | Q21, Q22, Q23, Q24 | Chương 5 §5.2 + §5.3 (Hạn chế + hướng phát triển) |
 | Q25, Q26, Q27 | `diem-noi-bat-va-huong-phat-trien.md` phần C + Chương 5 §5.3 |

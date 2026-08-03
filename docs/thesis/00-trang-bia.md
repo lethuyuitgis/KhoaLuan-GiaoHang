@@ -1,13 +1,7 @@
 <!--
   Trang BÌA NGOÀI (Cover) — Khóa luận Tốt nghiệp
   Template theo "Mẫu bìa KLTN theo nhóm" của Trường Đại học Mở Hà Nội.
-
-  Sinh viên điền các trường [...] trước khi in:
-    - NGÀNH        : ví dụ "Công nghệ thông tin"
-    - MÃ NGÀNH     : ví dụ "7480201"
-    - ĐỀ TÀI       : tên đề tài (in HOA)
-    - NHÓM         : số nhóm (ví dụ "1")
-    - SV …         : Họ và tên sinh viên + MSV + Lớp (làm khoá luận solo thì chỉ điền dòng đầu, xoá các dòng dưới)
+  Thông tin ngành / sinh viên / lớp đã điền thật; chỉ còn [SỐ NHÓM] do phòng đào tạo cấp.
 -->
 
 ::: {custom-style="TrangBia"}
@@ -20,41 +14,39 @@
 
 \
 
-\
+:::
+
+::: {custom-style="TieuDeBia"}
+
+KHÓA LUẬN TỐT NGHIỆP
+
+:::
+
+::: {custom-style="TrangBia"}
+
+**NGÀNH:** Công nghệ thông tin
+
+**MÃ NGÀNH:** 7480201
 
 \
 
-# KHÓA LUẬN TỐT NGHIỆP
+:::
 
-\
+::: {custom-style="TieuDeBia"}
 
-**NGÀNH:** [TÊN NGÀNH]
+ĐỀ TÀI: HỆ THỐNG QUẢN LÝ GIAO HÀNG TÍCH HỢP TELEGRAM MINI APP, WEB ADMIN VÀ VNPAY
 
-**MÃ NGÀNH:** [MÃ NGÀNH]
+:::
 
-\
-
-\
-
-# ĐỀ TÀI: HỆ THỐNG QUẢN LÝ GIAO HÀNG TÍCH HỢP TELEGRAM MINI APP, WEB ADMIN VÀ VNPAY
-
-\
-
-\
+::: {custom-style="TrangBia"}
 
 \
 
 **NHÓM [SỐ NHÓM] — ĐỢT I NĂM HỌC 2025 - 2026:**
 
-1. SV [HỌ VÀ TÊN] (MSV: [.........]; Lớp: [.........])
-2. SV [HỌ VÀ TÊN] (MSV: [.........]; Lớp: [.........])
-3. SV [HỌ VÀ TÊN] (MSV: [.........]; Lớp: [.........])
-4. SV [HỌ VÀ TÊN] (MSV: [.........]; Lớp: [.........])
-5. SV [HỌ VÀ TÊN] (MSV: [.........]; Lớp: [.........])
-
-\
-
-\
+1. SV Lê Thị Trần Thủy (MSV: 23C1001P3734; Lớp: CHDN420)
+2. SV Ngô Phúc Hiếu (MSV: 23C1001P5290; Lớp: CHDN420)
+3. SV Nguyễn Thế Thưởng (MSV: 23C1001P4046; Lớp: CHDN420)
 
 \
 

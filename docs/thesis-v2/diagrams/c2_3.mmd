@@ -1,0 +1,31 @@
+sequenceDiagram
+    autonumber
+    actor Admin as Chủ shop
+    participant BE as Backend
+    participant DB as PostgreSQL
+    participant Bot as Telegram Bot
+    actor Shipper
+    participant WS as STOMP WebSocket
+
+    Admin->>BE: POST /api/admin/orders/{id}/assign {shipperId}
+    BE->>DB: INSERT delivery_assignment trạng thái OFFERED
+    BE-->>Admin: 200 OK
+    BE->>Bot: BotSender gửi offer cho shipper
+    Bot-->>Shipper: Thông báo đơn kèm nút Nhận / Từ chối
+    Shipper->>Bot: Bấm Nhận đơn
+    Bot->>BE: Callback OFFER_ACCEPT
+    BE->>DB: SELECT assignment FOR UPDATE
+    BE->>DB: UPDATE assignment ACCEPTED, orders ASSIGNED
+    BE->>WS: Đẩy cập nhật /topic/admin/orders
+    BE->>Bot: Thông báo khách "Shipper đã nhận đơn"
+    Shipper->>BE: POST /api/shipper/assignments/{id}/start
+    BE->>DB: UPDATE assignment STARTED, orders DELIVERING
+    Shipper->>Bot: Chia sẻ Live Location 1 giờ
+    loop Mỗi 5-10 giây
+        Bot->>BE: Update edited_message location
+        BE->>DB: INSERT location_ping
+        BE->>WS: Đẩy toạ độ tới kênh riêng của khách
+    end
+    Shipper->>BE: POST /api/shipper/assignments/{id}/complete
+    BE->>DB: UPDATE assignment COMPLETED, orders DELIVERED
+    BE->>Bot: Thông báo khách và mời đánh giá

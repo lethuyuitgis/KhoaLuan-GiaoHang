@@ -1,0 +1,25 @@
+erDiagram
+  telegram_user ||--o{ user_role : has
+  telegram_user ||--o| admin_user : links_to
+  telegram_user ||--o| shipper_profile : is
+  telegram_user ||--o| conversation_state : in_FSM
+  telegram_user ||--o{ orders : places
+  telegram_user ||--o{ delivery_assignment : delivers
+  telegram_user ||--o{ rating : rates_as_customer
+  telegram_user ||--o{ rating : rated_as_shipper
+
+  admin_user ||--o{ refresh_token : has
+
+  product ||--o{ order_item : included_in
+
+  orders ||--|{ order_item : contains
+  orders ||--o{ status_history : has_history
+  orders ||--o| delivery_assignment : assigned_to
+  orders ||--o{ payment : paid_by
+  orders ||--o| rating : rated_by
+
+  delivery_assignment ||--o{ location_ping : produces
+
+  payment ||--o{ payment_transaction : audit_log
+
+  shop_config ||--o{ orders : supplies_pickup

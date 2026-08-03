@@ -9,8 +9,7 @@
     6. Phân công công việc
     7. Tài liệu tham khảo
 
-  Sinh viên điền các placeholder [...] trước khi in:
-    - [MÃ NGÀNH], [MSSV], [LỚP], [HỌC HÀM, HỌC VỊ — HỌ TÊN GVHD]
+  Thông tin GVHD / MSSV / Lớp đã điền đầy đủ (không còn placeholder).
   Có thể biên dịch sang .docx/.pdf bằng Pandoc giống các file khác trong thư mục này.
 -->
 
@@ -34,13 +33,15 @@
 
 \
 
-**Giảng viên hướng dẫn:** [HỌC HÀM, HỌC VỊ — HỌ TÊN GVHD]
+**Giảng viên hướng dẫn:** ThS. Đinh Tuấn Long
 
 **Sinh viên thực hiện:**
 
-1. Lê Thị Trần Thủy (Nhóm trưởng) — MSV: [MSSV]; Lớp: [LỚP]
-2. Ngô Phúc Hiếu — MSV: [MSSV]; Lớp: [LỚP]
-3. Nguyễn Thế Thưởng — MSV: [MSSV]; Lớp: [LỚP]
+1. Lê Thị Trần Thủy (Nhóm trưởng) — MSV: 23C1001P3734
+2. Ngô Phúc Hiếu — MSV: 23C1001P5290
+3. Nguyễn Thế Thưởng — MSV: 23C1001P4046
+
+**Lớp:** CHDN420
 
 **Ngành đào tạo:** Công nghệ thông tin
 
@@ -217,13 +218,13 @@
 
 # 6. Phân công công việc
 
-Đề tài do nhóm 3 sinh viên thực hiện. Lê Thị Trần Thủy giữ vai trò nhóm trưởng, phụ trách khối lượng công việc lớn nhất (kiến trúc tổng thể, backend cốt lõi, tích hợp Telegram và VNPay, kiểm thử và triển khai).
+Đề tài do nhóm 3 sinh viên thực hiện, phân công cân bằng khối lượng. Nhóm trưởng Lê Thị Trần Thủy tập trung toàn bộ vào lập trình phần lõi (kiến trúc, backend và các tích hợp Telegram/VNPay); phần frontend, kiểm thử, triển khai, bảo mật và viết báo cáo được chia đều cho hai thành viên còn lại.
 
 | Thành viên | Công việc chính |
 |---|---|
-| **Lê Thị Trần Thủy** (Nhóm trưởng) | - Thiết kế kiến trúc Modular Monolith và CSDL PostgreSQL + Flyway<br>- Lập trình Backend & Business Layer (Spring Boot, máy trạng thái đơn hàng)<br>- Tích hợp Telegram (Bot, Mini App, Live Location) và cổng thanh toán VNPay<br>- Bảo mật defense-in-depth, kiểm thử (TDD) và đóng gói Docker Compose<br>- Tổng hợp, viết tài liệu và báo cáo khóa luận |
-| Ngô Phúc Hiếu | - Lập trình Frontend Web Admin (React + Tailwind)<br>- Module quản lý sản phẩm và đơn hàng (CRUD)<br>- Dashboard KPI và biểu đồ báo cáo (Recharts) |
-| Nguyễn Thế Thưởng | - Lập trình Frontend Telegram Mini App (khách + shipper)<br>- Module giỏ hàng, checkout và bản đồ tracking (react-leaflet)<br>- Thiết kế giao diện và chuẩn bị presentation |
+| **Lê Thị Trần Thủy** (Nhóm trưởng) | - Thiết kế kiến trúc Modular Monolith và CSDL PostgreSQL + Flyway<br>- Lập trình Backend & Business Layer (Spring Boot, máy trạng thái đơn hàng)<br>- Tích hợp Telegram (Bot, Mini App, Live Location) và cổng thanh toán VNPay |
+| Ngô Phúc Hiếu | - Lập trình Frontend Web Admin (React + Tailwind): quản lý sản phẩm, đơn hàng (CRUD), Dashboard KPI và biểu đồ (Recharts)<br>- Kiểm thử (TDD) và đóng gói Docker Compose<br>- Bảo mật defense-in-depth |
+| Nguyễn Thế Thưởng | - Lập trình Frontend Telegram Mini App (khách + shipper): giỏ hàng, checkout, bản đồ tracking (react-leaflet)<br>- Thiết kế giao diện và chuẩn bị presentation<br>- Tổng hợp, viết tài liệu và báo cáo khóa luận |
 
 # 7. Tài liệu tham khảo
 

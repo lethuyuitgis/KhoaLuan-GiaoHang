@@ -1,0 +1,23 @@
+flowchart TD
+    KH[Khách hàng]
+    SH[Shipper]
+    CS[Chủ shop]
+    VN[VNPay]
+    TG[Telegram]
+
+    SYS((Hệ thống QL<br/>Giao hàng))
+
+    KH -->|Đơn hàng, đánh giá, yêu cầu theo dõi| SYS
+    SYS -->|Trạng thái đơn, vị trí shipper, kết quả thanh toán| KH
+
+    SH -->|Nhận/từ chối offer, cập nhật giao hàng, vị trí| SYS
+    SYS -->|Offer đơn, hướng dẫn giao hàng| SH
+
+    CS -->|Xác nhận, gán shipper, quản lý sản phẩm, huỷ đơn| SYS
+    SYS -->|Đơn mới realtime, KPI, báo cáo thống kê| CS
+
+    SYS -->|URL thanh toán đã ký HMAC| VN
+    VN -->|IPN và Return kết quả thanh toán| SYS
+
+    SYS -->|Tin nhắn bot, bàn phím inline| TG
+    TG -->|Cập nhật, callback, Live Location| SYS

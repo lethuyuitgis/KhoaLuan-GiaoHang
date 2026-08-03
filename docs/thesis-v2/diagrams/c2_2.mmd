@@ -1,0 +1,32 @@
+sequenceDiagram
+    autonumber
+    actor Khach as Khách (Mini App)
+    participant BE as Backend
+    participant DB as PostgreSQL
+    participant VNPay
+    participant Browser as Trình duyệt
+
+    Khach->>BE: POST /api/orders {items, VNPAY}
+    BE->>DB: INSERT orders trạng thái PENDING
+    BE-->>Khach: 201 OrderResponse
+    Khach->>BE: POST /api/payment/vnpay/create {orderId}
+    BE->>DB: INSERT payment PENDING (vnp_txn_ref UNIQUE)
+    BE->>BE: Ký params bằng HMAC-SHA512
+    BE-->>Khach: {paymentUrl}
+    Khach->>VNPay: Chuyển hướng sang VNPay sandbox
+    VNPay-->>Khach: Form OTP thẻ NCB
+    Khach->>VNPay: Nhập OTP
+    par Kênh Return (trình duyệt)
+        VNPay->>Browser: 302 tới /api/payment/vnpay/return
+        Browser->>BE: GET /api/payment/vnpay/return
+        BE->>BE: Verify HMAC (constant-time)
+        BE-->>Browser: Trang "Thanh toán thành công" (KHÔNG ghi DB)
+    and Kênh IPN (server-to-server)
+        VNPay->>BE: POST /api/payment/vnpay/ipn
+        BE->>BE: Verify HMAC
+        BE->>DB: SELECT payment theo vnp_txn_ref
+        BE->>DB: UPDATE payment SUCCESS, INSERT payment_transaction
+        BE->>BE: publish PaymentSucceededEvent
+        BE->>DB: UPDATE orders sang CONFIRMED, INSERT status_history
+        BE-->>VNPay: {RspCode 00, Message Confirm Success}
+    end

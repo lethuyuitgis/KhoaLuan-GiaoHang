@@ -1,0 +1,32 @@
+flowchart TD
+    KH[Khách hàng]
+    VN[VNPay]
+
+    P31((3.1 Tính phí ship<br/>Haversine))
+    P32((3.2 Tạo đơn<br/>PENDING))
+    P33((3.3 Ký URL<br/>VNPay))
+    P34((3.4 Xử lý IPN<br/>idempotent))
+    P35((3.5 Xác nhận đơn<br/>và ghi lịch sử))
+
+    DS2[(SanPham)]
+    DS3[(DonHang)]
+    DS5[(ThanhToan)]
+    DS7[(LichSuTrangThai)]
+
+    KH -->|địa chỉ, toạ độ giao| P31
+    P31 -->|đọc toạ độ shop| DS3
+    P31 -->|phí ship| P32
+    P32 -->|đọc giá sản phẩm| DS2
+    P32 -->|ghi đơn PENDING| DS3
+    P32 -->|dòng lịch sử null to PENDING| DS7
+
+    P32 -->|yêu cầu thanh toán VNPay| P33
+    P33 -->|ghi payment PENDING| DS5
+    P33 -->|paymentUrl| KH
+    KH -->|mở URL| VN
+
+    VN -->|IPN kết quả| P34
+    P34 -->|verify chữ ký, cập nhật SUCCESS| DS5
+    P34 -->|phát sự kiện| P35
+    P35 -->|cập nhật CONFIRMED| DS3
+    P35 -->|dòng lịch sử PENDING to CONFIRMED| DS7

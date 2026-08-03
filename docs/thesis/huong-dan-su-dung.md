@@ -378,7 +378,7 @@ Hình 6.7 — thông tin cá nhân:
 
 ## 7. Tham khảo thêm
 
-- **Tài liệu kỹ thuật**: Chương 3 (kiến trúc) + Chương 4 (cài đặt) + Chương 6 (Phase 14/15)
+- **Tài liệu kỹ thuật**: Chương 3 (kiến trúc) + Chương 4 (cài đặt) + Phụ lục I (Phase 14/15)
 - **RUNBOOK**: `docs/RUNBOOK.md` — bộ smoke test thủ công 8 bước cho ngày bảo vệ
 - **Demo video script**: `docs/thesis/demo-video-script.md` — kịch bản chi tiết hơn nếu cần quay video
 - **API spec**: chạy backend → `http://localhost:8080/swagger-ui.html` (nếu có cấu hình)

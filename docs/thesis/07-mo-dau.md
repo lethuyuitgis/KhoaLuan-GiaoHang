@@ -17,7 +17,7 @@ Xuất phát từ thực tiễn này, đề tài lựa chọn nghiên cứu và 
 - Phân tích đặc điểm của bài toán quản lý giao hàng cuối (last-mile delivery) cho mô hình bán lẻ trực tuyến quy mô nhỏ–vừa và đề xuất giải pháp tận dụng nền tảng Telegram làm cổng vào duy nhất.
 - Nghiên cứu các nền tảng công nghệ then chốt: Telegram Bot API và Mini App SDK, Spring Boot 3 với Java 17, React 18 với Vite 5, PostgreSQL 16 với Flyway, tích hợp cổng thanh toán VNPay và mẫu kiến trúc Modular Monolith với Domain-Driven Design.
 - Thiết kế và hiện thực hệ thống với ba kênh giao diện: Telegram Mini App (cho khách hàng và shipper), Telegram Bot (cho thao tác hội thoại nhanh) và Web Admin (cho chủ shop).
-- Đảm bảo bảy mục tiêu kỹ thuật đo lường được: độ trễ tracking GPS dưới 3 giây, FSM bảy trạng thái cho vòng đời đơn, thanh toán VNPay với HMAC-SHA512, thông báo thời gian thực qua WebSocket STOMP, đóng gói Docker Compose chạy bằng ba lệnh, và mức độ kiểm thử trên 220 test backend.
+- Đảm bảo bảy mục tiêu kỹ thuật đo lường được: độ trễ tracking GPS dưới 3 giây, FSM bảy trạng thái cho vòng đời đơn, thanh toán VNPay với HMAC-SHA512, thông báo thời gian thực qua WebSocket STOMP, đóng gói Docker Compose chạy bằng ba lệnh, và mức độ kiểm thử trên 250 test backend.
 - Đánh giá kết quả đạt được, các hạn chế còn tồn tại và đề xuất các hướng phát triển trong tương lai.
 
 ## 3. Đối tượng và phạm vi nghiên cứu
@@ -42,10 +42,12 @@ Xuất phát từ thực tiễn này, đề tài lựa chọn nghiên cứu và 
 
 Báo cáo được chia thành năm chương:
 
-- **Chương 1. Tổng quan đề tài** — trình bày bối cảnh, mục tiêu, phạm vi, đối tượng nghiên cứu và phương pháp tiếp cận của đề tài.
+- **Chương 1. Tổng quan đề tài** — trình bày bối cảnh bài toán, khảo sát và so sánh các giải pháp hiện có, phạm vi theo phương pháp MoSCoW và tám đóng góp kỹ thuật của đề tài.
 - **Chương 2. Cơ sở lý thuyết** — trình bày các nền tảng công nghệ then chốt được áp dụng.
 - **Chương 3. Phân tích và thiết kế hệ thống** — trình bày phân tích yêu cầu, kiến trúc tổng thể, thiết kế cơ sở dữ liệu, API, máy trạng thái và bảo mật.
 - **Chương 4. Cài đặt và kiểm thử** — trình bày các quyết định hiện thực, chiến lược kiểm thử và triển khai bằng Docker Compose.
 - **Chương 5. Kết luận và hướng phát triển** — tổng kết kết quả, hạn chế và đề xuất hướng phát triển.
+
+Kèm theo báo cáo là chín phụ lục A–I gồm các tài liệu tra cứu chi tiết được tham chiếu từ các chương chính: đặc tả use case đầy đủ, danh sách endpoint REST, mô tả từng bảng dữ liệu, ma trận chuyển trạng thái, danh mục công nghệ, cấu hình triển khai, thống kê kiểm thử, bộ ảnh giao diện và hai pha mở rộng nghiệp vụ thực hiện sau thời điểm bảo vệ.
 
 \newpage

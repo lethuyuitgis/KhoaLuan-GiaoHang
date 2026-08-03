@@ -1,6 +1,6 @@
 # Điểm nổi bật của ứng dụng & hướng phát triển
 
-> Tài liệu này tóm tắt các đóng góp kỹ thuật của hệ thống quản lý giao hàng dựa trên Telegram, đồng thời đề xuất các hướng phát triển tiếp theo. Nội dung được trích/cô đọng vào Chương 1 (Tổng quan – mục 1.7 *Đóng góp của đề tài*) và Chương 5 (Kết luận – mục 5.2 *Hướng phát triển*) của báo cáo khoá luận.
+> Tài liệu này tóm tắt các đóng góp kỹ thuật của hệ thống quản lý giao hàng dựa trên Telegram, đồng thời đề xuất các hướng phát triển tiếp theo. Nội dung được trích/cô đọng vào Chương 1 (Tổng quan – mục 1.4 *Đóng góp của đề tài*) và Chương 5 (Kết luận – mục 5.2 *Hướng phát triển*) của báo cáo khoá luận.
 
 ---
 
@@ -294,4 +294,4 @@ Việc thẳng thắn liệt kê hạn chế này thực ra là một điểm c�
 
 ---
 
-*File này được trích vào báo cáo: phần A → Chương 1 mục 1.7; phần B → Chương 5 mục 5.2; phần C → Chương 1 mục 1.1 (so sánh với giải pháp hiện có); phần D → Chương 5 mục 5.1 (kết luận).*
+*File này được trích vào báo cáo: phần A → Chương 1 mục 1.4; phần B → Chương 5 mục 5.2; phần C → Chương 1 mục 1.1 (so sánh với giải pháp hiện có); phần D → Chương 5 mục 5.1 (kết luận).*

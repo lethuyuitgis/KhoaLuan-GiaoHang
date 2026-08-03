@@ -1,0 +1,41 @@
+graph TD
+  ROOT[Hệ thống quản lý giao hàng]
+
+  ROOT --> A[1. Quản lý người dùng<br/>và xác thực]
+  ROOT --> B[2. Quản lý sản phẩm<br/>và đơn hàng]
+  ROOT --> C[3. Đặt hàng<br/>và thanh toán]
+  ROOT --> D[4. Giao hàng và<br/>theo dõi vị trí]
+  ROOT --> E[5. Thông báo<br/>và đánh giá]
+  ROOT --> F[6. Báo cáo<br/>thống kê]
+
+  A --> A1[1.1 Đăng nhập Mini App<br/>qua Telegram initData]
+  A --> A2[1.2 Đăng nhập Web Admin<br/>bằng JWT]
+  A --> A3[1.3 Đăng ký và duyệt shipper]
+  A --> A4[1.4 Quản lý vai trò<br/>và phân quyền]
+
+  B --> B1[2.1 CRUD sản phẩm]
+  B --> B2[2.2 Duyệt danh mục<br/>và giỏ hàng]
+  B --> B3[2.3 Quản lý vòng đời đơn<br/>máy trạng thái 7 trạng thái]
+  B --> B4[2.4 Ghi lịch sử trạng thái]
+
+  C --> C1[3.1 Đặt đơn COD]
+  C --> C2[3.2 Đặt đơn VNPay]
+  C --> C3[3.3 Tính phí ship Haversine]
+  C --> C4[3.4 Xử lý IPN thanh toán]
+  C --> C5[3.5 Hết hạn thanh toán]
+
+  D --> D1[4.1 Gán shipper cho đơn]
+  D --> D2[4.2 Nhận / từ chối offer]
+  D --> D3[4.3 Bắt đầu giao và đánh dấu đã giao]
+  D --> D4[4.4 Ghi nhận Live Location ping]
+  D --> D5[4.5 Bản đồ tracking realtime]
+
+  E --> E1[5.1 Thông báo realtime WebSocket]
+  E --> E2[5.2 Thông báo qua bot Telegram]
+  E --> E3[5.3 Đánh giá shipper 1-5 sao]
+  E --> E4[5.4 Bình luận đánh giá qua FSM hội thoại]
+
+  F --> F1[6.1 Dashboard KPI]
+  F --> F2[6.2 Báo cáo doanh thu]
+  F --> F3[6.3 Top shipper]
+  F --> F4[6.4 Tỉ lệ huỷ đơn]

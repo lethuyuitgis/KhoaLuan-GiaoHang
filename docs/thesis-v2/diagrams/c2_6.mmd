@@ -1,0 +1,52 @@
+flowchart TD
+    KH[Khách hàng]
+    SH[Shipper]
+    CS[Chủ shop]
+    VN[VNPay]
+
+    P1((1. Xác thực và<br/>quản lý người dùng))
+    P2((2. Quản lý<br/>sản phẩm))
+    P3((3. Đặt hàng và<br/>thanh toán))
+    P4((4. Giao hàng và<br/>theo dõi vị trí))
+    P5((5. Thông báo<br/>và đánh giá))
+    P6((6. Báo cáo<br/>thống kê))
+
+    DS1[(NguoiDung)]
+    DS2[(SanPham)]
+    DS3[(DonHang)]
+    DS4[(GiaoHang)]
+    DS5[(ThanhToan)]
+    DS6[(DanhGia)]
+
+    KH --> P1
+    SH --> P1
+    CS --> P1
+    P1 <--> DS1
+
+    CS --> P2
+    KH --> P2
+    P2 <--> DS2
+
+    KH --> P3
+    P3 <--> DS3
+    P3 <--> DS5
+    P3 -->|URL ký| VN
+    VN -->|IPN| P3
+    P3 -->|đọc giá| DS2
+
+    CS --> P4
+    SH --> P4
+    P4 <--> DS4
+    P4 -->|cập nhật trạng thái| DS3
+
+    P4 --> P5
+    P3 --> P5
+    P5 <--> DS6
+    P5 -->|thông báo| KH
+    P5 -->|offer| SH
+    P5 -->|realtime| CS
+
+    CS --> P6
+    P6 -->|đọc| DS3
+    P6 -->|đọc| DS4
+    P6 -->|đọc| DS6
