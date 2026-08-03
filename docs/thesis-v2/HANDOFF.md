@@ -37,10 +37,17 @@ Build: `bash docs/thesis/build.sh` → `docs/thesis/build/out/`
 - Backup trước condense: `docs/thesis/.backup-precondense/`.
 - `chuong-6-mo-rong.md` đã XOÁ (2026-08-03); nội dung sống duy nhất là Phụ lục I trong `09-phu-luc.md`.
 
-### 3. Báo cáo bản 4 chương theo mẫu — `docs/thesis-v2/`  ✅ (`BAO-CAO-KLTN.docx`, 52 trang)
-- Khung mẫu `~/Desktop/BaoCao_PhanMemQuanLyKhamChuaBenh.docx` (CH1 Phát biểu bài toán / CH2 Phân tích /
-  CH3 Thiết kế / CH4 Kết quả sản phẩm + Kết luận + TLTK). 8 sơ đồ Mermaid, 15 ảnh, 17 bảng thực thể.
-- ⚠️ Bản này CHƯA đồng bộ số liệu mới (còn "endpoint ~35", "8 bounded context").
+### 3. Báo cáo bản 4 chương theo mẫu — `docs/thesis-v2/`  ✅ (`BAO-CAO-KLTN.docx`, 74 trang)
+- Khung mẫu 4 chương (CH1 Phát biểu bài toán / CH2 Phân tích / CH3 Thiết kế / CH4 Kết quả sản phẩm
+  + Kết luận + TLTK). 8 sơ đồ Mermaid, 15 ảnh, 17 bảng thực thể.
+- Build: `bash docs/thesis-v2/build.sh` → `docs/thesis-v2/build/out/BAO-CAO-KLTN.docx` (+pdf, đếm trang).
+- **Trang bìa cấy nguyên từ `docs/thesis/TEMPLATE_BAO_CAO_DE_CUONG.docx`** (khung viền + logo ĐH Mở HN
+  + bảng thông tin 3 SV + footer) bằng `inject-cover.py`; chỉ đổi "ĐỀ CƯƠNG:" → "ĐỀ TÀI:",
+  footer → "Hà Nội, năm 2026". Tiêu đề trên bìa = tên đề tài đã đăng ký trong đề cương.
+- CH1 đã tái cấu trúc bám sát flow đề cương (2026-08-03): 1.1 Ý nghĩa · 1.2 Phát biểu bài toán ·
+  1.3 Mục tiêu & phạm vi · 1.4 Các đề tài liên quan + hướng khắc phục · 1.5 Kế hoạch (bảng 12 tuần) ·
+  1.6 Phân công công việc (bảng 3 SV).
+- Số liệu đã đồng bộ chuẩn (39 endpoint, telegrambots 6.9.7.1).
 
 ## Số liệu chuẩn (canonical — đã verify với mã nguồn)
 | Chỉ số | Giá trị |
@@ -61,7 +68,7 @@ Lệnh verify lại: `find backend -path "*db/migration*" -name "V*.sql"`,
 ## Việc còn có thể làm tiếp
 - [ ] Điền số nhóm vào `[SỐ NHÓM]` ở `00-trang-bia.md` + `01-trang-bia-phu.md` (chờ phòng đào tạo cấp).
 - [ ] Chèn Mục lục tự động + đánh số trang (bottom-center) trong Word sau khi build — Pandoc không sinh được.
-- [ ] Đồng bộ số liệu chuẩn ở trên vào `docs/thesis-v2/`.
+- [x] Đồng bộ số liệu chuẩn ở trên vào `docs/thesis-v2/` — xong (39 endpoint, telegrambots 6.9.7.1).
 - [x] Xoá `chuong-6-mo-rong.md` — đã xoá, Phụ lục I là nguồn duy nhất.
 
 ## Công cụ build (đã kiểm chứng trên máy)

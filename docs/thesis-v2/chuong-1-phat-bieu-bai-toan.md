@@ -8,11 +8,11 @@ Trong bối cảnh đó, Telegram nổi lên như một nền tảng giàu tiề
 
 Xuất phát từ những phân tích trên, đề tài "Xây dựng hệ thống quản lý giao hàng tích hợp Telegram Mini App, Web Admin và VNPay" được lựa chọn nhằm cung cấp một giải pháp giao hàng đầu cuối chi phí thấp cho mô hình shop bán lẻ trực tuyến quy mô nhỏ và vừa, với sản lượng khoảng 50–500 đơn mỗi ngày và đội ngũ 1–10 shipper nội bộ. Hệ thống lấy Telegram làm cổng vào duy nhất cho hai vai trò khách hàng và shipper, kết hợp một trang quản trị trên trình duyệt (Web Admin) dành cho chủ shop. Toàn bộ chuỗi nghiệp vụ — từ việc khách đặt đơn trên Telegram Mini App, chủ shop gán đơn cho shipper, shipper chia sẻ vị trí trực tiếp, khách theo dõi bản đồ thời gian thực, thanh toán qua tiền mặt khi nhận hàng (COD) hoặc cổng VNPay, cho đến khi khách đánh giá shipper — được thiết kế để vận hành liền mạch trên ba kênh giao diện.
 
-Báo cáo khóa luận được tổ chức thành bốn chương. Chương 1 phát biểu bài toán, trình bày ý nghĩa khoa học và thực tiễn, mục tiêu, đối tượng ứng dụng và phạm vi nghiên cứu của đề tài. Chương 2 trình bày cơ sở lý thuyết và các nền tảng công nghệ then chốt được sử dụng. Chương 3 tập trung vào phân tích và thiết kế hệ thống, bao gồm phân tích yêu cầu, kiến trúc tổng thể, thiết kế cơ sở dữ liệu, thiết kế giao diện lập trình ứng dụng, máy trạng thái và mô hình bảo mật. Chương 4 trình bày quá trình cài đặt, kiểm thử, đánh giá kết quả và đề xuất hướng phát triển. Nội dung chương 1 dưới đây sẽ làm rõ bài toán mà đề tài đặt ra cùng ý nghĩa và phạm vi giải quyết của nó.
+Báo cáo khóa luận được tổ chức thành bốn chương. Chương 1 phát biểu bài toán, trình bày ý nghĩa khoa học và thực tiễn, mục tiêu, đối tượng ứng dụng và phạm vi nghiên cứu, khảo sát các đề tài liên quan, đồng thời trình bày kế hoạch thực hiện và phân công công việc trong nhóm. Chương 2 trình bày cơ sở lý thuyết và các nền tảng công nghệ then chốt được sử dụng. Chương 3 tập trung vào phân tích và thiết kế hệ thống, bao gồm phân tích yêu cầu, kiến trúc tổng thể, thiết kế cơ sở dữ liệu, thiết kế giao diện lập trình ứng dụng, máy trạng thái và mô hình bảo mật. Chương 4 trình bày quá trình cài đặt, kiểm thử, đánh giá kết quả và đề xuất hướng phát triển. Nội dung chương 1 dưới đây sẽ làm rõ bài toán mà đề tài đặt ra cùng ý nghĩa và phạm vi giải quyết của nó.
 
 # CHƯƠNG 1: PHÁT BIỂU BÀI TOÁN
 
-Chương này trình bày một cách hệ thống bài toán mà đề tài hướng tới giải quyết. Trước hết, phần 1.1 phân tích ý nghĩa khoa học và ý nghĩa thực tiễn của đề tài nhằm khẳng định giá trị đóng góp cả về mặt học thuật lẫn ứng dụng. Tiếp theo, phần 1.2 trình bày tổng quan về đề tài, bao gồm mục tiêu cần đạt được cũng như đối tượng ứng dụng và phạm vi nghiên cứu được khoanh vùng rõ ràng.
+Chương này trình bày một cách hệ thống bài toán mà đề tài hướng tới giải quyết, theo đúng trình tự đã đăng ký trong đề cương khóa luận. Trước hết, phần 1.1 phân tích ý nghĩa khoa học và ý nghĩa thực tiễn của đề tài nhằm khẳng định giá trị đóng góp cả về mặt học thuật lẫn ứng dụng. Phần 1.2 phát biểu bài toán cùng các yêu cầu cụ thể đặt ra cho hệ thống. Phần 1.3 trình bày mục tiêu cần đạt được cũng như đối tượng ứng dụng và phạm vi nghiên cứu được khoanh vùng rõ ràng. Phần 1.4 khảo sát các đề tài và giải pháp liên quan, chỉ ra hạn chế của chúng cùng hướng khắc phục mà đề tài lựa chọn. Hai phần cuối trình bày kế hoạch thực hiện và phân công công việc của nhóm.
 
 ## 1.1. Ý nghĩa khoa học và thực tiễn của đề tài
 
@@ -36,9 +36,15 @@ Kế đến là sự thuận tiện trong triển khai và sử dụng. Do lấy
 
 Sau cùng là quyền tự chủ dữ liệu. Toàn bộ dữ liệu khách hàng, đơn hàng và giao dịch đều thuộc quyền sở hữu và quản lý của chính shop, thay vì bị các nền tảng trung gian nắm giữ. Đây là yếu tố mang ý nghĩa chiến lược dài hạn, cho phép shop chủ động khai thác dữ liệu để chăm sóc khách hàng và xây dựng thương hiệu riêng.
 
-## 1.2. Tổng quan về đề tài
+## 1.2. Phát biểu bài toán
 
-### 1.2.1. Mục tiêu của đề tài
+Bài toán mà đề tài đặt ra là quản lý hiệu quả và an toàn toàn bộ chuỗi giao hàng chặng cuối cho một shop bán lẻ trực tuyến — từ khâu đặt đơn, điều phối shipper, theo dõi vị trí, thanh toán cho đến đánh giá dịch vụ — trên ba vai trò người dùng (khách hàng, shipper, chủ shop) mà không buộc bên nào phải cài đặt thêm phần mềm ngoài công cụ họ đã dùng hằng ngày.
+
+Từ phát biểu tổng quát đó, bài toán được cụ thể hoá thành bảy nhóm yêu cầu chức năng. Thứ nhất, quản lý sản phẩm (thêm, sửa, xoá, tìm kiếm) và quản lý đơn hàng. Thứ hai, khách hàng đặt đơn, chọn phương thức thanh toán (COD hoặc VNPay), theo dõi đơn và đánh giá shipper qua Telegram Mini App kết hợp Telegram Bot. Thứ ba, chủ shop xem đơn, gán đơn cho shipper, theo dõi trạng thái và nhận thông báo thời gian thực qua Web Admin. Thứ tư, shipper nhận hoặc từ chối đơn, cập nhật trạng thái giao hàng và chia sẻ vị trí trực tiếp qua Telegram Bot kết hợp Mini App. Thứ năm, trạng thái đơn hàng được cập nhật theo máy trạng thái hữu hạn bảy trạng thái, ngăn mọi chuyển dịch trái phép. Thứ sáu, thanh toán điện tử qua cổng VNPay ở môi trường thử nghiệm với thông báo IPN làm nguồn sự thật duy nhất. Thứ bảy, báo cáo và thống kê doanh thu cho chủ shop.
+
+## 1.3. Mục tiêu và phạm vi của đề tài
+
+### 1.3.1. Mục tiêu của đề tài
 
 Mục tiêu tổng quát của đề tài là xây dựng một hệ thống quản lý giao hàng đầu cuối hoàn chỉnh cho mô hình shop bán lẻ trực tuyến quy mô nhỏ và vừa, với ba luồng nghiệp vụ cốt lõi vận hành liền mạch trên ba kênh giao diện tương ứng với ba vai trò người dùng. Khách hàng đặt đơn, theo dõi vị trí shipper và đánh giá dịch vụ thông qua Telegram Mini App kết hợp Telegram Bot. Shipper tiếp nhận đơn, cập nhật trạng thái giao hàng và chia sẻ vị trí thời gian thực thông qua Telegram Bot kết hợp Telegram Mini App. Chủ shop quản lý sản phẩm, đơn hàng, shipper, theo dõi báo cáo doanh thu và nhận thông báo thời gian thực thông qua Web Admin trên trình duyệt máy tính.
 
@@ -56,7 +62,7 @@ Năm là, đóng gói toàn bộ hệ thống bằng Docker Compose để có th
 
 Bên cạnh các mục tiêu kỹ thuật, đề tài còn hướng tới một mục tiêu về mặt phương pháp luận, đó là minh hoạ một quy trình phát triển phần mềm có kỷ luật, đi qua đầy đủ các bước nghiên cứu, lập kế hoạch, kiểm tra kế hoạch, thực thi và đánh giá mã, đồng thời duy trì trạng thái build luôn thành công sau mỗi lần chuyển giao mã nguồn.
 
-### 1.2.2. Đối tượng ứng dụng và phạm vi nghiên cứu của đề tài
+### 1.3.2. Đối tượng ứng dụng và phạm vi nghiên cứu của đề tài
 
 **Đối tượng ứng dụng.** Đề tài hướng tới bài toán quản lý giao hàng chặng cuối cho mô hình bán lẻ trực tuyến quy mô nhỏ và vừa, tiêu biểu là các shop kinh doanh đồ ăn, đồ uống (F&B) và tạp hoá. Nhóm đối tượng này có một số đặc trưng chung: sản lượng khoảng 50–500 đơn mỗi ngày, đội ngũ giao hàng nội bộ gồm 1–10 shipper, và bán kính giao hàng dưới 10 km tính từ điểm xuất phát. Trong mô hình đó có ba bên liên quan trực tiếp, mỗi bên sử dụng thiết bị và có yêu cầu trải nghiệm khác nhau: khách hàng đầu cuối, shipper và chủ shop.
 
@@ -73,3 +79,38 @@ Nhóm yêu cầu có thể có (Could have) — được xếp vào hướng ph�
 Nhóm yêu cầu không thực hiện (Won't have), tức nằm ngoài phạm vi đề tài, gồm: hỗ trợ đa shop hoặc đa người thuê; và ứng dụng quản trị cấp cao cho nhiều shop.
 
 Ngoài phân loại theo MoSCoW, phạm vi đề tài còn được khoanh vùng bằng một số giới hạn cụ thể nhằm tập trung nguồn lực vào phần cốt lõi. Hệ thống chỉ phục vụ một shop duy nhất, không hỗ trợ nhiều cửa hàng cùng vận hành trên một backend. Hệ thống chỉ gồm ba vai trò là khách hàng, shipper và chủ shop, không có vai trò siêu quản trị viên hệ thống. Về thanh toán điện tử, đề tài chỉ tích hợp một cổng duy nhất là VNPay ở môi trường thử nghiệm; việc mở rộng sang các cổng khác như MoMo hay ZaloPay được xem là hướng phát triển tương lai. Đề tài không tích hợp với các đối tác giao vận bên ngoài như Giao Hàng Nhanh, Giao Hàng Tiết Kiệm hay Ahamove, bởi toàn bộ shipper đều là nhân sự nội bộ của shop. Cuối cùng, về hạ tầng bản đồ, hệ thống sử dụng dữ liệu bản đồ mở OpenStreetMap kết hợp thư viện react-leaflet nhằm tránh phụ thuộc vào các dịch vụ bản đồ trả phí và khoá truy cập (API key) đi kèm.
+
+## 1.4. Các đề tài liên quan
+
+Trước khi xác lập hướng tiếp cận riêng, nhóm khảo sát hai nhóm giải pháp hiện có cho bài toán giao hàng của shop bán lẻ trực tuyến: các nền tảng giao đồ ăn tổng hợp (tiêu biểu là GrabFood và ShopeeFood) và các phần mềm quản lý giao hàng do shop tự xây dựng hoặc thuê phát triển.
+
+Về ưu điểm, các nền tảng tổng hợp sở hữu lượng người dùng rất lớn, cung cấp sẵn theo dõi vị trí GPS thời gian thực và cổng thanh toán đầy đủ; trong khi đó, giải pháp shop tự xây cho phép shop tự chủ hoàn toàn về dữ liệu và quy trình vận hành.
+
+Tuy nhiên, mỗi nhóm giải pháp đều bộc lộ hạn chế rõ rệt đối với phân khúc shop nhỏ và vừa. Nền tảng tổng hợp thu hoa hồng cao (20–25% mỗi đơn), shop mất quyền sở hữu dữ liệu khách hàng, không kiểm soát được trải nghiệm thương hiệu, còn khách buộc phải cài một ứng dụng riêng dung lượng khoảng 150 MB. Giải pháp tự xây ứng dụng native cho cả iOS và Android đòi hỏi chi phí phát triển và vận hành cao (50–100 đô la Mỹ mỗi tháng), vượt khả năng đầu tư của shop nhỏ. Phương án còn lại — vận hành thủ công qua Messenger hoặc Zalo — không có theo dõi trạng thái đơn, không có vị trí giao hàng thời gian thực, dễ thất lạc đơn và không thể mở rộng.
+
+Từ khảo sát trên, đề tài lựa chọn hướng khắc phục cụ thể cho từng hạn chế. Một là chi phí thấp và tự chủ dữ liệu: không chịu hoa hồng nền tảng, chủ shop sở hữu toàn bộ dữ liệu khách, chi phí vận hành khoảng 10 đô la Mỹ mỗi tháng. Hai là không yêu cầu cài ứng dụng mới: khách và shipper dùng Telegram sẵn có, chủ shop dùng trình duyệt. Ba là theo dõi GPS thời gian thực với chi phí thấp nhờ tận dụng Telegram Live Location thay vì tự lập trình truyền phát GPS. Bốn là thanh toán điện tử an toàn theo đúng mẫu IPN làm nguồn sự thật của VNPay, tránh các lỗi phổ biến như tin tưởng Return URL, tấn công thời gian hay phát lại thông báo. Năm là bảo mật nhiều lớp từ xác thực HMAC initData, JWT, phân quyền mức phương thức, danh sách cho phép trên kênh WebSocket đến ghi vết kiểm toán giao dịch [21], [22]. Sáu là kiến trúc Modular Monolith dễ mở rộng, tạo sẵn lối thoát chuyển sang microservices mà không phải viết lại nghiệp vụ.
+
+## 1.5. Kế hoạch thực hiện
+
+Đề tài được thực hiện trong mười hai tuần theo kế hoạch đã đăng ký trong đề cương, đi tuần tự từ phân tích yêu cầu, thiết kế hệ thống đến cài đặt theo từng cụm chức năng, kiểm thử và đóng gói.
+
+| Thời gian | Công việc | Mô tả chi tiết |
+|---|---|---|
+| Tuần 1–2 | Phân tích yêu cầu | Khảo sát hiện trạng giao hàng shop nhỏ; phân tích yêu cầu 3 vai trò; xác định phạm vi MoSCoW |
+| Tuần 3–4 | Thiết kế hệ thống | Thiết kế kiến trúc Modular Monolith; thiết kế CSDL PostgreSQL + Flyway; thiết kế API và máy trạng thái đơn hàng; thiết kế giao diện 3 kênh |
+| Tuần 5–6 | Nền tảng + xác thực | Thiết lập Maven/pnpm workspace; xác thực JWT (Web Admin) và Telegram initData (Mini App); CRUD sản phẩm và đơn hàng |
+| Tuần 7 | Mini App khách + Bot | Mini App duyệt món, giỏ hàng, checkout COD; lệnh Bot /start, đăng ký và duyệt shipper |
+| Tuần 8–9 | Giao hàng + theo dõi vị trí | Gán đơn, shipper nhận/từ chối; Telegram Live Location; bản đồ tracking realtime qua WebSocket |
+| Tuần 10 | Thanh toán + báo cáo | Tích hợp VNPay sandbox (IPN làm nguồn sự thật); dashboard KPI và biểu đồ; đánh giá shipper |
+| Tuần 11 | Kiểm thử và sửa lỗi | Viết unit/integration test (JUnit 5 + Testcontainers); kiểm thử tích hợp end-to-end; sửa lỗi |
+| Tuần 12 | Đóng gói và hoàn thiện | Đóng gói Docker Compose + seed dữ liệu demo; viết tài liệu; chuẩn bị báo cáo và bảo vệ khóa luận |
+
+## 1.6. Phân công công việc
+
+Đề tài do nhóm ba sinh viên thực hiện, phân công theo thế mạnh của từng thành viên và bám sát bảng phân công đã đăng ký trong đề cương.
+
+| Thành viên | Công việc chính |
+|---|---|
+| Lê Thị Trần Thủy | Thiết kế kiến trúc Modular Monolith và CSDL PostgreSQL + Flyway; lập trình Backend và Business Layer (Spring Boot, máy trạng thái đơn hàng); tích hợp Telegram (Bot, Mini App, Live Location) và cổng thanh toán VNPay; viết báo cáo |
+| Ngô Phúc Hiếu | Lập trình Frontend Web Admin (React + Tailwind): quản lý sản phẩm, đơn hàng, Dashboard KPI và biểu đồ; kiểm thử (TDD) và đóng gói Docker Compose; bảo mật defense-in-depth; viết báo cáo |
+| Nguyễn Thế Thưởng | Lập trình Frontend Telegram Mini App (khách + shipper); module giỏ hàng, checkout và bản đồ tracking (react-leaflet); thiết kế giao diện và chuẩn bị presentation; tổng hợp, viết tài liệu báo cáo |
