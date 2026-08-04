@@ -1,7 +1,6 @@
 {
   "app.name": "ショップデリバリー",
   "app.tagline": "速いフードデリバリー — 30分以内にお届け",
-
   "splash.brand": "🛵 ショップデリバリー",
   "splash.brandName": "ショップデリバリー",
   "splash.eyebrow": "速い配達・簡単決済",
@@ -13,18 +12,15 @@
   "splash.authenticating": "認証中…",
   "splash.authFailed": "認証に失敗しました",
   "splash.authFailedHint": "サーバー認証に失敗しました。ミニアプリを閉じて再度開いてください。",
-
   "notFound.title": "ページが見つかりません",
   "notFound.hint": "このパスはアプリに存在しません。入力ミスかもしれません — それとも配達員がどこかへ運んでしまったか。",
   "notFound.home": "ホームへ戻る",
-
   "nav.label": "メインナビゲーション",
   "nav.home": "ホーム",
   "nav.menu": "メニュー",
   "nav.cart": "カート",
   "nav.orders": "注文",
   "nav.cartCount": "カートに{{count}}点",
-
   "catalog.brand": "🛵 ショップデリバリー",
   "catalog.brandZalo": "🛵 ショップデリバリー • Zalo",
   "catalog.greeting": "本日は何にしますか?",
@@ -44,13 +40,11 @@
   "catalog.errorLoad": "商品一覧を読み込めませんでした。",
   "catalog.errorLoadHint": "フル機能を利用するにはTelegramボット経由でミニアプリを開くか、後でもう一度お試しください。",
   "catalog.errorLoadHintZalo": "フル機能を利用するにはZalo経由でミニアプリを開くか、後でもう一度お試しください。",
-
   "categories.all": "すべて",
   "categories.food": "フード",
   "categories.drink": "ドリンク",
   "categories.dessert": "デザート",
   "categories.bestseller": "ベストセラー",
-
   "promo.label": "プロモーション",
   "promo.tag": "限定オファー",
   "promo.gotoSlide": "スライド{{n}}へ",
@@ -60,12 +54,10 @@
   "promo.freeship.sub": "ハノイ市内、毎日対応",
   "promo.coffeeCollection.title": "毎週新しいメニュー",
   "promo.coffeeCollection.sub": "随時追加される新メニューをチェック",
-
   "product.outOfStock": "品切れ",
   "product.add": "{{name}}を追加",
   "product.decrease": "減らす",
   "product.increase": "増やす",
-
   "cart.title": "カート",
   "cart.empty": "カートは空です",
   "cart.emptyTitle": "カートは空です",
@@ -76,7 +68,6 @@
   "cart.shippingNote": "配送料は配送先を入力すると計算されます",
   "cart.remove": "削除",
   "cart.placeOrder": "注文する",
-
   "checkout.title": "注文の確認",
   "checkout.back": "← 戻る",
   "checkout.summary": "商品（{{count}}）",
@@ -104,7 +95,6 @@
   "checkout.errorAddress": "地図で配達場所を選択してください。",
   "checkout.errorOutsideVN": "ベトナム領外の座標です。",
   "checkout.errorOutsideHanoi": "現在ハノイ市内のみ配達可能です。",
-
   "address.search": "住所を検索、例：123 Le Loi, Hoan Kiem",
   "address.searchAria": "住所を検索",
   "address.tipDrag": "地図をタップするかピンをドラッグして正確な位置を選択",
@@ -116,14 +106,12 @@
   "address.loading": "住所名を取得中…",
   "address.coords": "座標：{{lat}}, {{lng}}",
   "address.coordsUnresolved": "座標 {{lat}}, {{lng}}（名前取得失敗）",
-
   "orders.title": "注文履歴",
   "orders.empty": "まだ注文がありません",
   "orders.emptyHint": "美味しい旅を始めましょう！",
   "orders.emptyCta": "メニューを見る",
   "orders.errorLoad": "注文履歴を読み込めませんでした。",
   "orders.errorLoadHint": "後でもう一度お試しください。",
-
   "orderDetail.back": "← 戻る",
   "orderDetail.items": "商品",
   "orderDetail.deliveryTo": "配送先",
@@ -147,7 +135,6 @@
   "orderDetail.cancelReason": "お客様によるキャンセル",
   "orderDetail.cancelDone": "注文をキャンセルしました",
   "orderDetail.cancelError": "注文をキャンセルできませんでした",
-
   "status.PENDING": "確認待ち",
   "status.CONFIRMED": "確認済み",
   "status.ASSIGNED": "配達員割当済",
@@ -155,23 +142,22 @@
   "status.DELIVERED": "配達完了",
   "status.CANCELLED": "キャンセル済",
   "status.RETURNED": "返品済",
-
   "payment.PENDING": "保留中",
   "payment.SUCCESS": "✓ 支払い済み",
   "payment.FAILED": "✕ 失敗",
   "payment.REFUNDED": "↩ 返金済み",
-
   "common.cancel": "キャンセル",
   "common.confirm": "確認",
   "common.close": "閉じる",
   "common.loading": "読み込み中…",
   "common.retry": "再試行",
   "common.back": "戻る",
-
   "lang.label": "言語",
   "lang.vi": "Tiếng Việt",
   "lang.en": "English",
   "lang.ko": "한국어",
   "lang.ja": "日本語",
-  "lang.zh": "中文"
+  "lang.zh": "中文",
+  "address.saved": "保存済み",
+  "address.deleteSaved": "保存した住所を削除"
 }

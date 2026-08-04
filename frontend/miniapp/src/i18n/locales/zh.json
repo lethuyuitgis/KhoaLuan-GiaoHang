@@ -1,7 +1,6 @@
 {
   "app.name": "速递商店",
   "app.tagline": "快速外卖 — 30 分钟送达门口",
-
   "splash.brand": "🛵 速递商店",
   "splash.brandName": "速递商店",
   "splash.eyebrow": "快速配送 • 便捷支付",
@@ -13,18 +12,15 @@
   "splash.authenticating": "正在验证…",
   "splash.authFailed": "验证失败",
   "splash.authFailedHint": "无法与服务器进行身份验证。请关闭并重新打开 Mini App。",
-
   "notFound.title": "页面未找到",
   "notFound.hint": "应用中不存在该路径。可能是输入错误 — 也可能是骑手把它送到别处去了。",
   "notFound.home": "返回首页",
-
   "nav.label": "主导航",
   "nav.home": "首页",
   "nav.menu": "菜单",
   "nav.cart": "购物车",
   "nav.orders": "我的订单",
   "nav.cartCount": "购物车 {{count}} 件",
-
   "catalog.brand": "🛵 速递商店",
   "catalog.brandZalo": "🛵 速递商店 • Zalo",
   "catalog.greeting": "今天想吃点什么?",
@@ -44,13 +40,11 @@
   "catalog.errorLoad": "无法加载商品列表。",
   "catalog.errorLoadHint": "请通过 Telegram 机器人打开 Mini App 以使用全部功能，或稍后重试。",
   "catalog.errorLoadHintZalo": "请通过 Zalo 打开 Mini App 以使用全部功能，或稍后重试。",
-
   "categories.all": "全部",
   "categories.food": "美食",
   "categories.drink": "饮品",
   "categories.dessert": "甜点",
   "categories.bestseller": "热销",
-
   "promo.label": "促销活动",
   "promo.tag": "限时优惠",
   "promo.gotoSlide": "前往第 {{n}} 张幻灯片",
@@ -60,12 +54,10 @@
   "promo.freeship.sub": "河内市内每日适用",
   "promo.coffeeCollection.title": "每周上新菜品",
   "promo.coffeeCollection.sub": "持续更新的新菜单",
-
   "product.outOfStock": "已售罄",
   "product.add": "添加 {{name}}",
   "product.decrease": "减少",
   "product.increase": "增加",
-
   "cart.title": "购物车",
   "cart.empty": "购物车是空的",
   "cart.emptyTitle": "购物车是空的",
@@ -76,7 +68,6 @@
   "cart.shippingNote": "运费将在您输入配送地址后计算",
   "cart.remove": "移除",
   "cart.placeOrder": "下单",
-
   "checkout.title": "确认订单",
   "checkout.back": "← 返回",
   "checkout.summary": "商品（{{count}}）",
@@ -104,7 +95,6 @@
   "checkout.errorAddress": "请在地图上选择配送位置。",
   "checkout.errorOutsideVN": "坐标超出越南境内。",
   "checkout.errorOutsideHanoi": "目前仅在河内市内配送。",
-
   "address.search": "搜索地址，例如：123 Le Loi, Hoan Kiem",
   "address.searchAria": "搜索地址",
   "address.tipDrag": "点击地图或拖动图钉以精确选择位置",
@@ -116,14 +106,12 @@
   "address.loading": "正在获取街道名称…",
   "address.coords": "坐标：{{lat}}, {{lng}}",
   "address.coordsUnresolved": "坐标 {{lat}}, {{lng}}（名称查询失败）",
-
   "orders.title": "我的订单",
   "orders.empty": "暂无订单",
   "orders.emptyHint": "开始您的美食之旅吧！",
   "orders.emptyCta": "查看菜单",
   "orders.errorLoad": "无法加载订单历史。",
   "orders.errorLoadHint": "请稍后重试。",
-
   "orderDetail.back": "← 返回",
   "orderDetail.items": "商品",
   "orderDetail.deliveryTo": "配送至",
@@ -147,7 +135,6 @@
   "orderDetail.cancelReason": "客户取消",
   "orderDetail.cancelDone": "订单已取消",
   "orderDetail.cancelError": "无法取消订单",
-
   "status.PENDING": "待确认",
   "status.CONFIRMED": "已确认",
   "status.ASSIGNED": "已分配骑手",
@@ -155,23 +142,22 @@
   "status.DELIVERED": "已送达",
   "status.CANCELLED": "已取消",
   "status.RETURNED": "已退货",
-
   "payment.PENDING": "待支付",
   "payment.SUCCESS": "✓ 已支付",
   "payment.FAILED": "✕ 失败",
   "payment.REFUNDED": "↩ 已退款",
-
   "common.cancel": "取消",
   "common.confirm": "确认",
   "common.close": "关闭",
   "common.loading": "加载中…",
   "common.retry": "重试",
   "common.back": "返回",
-
   "lang.label": "语言",
   "lang.vi": "Tiếng Việt",
   "lang.en": "English",
   "lang.ko": "한국어",
   "lang.ja": "日本語",
-  "lang.zh": "中文"
+  "lang.zh": "中文",
+  "address.saved": "已保存",
+  "address.deleteSaved": "删除已保存地址"
 }

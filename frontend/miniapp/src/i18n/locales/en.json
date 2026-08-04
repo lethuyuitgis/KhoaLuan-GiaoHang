@@ -1,7 +1,6 @@
 {
   "app.name": "Shop Delivery",
   "app.tagline": "Fast food delivery — to your door in 30 minutes",
-
   "splash.brand": "🛵 Shop Delivery",
   "splash.brandName": "Shop Delivery",
   "splash.eyebrow": "Fast delivery • Easy payment",
@@ -13,18 +12,15 @@
   "splash.authenticating": "Authenticating…",
   "splash.authFailed": "Authentication failed",
   "splash.authFailedHint": "Could not authenticate with the server. Please close and reopen the Mini App.",
-
   "notFound.title": "Page not found",
   "notFound.hint": "This path doesn't exist in the app. Maybe a typo — or maybe the shipper delivered it somewhere else.",
   "notFound.home": "Back to home",
-
   "nav.label": "Main navigation",
   "nav.home": "Home",
   "nav.menu": "Menu",
   "nav.cart": "Cart",
   "nav.orders": "Orders",
   "nav.cartCount": "{{count}} items in cart",
-
   "catalog.brand": "🛵 Shop Delivery",
   "catalog.brandZalo": "🛵 Shop Delivery • Zalo",
   "catalog.greeting": "What's for today?",
@@ -44,13 +40,11 @@
   "catalog.errorLoad": "Could not load the product list.",
   "catalog.errorLoadHint": "Open the Mini App via the Telegram bot for full functionality, or try again later.",
   "catalog.errorLoadHintZalo": "Open the Mini App via Zalo for full functionality, or try again later.",
-
   "categories.all": "All",
   "categories.food": "Food",
   "categories.drink": "Drinks",
   "categories.dessert": "Dessert",
   "categories.bestseller": "Best Sellers",
-
   "promo.label": "Promotions",
   "promo.tag": "Limited offer",
   "promo.gotoSlide": "Go to slide {{n}}",
@@ -60,12 +54,10 @@
   "promo.freeship.sub": "Every day, anywhere in inner Hanoi",
   "promo.coffeeCollection.title": "New menu every week",
   "promo.coffeeCollection.sub": "Discover dishes added regularly",
-
   "product.outOfStock": "Out of stock",
   "product.add": "Add {{name}}",
   "product.decrease": "Decrease",
   "product.increase": "Increase",
-
   "cart.title": "Cart",
   "cart.empty": "Your cart is empty",
   "cart.emptyTitle": "Your cart is empty",
@@ -76,7 +68,6 @@
   "cart.shippingNote": "Shipping fee will be calculated when you enter your address",
   "cart.remove": "Remove",
   "cart.placeOrder": "Place order",
-
   "checkout.title": "Confirm order",
   "checkout.back": "← Back",
   "checkout.summary": "Items ({{count}})",
@@ -104,7 +95,6 @@
   "checkout.errorAddress": "Please select a delivery location on the map.",
   "checkout.errorOutsideVN": "Coordinates are outside Vietnam.",
   "checkout.errorOutsideHanoi": "We currently only deliver within inner Hanoi.",
-
   "address.search": "Search address, e.g. 123 Le Loi, Hoan Kiem",
   "address.searchAria": "Search address",
   "address.tipDrag": "Tap the map or drag the pin to set the exact location",
@@ -116,14 +106,12 @@
   "address.loading": "Looking up street name…",
   "address.coords": "Coordinates: {{lat}}, {{lng}}",
   "address.coordsUnresolved": "Coordinates {{lat}}, {{lng}} (name lookup failed)",
-
   "orders.title": "My orders",
   "orders.empty": "No orders yet",
   "orders.emptyHint": "Let's start your food journey!",
   "orders.emptyCta": "Browse menu",
   "orders.errorLoad": "Could not load order history.",
   "orders.errorLoadHint": "Please try again later.",
-
   "orderDetail.back": "← Back",
   "orderDetail.items": "Items",
   "orderDetail.deliveryTo": "Deliver to",
@@ -147,7 +135,6 @@
   "orderDetail.cancelReason": "Cancelled by customer",
   "orderDetail.cancelDone": "Order cancelled",
   "orderDetail.cancelError": "Could not cancel the order",
-
   "status.PENDING": "Pending",
   "status.CONFIRMED": "Confirmed",
   "status.ASSIGNED": "Shipper assigned",
@@ -155,23 +142,22 @@
   "status.DELIVERED": "Delivered",
   "status.CANCELLED": "Cancelled",
   "status.RETURNED": "Returned",
-
   "payment.PENDING": "Pending",
   "payment.SUCCESS": "✓ Paid",
   "payment.FAILED": "✕ Failed",
   "payment.REFUNDED": "↩ Refunded",
-
   "common.cancel": "Cancel",
   "common.confirm": "Confirm",
   "common.close": "Close",
   "common.loading": "Loading…",
   "common.retry": "Retry",
   "common.back": "Back",
-
   "lang.label": "Language",
   "lang.vi": "Tiếng Việt",
   "lang.en": "English",
   "lang.ko": "한국어",
   "lang.ja": "日本語",
-  "lang.zh": "中文"
+  "lang.zh": "中文",
+  "address.saved": "Saved",
+  "address.deleteSaved": "Delete saved address"
 }

@@ -2,6 +2,7 @@ export * from './client';
 export * from './me';
 export * from './products';
 export * from './orders';
+export * from './addresses';
 export * from './shippers';
 export * from './assignments';
 export * from './location';

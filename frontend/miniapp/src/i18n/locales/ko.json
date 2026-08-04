@@ -1,7 +1,6 @@
 {
   "app.name": "쇼핑 배달",
   "app.tagline": "빠른 음식 배달 — 30분 안에 문 앞까지",
-
   "splash.brand": "🛵 쇼핑 배달",
   "splash.brandName": "쇼핑 배달",
   "splash.eyebrow": "빠른 배달 • 간편 결제",
@@ -13,18 +12,15 @@
   "splash.authenticating": "인증 중…",
   "splash.authFailed": "인증 실패",
   "splash.authFailedHint": "서버 인증에 실패했습니다. 미니 앱을 닫았다가 다시 열어 주세요.",
-
   "notFound.title": "페이지를 찾을 수 없습니다",
   "notFound.hint": "앱에 이 경로가 없습니다. 오타가 있거나 — 배달원이 다른 곳으로 배달했을 수도 있어요.",
   "notFound.home": "홈으로 돌아가기",
-
   "nav.label": "주요 탐색",
   "nav.home": "홈",
   "nav.menu": "메뉴",
   "nav.cart": "장바구니",
   "nav.orders": "주문",
   "nav.cartCount": "장바구니 {{count}}개",
-
   "catalog.brand": "🛵 쇼핑 배달",
   "catalog.brandZalo": "🛵 쇼핑 배달 • Zalo",
   "catalog.greeting": "오늘은 무얼 드실까요?",
@@ -44,13 +40,11 @@
   "catalog.errorLoad": "상품 목록을 불러오지 못했습니다.",
   "catalog.errorLoadHint": "모든 기능을 사용하려면 텔레그램 봇을 통해 미니 앱을 열거나 잠시 후 다시 시도해 주세요.",
   "catalog.errorLoadHintZalo": "모든 기능을 사용하려면 잘로를 통해 미니 앱을 열거나 잠시 후 다시 시도해 주세요.",
-
   "categories.all": "전체",
   "categories.food": "음식",
   "categories.drink": "음료",
   "categories.dessert": "디저트",
   "categories.bestseller": "베스트셀러",
-
   "promo.label": "프로모션",
   "promo.tag": "한정 혜택",
   "promo.gotoSlide": "{{n}}번 슬라이드로 이동",
@@ -60,12 +54,10 @@
   "promo.freeship.sub": "하노이 시내 매일 진행",
   "promo.coffeeCollection.title": "매주 새로운 메뉴",
   "promo.coffeeCollection.sub": "꾸준히 업데이트되는 신메뉴를 만나보세요",
-
   "product.outOfStock": "품절",
   "product.add": "{{name}} 추가",
   "product.decrease": "감소",
   "product.increase": "증가",
-
   "cart.title": "장바구니",
   "cart.empty": "장바구니가 비어 있습니다",
   "cart.emptyTitle": "장바구니가 비어 있습니다",
@@ -76,7 +68,6 @@
   "cart.shippingNote": "배송지를 입력하면 배송비가 계산됩니다",
   "cart.remove": "삭제",
   "cart.placeOrder": "주문하기",
-
   "checkout.title": "주문 확인",
   "checkout.back": "← 뒤로",
   "checkout.summary": "상품 ({{count}})",
@@ -104,7 +95,6 @@
   "checkout.errorAddress": "지도에서 배송 위치를 선택해 주세요.",
   "checkout.errorOutsideVN": "베트남 영토 밖의 좌표입니다.",
   "checkout.errorOutsideHanoi": "현재 하노이 시내에서만 배달 가능합니다.",
-
   "address.search": "주소 검색, 예: 123 Le Loi, Hoan Kiem",
   "address.searchAria": "주소 검색",
   "address.tipDrag": "지도를 누르거나 핀을 끌어 정확한 위치를 선택하세요",
@@ -116,14 +106,12 @@
   "address.loading": "주소 이름 가져오는 중…",
   "address.coords": "좌표: {{lat}}, {{lng}}",
   "address.coordsUnresolved": "좌표 {{lat}}, {{lng}} (이름 조회 실패)",
-
   "orders.title": "내 주문",
   "orders.empty": "주문 내역이 없습니다",
   "orders.emptyHint": "맛있는 여정을 시작해 보세요!",
   "orders.emptyCta": "메뉴 보기",
   "orders.errorLoad": "주문 내역을 불러오지 못했습니다.",
   "orders.errorLoadHint": "잠시 후 다시 시도해 주세요.",
-
   "orderDetail.back": "← 뒤로",
   "orderDetail.items": "상품",
   "orderDetail.deliveryTo": "배송지",
@@ -147,7 +135,6 @@
   "orderDetail.cancelReason": "고객 취소",
   "orderDetail.cancelDone": "주문이 취소되었습니다",
   "orderDetail.cancelError": "주문을 취소할 수 없습니다",
-
   "status.PENDING": "확인 대기",
   "status.CONFIRMED": "확인됨",
   "status.ASSIGNED": "배달원 배정됨",
@@ -155,23 +142,22 @@
   "status.DELIVERED": "배달 완료",
   "status.CANCELLED": "취소됨",
   "status.RETURNED": "반품됨",
-
   "payment.PENDING": "대기 중",
   "payment.SUCCESS": "✓ 결제됨",
   "payment.FAILED": "✕ 실패",
   "payment.REFUNDED": "↩ 환불됨",
-
   "common.cancel": "취소",
   "common.confirm": "확인",
   "common.close": "닫기",
   "common.loading": "불러오는 중…",
   "common.retry": "다시 시도",
   "common.back": "뒤로",
-
   "lang.label": "언어",
   "lang.vi": "Tiếng Việt",
   "lang.en": "English",
   "lang.ko": "한국어",
   "lang.ja": "日本語",
-  "lang.zh": "中文"
+  "lang.zh": "中文",
+  "address.saved": "저장됨",
+  "address.deleteSaved": "저장된 주소 삭제"
 }

@@ -1,7 +1,6 @@
 {
   "app.name": "Shop Giao Hàng",
   "app.tagline": "Giao đồ ăn nhanh — đến tận tay trong 30 phút",
-
   "splash.brand": "🛵 Shop Giao Hàng",
   "splash.brandName": "Shop Giao Hàng",
   "splash.eyebrow": "Giao đồ ăn nhanh • Thanh toán dễ",
@@ -13,18 +12,15 @@
   "splash.authenticating": "Đang xác thực…",
   "splash.authFailed": "Xác thực thất bại",
   "splash.authFailedHint": "Không thể xác thực với server. Vui lòng đóng và mở lại Mini App.",
-
   "notFound.title": "Không tìm thấy trang",
   "notFound.hint": "Đường dẫn này không có trong ứng dụng. Có thể bạn vừa gõ nhầm — hoặc shipper đang giao nó đi đâu đó.",
   "notFound.home": "Về trang chủ",
-
   "nav.label": "Điều hướng chính",
   "nav.home": "Trang chủ",
   "nav.menu": "Thực đơn",
   "nav.cart": "Giỏ hàng",
   "nav.orders": "Đơn của tôi",
   "nav.cartCount": "{{count}} món trong giỏ",
-
   "catalog.brand": "🛵 Shop Giao Hàng",
   "catalog.brandZalo": "🛵 Shop Giao Hàng • Zalo",
   "catalog.greeting": "Hôm nay ăn gì?",
@@ -44,13 +40,11 @@
   "catalog.errorLoad": "Không tải được danh sách sản phẩm.",
   "catalog.errorLoadHint": "Mở Mini App qua bot Telegram để dùng đầy đủ, hoặc thử lại sau.",
   "catalog.errorLoadHintZalo": "Mở Mini App qua Zalo để dùng đầy đủ, hoặc thử lại sau.",
-
   "categories.all": "Tất cả",
   "categories.food": "Đồ ăn",
   "categories.drink": "Đồ uống",
   "categories.dessert": "Tráng miệng",
   "categories.bestseller": "Bán chạy",
-
   "promo.label": "Khuyến mãi",
   "promo.tag": "Ưu đãi",
   "promo.gotoSlide": "Xem slide {{n}}",
@@ -60,12 +54,10 @@
   "promo.freeship.sub": "Áp dụng nội thành Hà Nội mỗi ngày",
   "promo.coffeeCollection.title": "Món mới mỗi tuần",
   "promo.coffeeCollection.sub": "Khám phá thực đơn cập nhật liên tục",
-
   "product.outOfStock": "Hết hàng",
   "product.add": "Thêm {{name}}",
   "product.decrease": "Giảm",
   "product.increase": "Tăng",
-
   "cart.title": "Giỏ hàng",
   "cart.empty": "Giỏ hàng trống",
   "cart.emptyTitle": "Giỏ hàng đang trống",
@@ -76,7 +68,6 @@
   "cart.shippingNote": "Phí ship sẽ tính khi bạn nhập địa chỉ giao",
   "cart.remove": "Xoá",
   "cart.placeOrder": "Đặt hàng",
-
   "checkout.title": "Xác nhận đặt hàng",
   "checkout.back": "← Quay lại",
   "checkout.summary": "Sản phẩm ({{count}})",
@@ -104,7 +95,6 @@
   "checkout.errorAddress": "Vui lòng chọn vị trí giao hàng trên bản đồ.",
   "checkout.errorOutsideVN": "Toạ độ ngoài lãnh thổ Việt Nam.",
   "checkout.errorOutsideHanoi": "Shop hiện chỉ giao trong nội thành Hà Nội.",
-
   "address.search": "Tìm địa chỉ, ví dụ: 123 Lê Lợi, Hoàn Kiếm",
   "address.searchAria": "Tìm địa chỉ",
   "address.tipDrag": "Chạm bản đồ hoặc kéo pin để chọn vị trí chính xác",
@@ -116,14 +106,12 @@
   "address.loading": "Đang lấy tên đường…",
   "address.coords": "Toạ độ: {{lat}}, {{lng}}",
   "address.coordsUnresolved": "Toạ độ {{lat}}, {{lng}} (không tra được tên)",
-
   "orders.title": "Đơn hàng của tôi",
   "orders.empty": "Chưa có đơn nào",
   "orders.emptyHint": "Bắt đầu hành trình ẩm thực nào!",
   "orders.emptyCta": "Xem menu",
   "orders.errorLoad": "Không tải được lịch sử đơn.",
   "orders.errorLoadHint": "Vui lòng thử lại sau.",
-
   "orderDetail.back": "← Quay lại",
   "orderDetail.items": "Sản phẩm",
   "orderDetail.deliveryTo": "Giao đến",
@@ -147,7 +135,6 @@
   "orderDetail.cancelReason": "Khách huỷ",
   "orderDetail.cancelDone": "Đã huỷ đơn",
   "orderDetail.cancelError": "Không huỷ được đơn",
-
   "status.PENDING": "Chờ xác nhận",
   "status.CONFIRMED": "Đã xác nhận",
   "status.ASSIGNED": "Đã gán shipper",
@@ -155,23 +142,22 @@
   "status.DELIVERED": "Đã giao",
   "status.CANCELLED": "Đã huỷ",
   "status.RETURNED": "Hoàn hàng",
-
   "payment.PENDING": "Đang chờ",
   "payment.SUCCESS": "✓ Đã thanh toán",
   "payment.FAILED": "✕ Thất bại",
   "payment.REFUNDED": "↩ Đã hoàn tiền",
-
   "common.cancel": "Huỷ",
   "common.confirm": "Xác nhận",
   "common.close": "Đóng",
   "common.loading": "Đang tải…",
   "common.retry": "Thử lại",
   "common.back": "Quay lại",
-
   "lang.label": "Ngôn ngữ",
   "lang.vi": "Tiếng Việt",
   "lang.en": "English",
   "lang.ko": "한국어",
   "lang.ja": "日本語",
-  "lang.zh": "中文"
+  "lang.zh": "中文",
+  "address.saved": "Đã lưu",
+  "address.deleteSaved": "Xoá địa chỉ đã lưu"
 }

@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { createOrder, formatVnd, type CreateOrderRequest, type PaymentMethod, type ValidateVoucherResponse } from '@shop/shared';
+import { createOrder, listSavedAddresses, deleteSavedAddress, formatVnd, type CreateOrderRequest, type PaymentMethod, type ValidateVoucherResponse } from '@shop/shared';
 import { api } from '@/lib/api';
 import { useCart } from '@/features/cart/use-cart';
 import { VoucherInput } from '@/components/VoucherInput';
@@ -37,6 +37,18 @@ export function CheckoutPage() {
   const [shippingVoucher, setShippingVoucher] = useState<ValidateVoucherResponse | null>(null);
 
   const payWithVnpay = usePayWithVnpay();
+  const qc = useQueryClient();
+
+  const { data: savedAddresses } = useQuery({
+    queryKey: ['me', 'saved-addresses'],
+    queryFn: () => listSavedAddresses(api),
+    enabled: cart.items.length > 0,
+  });
+
+  const deleteSaved = useMutation({
+    mutationFn: (id: number) => deleteSavedAddress(api, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['me', 'saved-addresses'] }),
+  });
 
   const addressError = useMemo<string | null>(() => {
     if (deliveryLat === null || deliveryLng === null) {
@@ -204,6 +216,8 @@ export function CheckoutPage() {
                     setDeliveryLng(lng);
                   }}
                   error={showInlineError ? (addressError ?? undefined) : undefined}
+                  savedAddresses={savedAddresses}
+                  onDeleteSaved={id => deleteSaved.mutate(id)}
                 />
               </div>
             </div>
