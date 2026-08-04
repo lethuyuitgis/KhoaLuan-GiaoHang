@@ -8,6 +8,7 @@ import com.shop.delivery.bot.config.BotProperties;
 import com.shop.delivery.bot.sender.BotSender;
 import com.shop.delivery.shared.event.ShipperApprovedEvent;
 import com.shop.delivery.shared.event.ShipperRegisteredEvent;
+import com.shop.delivery.shared.event.ShipperRejectedEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -94,6 +95,14 @@ public class ShipperRegistrationNotifier {
                 "✅ Bạn đã được duyệt làm shipper! Mở Mini App để bắt đầu nhận đơn.");
         }
         log.info("Notified shipper {} that they are ACTIVE", e.telegramUserId());
+    }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onShipperRejected(ShipperRejectedEvent e) {
+        bot.sendText(e.telegramUserId(),
+            "❌ Đơn đăng ký shipper của bạn chưa được duyệt.\n"
+                + "Bạn có thể gõ /start để đăng ký lại.");
+        log.info("Notified shipper {} that registration was rejected", e.telegramUserId());
     }
 
     // ---- helpers -----------------------------------------------------------

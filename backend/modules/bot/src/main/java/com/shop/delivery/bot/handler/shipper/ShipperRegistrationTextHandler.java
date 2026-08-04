@@ -104,6 +104,15 @@ public class ShipperRegistrationTextHandler implements UpdateHandler {
     // ---- per-state handlers ------------------------------------------------
 
     private void handleName(Long userId, Long chatId, ConversationState state, String text) {
+        if (text.startsWith("/")) {
+            // A slash command (e.g. /start, /help) is not a name. /cancel is
+            // handled upstream; every other command here is a mis-type — nudge
+            // instead of storing "/start" as the shipper's full name.
+            sender.sendText(chatId,
+                "Vui lòng nhập họ tên của bạn (không phải lệnh).\n"
+                    + "Gõ /cancel nếu muốn huỷ đăng ký.");
+            return;
+        }
         if (text.length() < 2 || text.length() > 80) {
             sender.sendText(chatId, "Tên không hợp lệ. Vui lòng gõ lại (2–80 ký tự).");
             return;

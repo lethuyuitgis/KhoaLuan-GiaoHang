@@ -122,6 +122,20 @@ class ShipperRegistrationTextHandlerTest {
     }
 
     @Test
+    void awaitingName_slashCommandInput_isRejected_notStoredAsName() {
+        // Regression: "/start" is 6 chars — it passed the 2–80 length check and
+        // got saved as the shipper's full name. It must be nudged instead.
+        when(conv.get(userId)).thenReturn(Optional.of(state(ShipperRegistrationStates.AWAITING_NAME, new HashMap<>())));
+
+        handler.handle(textUpdate("/start"));
+
+        verify(conv, never()).put(anyLong(), anyString(), any());
+        ArgumentCaptor<String> textCap = ArgumentCaptor.forClass(String.class);
+        verify(sender).sendText(eq(chatId), textCap.capture());
+        assertThat(textCap.getValue()).contains("họ tên");
+    }
+
+    @Test
     void cancelCommand_clearsState() {
         // /cancel exits before reading state, so conv.get is unused — no stubbing needed.
         handler.handle(textUpdate("/cancel"));

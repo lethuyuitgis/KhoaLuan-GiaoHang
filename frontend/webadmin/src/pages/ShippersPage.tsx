@@ -2,7 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
-  listShippers, createShipper, fetchAdminShipperBalance, fetchAdminShipperEarnings,
+  listShippers, createShipper, approveShipper, rejectShipper,
+  fetchAdminShipperBalance, fetchAdminShipperEarnings,
   formatVnd,
   type CreateShipperRequest, type VehicleType,
 } from '@shop/shared';
@@ -22,7 +23,12 @@ export function ShippersPage() {
     queryFn: () => listShippers(api),
   });
 
-  const shipperIds = shippers?.map(s => s.userId) ?? [];
+  const pendingShippers = shippers?.filter(s => s.approvalStatus === 'PENDING') ?? [];
+  const activeShippers = shippers?.filter(s => s.approvalStatus !== 'PENDING') ?? [];
+
+  // Balances/earnings only apply to approved (active) shippers — pending
+  // registrations have no ledger yet, so fetching them would 404.
+  const shipperIds = activeShippers.map(s => s.userId);
 
   const { data: balances = {} } = useQuery({
     queryKey: ['admin', 'shipper-balances', shipperIds],
@@ -57,6 +63,16 @@ export function ShippersPage() {
     onError: (err: any) => {
       setError(err.response?.data?.message ?? 'Tạo shipper thất bại');
     },
+  });
+
+  const approveMut = useMutation({
+    mutationFn: (id: number) => approveShipper(api, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'shippers'] }),
+  });
+
+  const rejectMut = useMutation({
+    mutationFn: (id: number) => rejectShipper(api, id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'shippers'] }),
   });
 
   const onSubmit = (e: FormEvent) => {
@@ -139,6 +155,60 @@ export function ShippersPage() {
         </form>
       )}
 
+      {pendingShippers.length > 0 && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-amber-200 flex items-center gap-2">
+            <span className="text-lg">⏳</span>
+            <h2 className="font-semibold text-amber-900">Chờ duyệt ({pendingShippers.length})</h2>
+            <span className="text-xs text-amber-700">Shipper đăng ký qua bot đang đợi bạn duyệt</span>
+          </div>
+          {(approveMut.isError || rejectMut.isError) && (
+            <div className="px-5 py-2 bg-red-100 text-red-700 text-sm border-b border-red-200">
+              Thao tác thất bại, vui lòng thử lại.
+            </div>
+          )}
+          <ul className="divide-y divide-amber-100">
+            {pendingShippers.map(s => {
+              const fullName = [s.firstName, s.lastName].filter(Boolean).join(' ') || `User ${s.userId}`;
+              const busy = approveMut.isPending || rejectMut.isPending;
+              return (
+                <li key={s.userId} className="px-5 py-3 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900">{fullName}
+                      {s.username && <span className="text-xs text-gray-500 font-normal ml-1.5">@{s.username}</span>}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      <span className="font-mono">{s.userId}</span>
+                      <span className="mx-1.5">·</span>
+                      {VEHICLE_ICON[s.vehicleType] ?? '🛵'} {VEHICLE_VN[s.vehicleType] ?? s.vehicleType}
+                      {s.licensePlate && <span className="text-gray-400"> · {s.licensePlate}</span>}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => approveMut.mutate(s.userId)}
+                      disabled={busy}
+                      className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg disabled:opacity-50 transition-colors">
+                      Duyệt
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Từ chối đăng ký của ${fullName}? Hồ sơ sẽ bị xóa, họ có thể đăng ký lại từ bot.`)) {
+                          rejectMut.mutate(s.userId);
+                        }
+                      }}
+                      disabled={busy}
+                      className="px-3 py-1.5 bg-white border border-red-300 text-red-700 hover:bg-red-50 text-sm font-medium rounded-lg disabled:opacity-50 transition-colors">
+                      Từ chối
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
@@ -157,15 +227,15 @@ export function ShippersPage() {
             {isLoading && Array.from({ length: 3 }).map((_, i) => (
               <tr key={i}><td colSpan={8} className="px-4 py-4"><div className="h-4 bg-gray-100 rounded animate-pulse" /></td></tr>
             ))}
-            {!isLoading && shippers?.length === 0 && (
+            {!isLoading && activeShippers.length === 0 && (
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
                   <p className="text-3xl mb-1">🚴</p>
-                  <p className="text-sm">Chưa có shipper nào — bấm "Thêm shipper" để bắt đầu</p>
+                  <p className="text-sm">Chưa có shipper đang hoạt động — bấm "Thêm shipper" hoặc duyệt đơn chờ ở trên</p>
                 </td>
               </tr>
             )}
-            {shippers?.map(s => {
+            {activeShippers.map(s => {
               const fullName = [s.firstName, s.lastName].filter(Boolean).join(' ') || `User ${s.userId}`;
               const initial = (s.firstName ?? '?').charAt(0).toUpperCase();
               const state = STATE_LABEL[s.currentState] ?? STATE_LABEL.OFFLINE;

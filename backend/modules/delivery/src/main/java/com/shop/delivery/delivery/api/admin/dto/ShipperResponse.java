@@ -1,5 +1,6 @@
 package com.shop.delivery.delivery.api.admin.dto;
 
+import com.shop.delivery.auth.domain.UserRoleStatus;
 import com.shop.delivery.delivery.domain.ShipperState;
 import com.shop.delivery.delivery.domain.VehicleType;
 
@@ -13,6 +14,7 @@ public record ShipperResponse(
     VehicleType vehicleType,
     String licensePlate,
     ShipperState currentState,
+    UserRoleStatus approvalStatus,
     BigDecimal ratingAvg,
     Integer ratingCount,
     Integer totalDeliveries

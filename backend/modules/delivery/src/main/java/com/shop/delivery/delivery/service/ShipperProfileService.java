@@ -13,6 +13,7 @@ import com.shop.delivery.delivery.repository.ShipperProfileRepository;
 import com.shop.delivery.delivery.service.command.CreateShipperCommand;
 import com.shop.delivery.shared.event.ShipperApprovedEvent;
 import com.shop.delivery.shared.event.ShipperRegisteredEvent;
+import com.shop.delivery.shared.event.ShipperRejectedEvent;
 import com.shop.delivery.shared.exception.NotFoundException;
 import com.shop.delivery.shared.exception.ValidationException;
 import org.springframework.context.ApplicationEventPublisher;
@@ -168,5 +169,39 @@ public class ShipperProfileService {
         events.publishEvent(new ShipperApprovedEvent(telegramUserId));
 
         return findById(telegramUserId);
+    }
+
+    /**
+     * Admin rejects a pending shipper registration: delete the
+     * {@code user_role(SHIPPER)} + {@code shipper_profile} so the user can
+     * {@code /start} and register again from scratch, evict the RoleResolver
+     * cache, and publish {@link ShipperRejectedEvent} so the bot can DM them.
+     *
+     * <p>Only a {@code PENDING} registration may be rejected — any other status
+     * (ACTIVE, or a future BLOCKED) is refused with {@code SHIPPER_NOT_PENDING}.
+     * This guard protects a working shipper (who may hold
+     * {@code delivery_assignment} / {@code shipper_ledger} rows) from being
+     * deleted through the reject button.
+     *
+     * @throws NotFoundException   if no SHIPPER role exists for this user.
+     * @throws ValidationException if the SHIPPER role is not PENDING.
+     */
+    @Transactional
+    public void reject(Long telegramUserId) {
+        UserRole role = roleRepo.findByTelegramUserIdAndRole(telegramUserId, Role.SHIPPER)
+            .orElseThrow(() -> new NotFoundException(
+                "SHIPPER_NOT_FOUND",
+                "Không tìm thấy đơn đăng ký shipper cho user " + telegramUserId));
+
+        if (role.getStatus() != UserRoleStatus.PENDING) {
+            throw new ValidationException("SHIPPER_NOT_PENDING",
+                "Chỉ có thể từ chối đơn shipper đang chờ duyệt");
+        }
+
+        profileRepo.findById(telegramUserId).ifPresent(profileRepo::delete);
+        roleRepo.delete(role);
+        roleResolver.evict(telegramUserId);
+
+        events.publishEvent(new ShipperRejectedEvent(telegramUserId));
     }
 }

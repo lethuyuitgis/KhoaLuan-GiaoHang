@@ -14,6 +14,7 @@ import com.shop.delivery.delivery.repository.ShipperProfileRepository;
 import com.shop.delivery.delivery.service.command.CreateShipperCommand;
 import com.shop.delivery.shared.event.ShipperApprovedEvent;
 import com.shop.delivery.shared.event.ShipperRegisteredEvent;
+import com.shop.delivery.shared.event.ShipperRejectedEvent;
 import com.shop.delivery.shared.exception.NotFoundException;
 import com.shop.delivery.shared.exception.ValidationException;
 import org.junit.jupiter.api.Test;
@@ -171,6 +172,55 @@ class ShipperProfileServiceTest {
 
         // No state change, no event emitted
         verify(events, never()).publishEvent(any(ShipperApprovedEvent.class));
+    }
+
+    @Test
+    void rejectShouldDeleteRoleAndProfileAndPublishEventWhenPending() {
+        UserRole role = new UserRole();
+        role.setRole(Role.SHIPPER);
+        role.setStatus(UserRoleStatus.PENDING);
+        role.setTelegramUserId(8888L);
+        when(roleRepo.findByTelegramUserIdAndRole(8888L, Role.SHIPPER)).thenReturn(Optional.of(role));
+        ShipperProfile p = new ShipperProfile();
+        p.setUserId(8888L);
+        when(profileRepo.findById(8888L)).thenReturn(Optional.of(p));
+
+        service.reject(8888L);
+
+        verify(profileRepo).delete(p);
+        verify(roleRepo).delete(role);
+        verify(roleResolver).evict(8888L);
+        ArgumentCaptor<ShipperRejectedEvent> evCap = ArgumentCaptor.forClass(ShipperRejectedEvent.class);
+        verify(events).publishEvent(evCap.capture());
+        assertThat(evCap.getValue().telegramUserId()).isEqualTo(8888L);
+    }
+
+    @Test
+    void rejectShouldRefuseActiveShipper_soWorkingShipperIsNeverDeleted() {
+        // Guard: reject must never delete an ACTIVE shipper (they may hold
+        // delivery_assignment / ledger rows). This test fails loudly if the
+        // PENDING-only guard is ever dropped.
+        UserRole role = new UserRole();
+        role.setRole(Role.SHIPPER);
+        role.setStatus(UserRoleStatus.ACTIVE);
+        role.setTelegramUserId(8888L);
+        when(roleRepo.findByTelegramUserIdAndRole(8888L, Role.SHIPPER)).thenReturn(Optional.of(role));
+
+        assertThatThrownBy(() -> service.reject(8888L))
+            .isInstanceOf(ValidationException.class)
+            .hasMessageContaining("duyệt");
+
+        verify(roleRepo, never()).delete(any(UserRole.class));
+        verify(profileRepo, never()).delete(any(ShipperProfile.class));
+        verify(events, never()).publishEvent(any(ShipperRejectedEvent.class));
+    }
+
+    @Test
+    void rejectShouldThrowWhenNoShipperRole() {
+        when(roleRepo.findByTelegramUserIdAndRole(7777L, Role.SHIPPER)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.reject(7777L))
+            .isInstanceOf(NotFoundException.class);
     }
 
     @Test

@@ -8,6 +8,7 @@ import com.shop.delivery.bot.config.BotProperties;
 import com.shop.delivery.bot.sender.BotSender;
 import com.shop.delivery.shared.event.ShipperApprovedEvent;
 import com.shop.delivery.shared.event.ShipperRegisteredEvent;
+import com.shop.delivery.shared.event.ShipperRejectedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -77,6 +78,15 @@ class ShipperRegistrationNotifierTest {
         notifier.onShipperApproved(new ShipperApprovedEvent(5555L));
 
         verify(bot).sendText(eq(5555L), anyString());
+    }
+
+    @Test
+    void onShipperRejected_dmsShipperToReRegister() {
+        notifier.onShipperRejected(new ShipperRejectedEvent(5555L));
+
+        ArgumentCaptor<String> textCap = ArgumentCaptor.forClass(String.class);
+        verify(bot).sendText(eq(5555L), textCap.capture());
+        assertThat(textCap.getValue()).contains("/start");
     }
 
     private static UserRole active(long telegramId, Role role) {

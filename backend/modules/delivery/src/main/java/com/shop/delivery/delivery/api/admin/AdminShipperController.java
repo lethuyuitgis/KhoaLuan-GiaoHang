@@ -1,7 +1,10 @@
 package com.shop.delivery.delivery.api.admin;
 
+import com.shop.delivery.auth.domain.Role;
+import com.shop.delivery.auth.domain.UserRoleStatus;
 import com.shop.delivery.auth.entity.TelegramUser;
 import com.shop.delivery.auth.repository.TelegramUserRepository;
+import com.shop.delivery.auth.repository.UserRoleRepository;
 import com.shop.delivery.delivery.api.admin.dto.CreateShipperRequest;
 import com.shop.delivery.delivery.api.admin.dto.ShipperResponse;
 import com.shop.delivery.delivery.entity.ShipperProfile;
@@ -27,10 +30,14 @@ public class AdminShipperController {
 
     private final ShipperProfileService service;
     private final TelegramUserRepository userRepo;
+    private final UserRoleRepository roleRepo;
 
-    public AdminShipperController(ShipperProfileService service, TelegramUserRepository userRepo) {
+    public AdminShipperController(ShipperProfileService service,
+                                  TelegramUserRepository userRepo,
+                                  UserRoleRepository roleRepo) {
         this.service = service;
         this.userRepo = userRepo;
+        this.roleRepo = roleRepo;
     }
 
     @GetMapping
@@ -56,8 +63,22 @@ public class AdminShipperController {
         return toResponse(service.approve(id));
     }
 
+    /**
+     * Từ chối shipper PENDING → xóa hẳn role + hồ sơ, cho phép user /start đăng ký lại.
+     * Trả 204. Shipper đã ACTIVE bị từ chối (SHIPPER_ACTIVE) → 400 do guard ở service.
+     */
+    @PostMapping("/{id}/reject")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void reject(@PathVariable Long id) {
+        service.reject(id);
+    }
+
     private ShipperResponse toResponse(ShipperProfile p) {
         TelegramUser u = userRepo.findById(p.getUserId()).orElse(null);
+        UserRoleStatus approvalStatus = roleRepo
+            .findByTelegramUserIdAndRole(p.getUserId(), Role.SHIPPER)
+            .map(r -> r.getStatus())
+            .orElse(null);
         return new ShipperResponse(
             p.getUserId(),
             u != null ? u.getFirstName() : null,
@@ -66,6 +87,7 @@ public class AdminShipperController {
             p.getVehicleType(),
             p.getLicensePlate(),
             p.getCurrentState(),
+            approvalStatus,
             p.getRatingAvg(),
             p.getRatingCount(),
             p.getTotalDeliveries()
