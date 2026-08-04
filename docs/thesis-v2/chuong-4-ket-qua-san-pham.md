@@ -1,6 +1,6 @@
 # CHƯƠNG 4: KẾT QUẢ SẢN PHẨM
 
-Chương này trình bày kết quả sản phẩm cuối cùng của đề tài *"Hệ thống quản lý giao hàng tích hợp Telegram Mini App, Web Admin và VNPay"*. Nội dung đi từ nền tảng đến sản phẩm hoàn chỉnh: tổng hợp các công nghệ đã sử dụng cùng vai trò của từng công nghệ (mục 4.1); cấu trúc dự án và tổ chức mã nguồn (mục 4.2); các quyết định cài đặt then chốt của những mô-đun chính — máy trạng thái đơn hàng, tích hợp Telegram Bot, tích hợp VNPay và kênh realtime WebSocket (mục 4.3); chiến lược và kết quả kiểm thử với 274 test tự động (mục 4.4); phương án đóng gói và triển khai bằng Docker Compose (mục 4.5); cuối cùng là giao diện chương trình thực tế qua các ảnh chụp màn hình của cả ba kênh — Web Admin cho chủ shop, Mini App cho khách hàng và Mini App cho shipper (mục 4.6). Toàn bộ ảnh chụp được lấy trực tiếp từ hệ thống đang vận hành với bộ dữ liệu seed phục vụ demo.
+Chương này trình bày kết quả sản phẩm cuối cùng của đề tài *"Hệ thống quản lý giao hàng tích hợp Telegram Mini App, Web Admin và VNPay"*. Nội dung đi từ nền tảng đến sản phẩm hoàn chỉnh: tổng hợp các công nghệ đã sử dụng cùng vai trò của từng công nghệ (mục 4.1); cấu trúc dự án và tổ chức mã nguồn (mục 4.2); các quyết định cài đặt then chốt của những mô-đun chính — máy trạng thái đơn hàng, tích hợp Telegram Bot, tích hợp VNPay và kênh realtime WebSocket (mục 4.3); chiến lược và kết quả kiểm thử với 425 test tự động (mục 4.4); phương án đóng gói và triển khai bằng Docker Compose (mục 4.5); cuối cùng là giao diện chương trình thực tế qua các ảnh chụp màn hình của cả ba kênh — Web Admin cho chủ shop, Mini App cho khách hàng và Mini App cho shipper (mục 4.6). Toàn bộ ảnh chụp được lấy trực tiếp từ hệ thống đang vận hành với bộ dữ liệu seed phục vụ demo.
 
 ## 4.1. Công nghệ sử dụng
 
@@ -10,7 +10,7 @@ Hệ thống được xây dựng trên một tập công nghệ mã nguồn m�
 
 Java 17 là phiên bản Long-Term Support (LTS) của nền tảng Java, cung cấp các tính năng hiện đại như record, sealed class, pattern matching và text block giúp mã nguồn ngắn gọn, an toàn kiểu. Spring Boot 3.4 là framework nền tảng cho toàn bộ backend, dựa trên Spring Framework 6 và chuẩn Jakarta EE 9+.
 
-Trong đề tài, Java 17 và Spring Boot 3.4 đóng vai trò xương sống của tầng backend: hiện thực toàn bộ tám bounded context (shared, auth, order, delivery, payment, bot, notification, app), 39 REST endpoint, tầng bảo mật Spring Security, truy xuất dữ liệu qua Spring Data JPA, kênh realtime Spring WebSocket (STOMP), quản lý migration bằng Flyway và tích hợp Telegram Bot qua `telegrambots-spring-boot-starter` 6.9.7.1. Cơ chế `@TransactionalEventListener(AFTER_COMMIT)` của Spring được dùng để phát và xử lý sự kiện cross-module một cách an toàn giao dịch.
+Trong đề tài, Java 17 và Spring Boot 3.4 đóng vai trò xương sống của tầng backend: hiện thực toàn bộ tám bounded context (shared, auth, order, delivery, payment, bot, notification, app), 45 REST endpoint, tầng bảo mật Spring Security, truy xuất dữ liệu qua Spring Data JPA, kênh realtime Spring WebSocket (STOMP), quản lý migration bằng Flyway và tích hợp Telegram Bot qua `telegrambots-spring-boot-starter` 6.9.7.1. Cơ chế `@TransactionalEventListener(AFTER_COMMIT)` của Spring được dùng để phát và xử lý sự kiện cross-module một cách an toàn giao dịch.
 
 ### 4.1.2. React 18 và Vite 5
 
@@ -22,7 +22,7 @@ Trong đề tài, React 18 + Vite 5 (với TypeScript 5.6) là nền tảng cho 
 
 PostgreSQL 16 là hệ quản trị cơ sở dữ liệu quan hệ mã nguồn mở, hỗ trợ kiểu JSONB, ràng buộc CHECK, partial unique index và các hàm cửa sổ mạnh mẽ. Flyway là công cụ quản lý phiên bản schema theo kiểu migration tuần tự.
 
-Trong đề tài, PostgreSQL 16 lưu toàn bộ dữ liệu nghiệp vụ: người dùng, sản phẩm, đơn hàng, phân công giao hàng, giao dịch thanh toán, đánh giá, vị trí. Các tính năng đặc thù được khai thác trực tiếp: cột JSONB `payment_transaction.raw_payload` lưu audit trail toàn bộ payload IPN của VNPay; partial unique index `uq_assignment_shipper_started` chống gán nhầm shipper; ràng buộc CHECK đồng bộ enum trạng thái. Flyway quản lý mười lăm file migration (V1 đến V15) — từ khởi tạo schema đến bổ sung `shipper_ledger` — đảm bảo không có thay đổi schema thủ công nào và mọi môi trường đều tái lập được cùng một trạng thái CSDL.
+Trong đề tài, PostgreSQL 16 lưu toàn bộ dữ liệu nghiệp vụ: người dùng, sản phẩm, đơn hàng, phân công giao hàng, giao dịch thanh toán, đánh giá, vị trí. Các tính năng đặc thù được khai thác trực tiếp: cột JSONB `payment_transaction.raw_payload` lưu audit trail toàn bộ payload IPN của VNPay; partial unique index `uq_assignment_shipper_started` chống gán nhầm shipper; ràng buộc CHECK đồng bộ enum trạng thái. Flyway quản lý mười bảy file migration (V1 đến V17) — từ khởi tạo schema đến bổ sung `saved_address` (V16) và `chat_message` (V17) — đảm bảo không có thay đổi schema thủ công nào và mọi môi trường đều tái lập được cùng một trạng thái CSDL.
 
 ### 4.1.4. Telegram Bot API và Mini App SDK
 
@@ -53,7 +53,7 @@ KhoaLuan-GiaoHang/
 ├── backend/                              # Spring Boot 3 multi-module Maven
 │   ├── pom.xml                           # Parent pom — aggregator + dependencyManagement
 │   ├── app/                              # Executable jar — entry point
-│   │   └── src/main/resources/db/migration/   # 15 file Flyway V1 → V15
+│   │   └── src/main/resources/db/migration/   # 17 file Flyway V1 → V17
 │   ├── modules/
 │   │   ├── shared/                       # BaseEntity, exception, event records
 │   │   ├── auth/                         # Telegram initData + JWT admin
@@ -89,7 +89,7 @@ Frontend gồm ba workspace pnpm khai báo trong `frontend/pnpm-workspace.yaml`.
 
 ### 4.2.4. Quản lý schema bằng Flyway
 
-Toàn bộ schema cơ sở dữ liệu được quản lý qua **mười lăm file Flyway migration (V1 đến V15)** theo quy ước `V<n>__<snake_name>.sql`, không có bất kỳ thay đổi thủ công nào trên production. Các migration được đóng góp theo đúng ranh giới bounded context: V1 thiết lập baseline; V2 và V5 thuộc `auth`; V3 thuộc `bot`; V4 và V13 thuộc `order`; V6, V7, V8, V10, V12 và V15 thuộc `delivery`; V9 thuộc `payment`; V14 thuộc `promotion`; V11 seed dữ liệu demo dùng chung. Trong production, Flyway chạy lúc Spring Boot khởi động — một migration lỗi thì backend không khởi động được (fail-fast), tránh chạy trên schema sai phiên bản; mọi thay đổi schema phải qua một file mới vì Flyway lưu checksum và dừng ứng dụng khi phát hiện file đã apply bị sửa.
+Toàn bộ schema cơ sở dữ liệu được quản lý qua **mười bảy file Flyway migration (V1 đến V17)** theo quy ước `V<n>__<snake_name>.sql`, không có bất kỳ thay đổi thủ công nào trên production. Các migration được đóng góp theo đúng ranh giới bounded context: V1 thiết lập baseline; V2 và V5 thuộc `auth`; V3 thuộc `bot`; V4, V13 và V16 (`saved_address`) thuộc `order`; V6, V7, V8, V10, V12, V15 và V17 (`chat_message`) thuộc `delivery`; V9 thuộc `payment`; V14 thuộc `promotion`; V11 seed dữ liệu demo dùng chung. Trong production, Flyway chạy lúc Spring Boot khởi động — một migration lỗi thì backend không khởi động được (fail-fast), tránh chạy trên schema sai phiên bản; mọi thay đổi schema phải qua một file mới vì Flyway lưu checksum và dừng ứng dụng khi phát hiện file đã apply bị sửa.
 
 Ba quyết định migration thể hiện rõ tư duy thiết kế: V7 dùng index BRIN thay BTREE trên cột `ping_at` của bảng timeseries `location_ping`, tiết kiệm khoảng 95% dung lượng chỉ mục mà vẫn giữ hiệu năng quét khoảng thời gian; V8 đưa quy tắc "mỗi shipper tối đa một assignment `STARTED`" xuống tầng cơ sở dữ liệu bằng partial unique index; V13 hiện thực mẫu *singleton row* cho bảng `shop_config`, cho phép chủ shop tự đổi nhận diện thương hiệu và biểu phí giao qua trang Settings mà không cần redeploy.
 
@@ -169,15 +169,15 @@ Giao tiếp giữa các module đi qua chín event record bất biến (Java 17 
 
 ### 4.4.1. Chiến lược kiểm thử backend
 
-Backend áp dụng mô hình *kim tự tháp kiểm thử* (testing pyramid) với **253 test** chia ba tầng. Tầng đáy gồm **231 unit test** dùng Mockito 5 và AssertJ 3, kiểm thử service, handler và helper ở mức class đơn lẻ với mọi dependency được mock; toàn bộ chạy bởi Maven Surefire trong chưa đầy mười giây, đủ nhanh để chạy trước mỗi commit. Tầng giữa gồm **22 integration test** (suffix `IT.java`, chạy bởi Maven Failsafe) dùng Testcontainers khởi động PostgreSQL 16 *thật* trong container và `@SpringBootTest`, kiểm thử tương tác đa thành phần — repository, service, listener, transaction propagation — trên schema thật đã apply đủ mười lăm Flyway migration; toàn bộ hoàn tất trong khoảng ba phút. Tầng đỉnh là các slice test `@WebMvcTest` kiểm thử validation của controller và cấu trúc JSON mà không cần boot toàn bộ context Spring.
+Backend áp dụng mô hình *kim tự tháp kiểm thử* (testing pyramid) với **355 test** chia ba tầng. Tầng đáy gồm **301 unit test** dùng Mockito 5 và AssertJ 3, kiểm thử service, handler và helper ở mức class đơn lẻ với mọi dependency được mock; toàn bộ chạy bởi Maven Surefire trong chưa đầy mười giây, đủ nhanh để chạy trước mỗi commit. Tầng giữa gồm **54 integration test** (suffix `IT.java`, chạy bởi Maven Failsafe) dùng Testcontainers khởi động PostgreSQL 16 *thật* trong container và `@SpringBootTest`, kiểm thử tương tác đa thành phần — repository, service, listener, transaction propagation — trên schema thật đã apply đủ mười bảy Flyway migration; toàn bộ hoàn tất trong khoảng ba phút. Tầng đỉnh là các slice test `@WebMvcTest` kiểm thử validation của controller và cấu trúc JSON mà không cần boot toàn bộ context Spring.
 
-Phân bổ test theo mô-đun phản ánh mức độ phức tạp nghiệp vụ: `bot` nhiều nhất với 63 test do phải phủ toàn bộ handler và máy trạng thái hội thoại; kế đến `delivery` với 53 test (gồm 6 integration test cho race condition khi gán shipper) và `payment` với 35 test tập trung vào chữ ký HMAC-SHA512 và tính idempotent của IPN; mô-đun `app` chỉ có integration test vì không chứa logic nghiệp vụ.
+Phân bổ test theo mô-đun phản ánh mức độ phức tạp nghiệp vụ: `bot` nhiều nhất với 74 test do phải phủ toàn bộ handler và máy trạng thái hội thoại (bao gồm luồng chat ẩn danh); kế đến `delivery` với 71 test (gồm integration test cho race condition khi gán shipper) và `order` với 47 test; `payment` 33 test tập trung vào chữ ký HMAC-SHA512 và tính idempotent của IPN; mô-đun `app` chỉ có integration test vì không chứa logic nghiệp vụ.
 
 ### 4.4.2. Kiểm thử frontend
 
-Frontend dùng Vitest kết hợp Testing Library với **21 test** tổ chức theo workspace: chín test cho `@shop/shared` chạy trong môi trường node, phủ các helper `formatVnd`, `formatDateTime`, `haversineKm` với các edge case (số âm, NaN, khoảng cách bằng 0); sáu test cho `@shop/miniapp` chạy trong jsdom, phủ Zustand store `useCart` (gộp sản phẩm trùng, xoá sản phẩm cuối làm trống giỏ, persist); sáu test cho `@shop/webadmin` phủ `auth-store` (login lưu token, logout xoá store) và component `OrderStatusBadge`. Toàn bộ hoàn tất trong khoảng năm giây.
+Frontend dùng Vitest kết hợp Testing Library với **70 test** tổ chức theo workspace: chín test cho `@shop/shared` chạy trong môi trường node, phủ các helper `formatVnd`, `formatDateTime`, `haversineKm` với các edge case (số âm, NaN, khoảng cách bằng 0); bốn mươi ba test cho `@shop/miniapp` chạy trong jsdom, phủ Zustand store `useCart`, i18n, `VoucherInput` và component `AddressPicker` (hiện địa chỉ đã lưu, lọc theo truy vấn, chọn điền thẳng); mười tám test cho `@shop/webadmin` phủ `auth-store`, `OrderStatusBadge`, `StatusTimeline`, `AssignShipperModal` (sao đánh giá, khoảng cách, đổi kiểu sắp xếp) và `ShippersPage` (mục chờ duyệt, thao tác duyệt/từ chối). Toàn bộ hoàn tất trong khoảng năm giây.
 
-Tổng cộng toàn dự án có **274 test tự động (253 backend + 21 frontend)**. Quy trình xác minh chạy trước mỗi commit: `./mvnw verify` (Surefire + Failsafe + Testcontainers), `pnpm -r build` và `pnpm -r type-check`; tỉ lệ build xanh đạt 100% — không commit nào ở nhánh `main` mà bộ test thất bại.
+Tổng cộng toàn dự án có **425 test tự động (355 backend + 70 frontend)**. Quy trình xác minh chạy trước mỗi commit: `./mvnw verify` (Surefire + Failsafe + Testcontainers), `pnpm -r build` và `pnpm -r type-check`; tỉ lệ build xanh đạt 100% — không commit nào ở nhánh `main` mà bộ test thất bại.
 
 ### 4.4.3. Các lỗi nghiêm trọng phát hiện qua code review
 
@@ -295,6 +295,30 @@ Mini App shipper cũng chạy bên trong Telegram, phục vụ đội shipper n�
 
 ![Hình 4.15. Chi tiết đơn phân công của shipper](screenshots/miniapp-ship-02-assignment-detail.png)
 
+## 4.7. Các tính năng hoàn thiện sau bảo vệ
+
+Sau bảo vệ, năm hạng mục "hoàn thiện trong scope" đã được hiện thực trọn vẹn theo đúng quy trình sáu bước (Research → Plan → Plan-check → Execute → Code-review → Fix), mỗi hạng mục một nhánh riêng với kiểm thử đơn vị và tích hợp. Các tính năng tái sử dụng nguyên vẹn kiến trúc Modular Monolith hiện có — không phát sinh bounded context mới — và tuân thủ ranh giới phụ thuộc `bot → delivery → order`.
+
+### 4.7.1. Hoàn thiện luồng đăng ký và duyệt shipper
+
+Luồng đăng ký shipper qua bot (FSM bốn bước: tên → số điện thoại → phương tiện → biển số) trước đây dừng ở trạng thái `PENDING` mà Web Admin chưa có nút duyệt. Bổ sung khép kín vòng lặp: `ShipperResponse` trả thêm `approvalStatus`; Web Admin có mục "Chờ duyệt" riêng với hai thao tác **Duyệt** (`POST /api/admin/shippers/{id}/approve`) và **Từ chối** (`POST /api/admin/shippers/{id}/reject` — xoá hồ sơ `PENDING`, cho phép đăng ký lại), mỗi thao tác phát sự kiện để bot thông báo lại shipper. Đồng thời vá một lỗi FSM: chuỗi bắt đầu bằng `/` (ví dụ `/start`) không còn bị lưu nhầm thành họ tên.
+
+### 4.7.2. Timeline lịch sử trạng thái đơn trên Web Admin
+
+Bảng `status_history` vốn ghi mọi lần chuyển trạng thái (from → to, thời điểm, người thao tác, ghi chú) nhưng chưa hiển thị. Bổ sung `GET /api/admin/orders/{id}/history` và component `StatusTimeline` (React) vẽ dòng thời gian mới→cũ, tái sử dụng nhãn/màu của `OrderStatusBadge` và suy vai trò tác nhân theo ngữ cảnh chuyển trạng thái. Truy vấn lịch sử dùng cache key con của query đơn nên mọi thao tác xác nhận/huỷ/gán tự động làm tươi timeline.
+
+### 4.7.3. Modal "Gán shipper" theo khoảng cách và rating
+
+Modal gán shipper được nâng cấp xếp hạng ứng viên: `GET /api/admin/orders/{orderId}/candidate-shippers` trả các shipper `AVAILABLE` kèm điểm đánh giá (sẵn có) và khoảng cách best-effort. Do vị trí chỉ được lưu trong lúc giao (`location_ping` gắn theo assignment), khoảng cách tính từ ping cuối cùng của shipper đến điểm lấy hàng (tái sử dụng `DistanceCalculator` haversine), kèm nhãn độ mới; shipper chưa từng giao xếp cuối với nhãn "chưa rõ vị trí". Giao diện hiển thị sao đánh giá + khoảng cách và cho phép chuyển giữa sắp xếp "Gần nhất" và "Đánh giá cao".
+
+### 4.7.4. Lưu địa chỉ thường dùng kèm autocomplete
+
+Bổ sung bảng `saved_address` (Flyway **V16**, khử trùng theo `(customer_id, lat, lng)`). Mỗi đơn đặt thành công tự lưu địa chỉ giao qua listener `@TransactionalEventListener(AFTER_COMMIT)` trên `OrderCreatedEvent` — chạy sau commit nên lỗi lưu địa chỉ không bao giờ làm hỏng đơn. API `GET/DELETE /api/addresses` (scope theo `@CurrentUser`) phục vụ Mini App: ô tìm kiếm địa chỉ (vốn autocomplete qua Nominatim) nay ưu tiên hiển thị địa chỉ đã lưu khớp truy vấn lên đầu; chọn địa chỉ đã lưu điền thẳng toạ độ, không cần geocode lại.
+
+### 4.7.5. Chat ẩn danh khách ↔ shipper qua Bot
+
+Bổ sung bảng `chat_message` (Flyway **V17**) và luồng chat trung gian qua bot: khi shipper nhận đơn, cả hai bên nhận nút "💬 Chat" mở chế độ hội thoại (trạng thái FSM `CHAT_ACTIVE`). Tin nhắn được **gửi lại dưới dạng văn bản mới có tiền tố vai trò** ("🧑 Khách" / "🛵 Shipper"), tuyệt đối không dùng `forwardMessage` — nhờ đó không bên nào thấy tài khoản Telegram hay số điện thoại của bên kia. Phần miền (`ChatService` trong module `delivery`) phân giải hai bên và trạng thái mở/đóng của hội thoại (mở khi assignment `ACCEPTED/STARTED`); phần truyền (handler trong module `bot`) đảm nhiệm gửi qua `BotSender`, giữ đúng ranh giới `delivery` không phụ thuộc `bot`. Mọi tin được lưu phục vụ audit qua `GET /api/admin/orders/{orderId}/chat`.
+
 # KẾT LUẬN
 
 ## Kết quả đạt được
@@ -319,7 +343,7 @@ Mini App shipper cũng chạy bên trong Telegram, phục vụ đội shipper n�
 
 Về mặt kỹ thuật, đề tài đem lại các đóng góp chính: (i) **mô hình triển khai lai trên nền tảng Telegram** dùng đồng thời ba kênh (Mini App, Bot, Web Admin) phân vai theo thiết bị; (ii) **theo dõi GPS realtime bằng Telegram Live Location native** với độ trễ end-to-end dưới ba giây, tiết kiệm khoảng 80% công sức so với tự lập trình GPS streaming; (iii) **kiến trúc Modular Monolith với tám bounded context** giao tiếp qua Spring Application Events `@TransactionalEventListener(AFTER_COMMIT)`; (iv) **tích hợp VNPay với IPN-as-source-of-truth** kèm các đảm bảo cụ thể (constant-time hash comparison, idempotent IPN, JSONB audit trail bắt buộc, `Propagation.REQUIRES_NEW`); và (v) **mô hình bảo mật defense-in-depth gồm mười một lớp** đối phó song song, mỗi lớp có regression test khoá.
 
-Về số liệu định lượng, hệ thống cung cấp **39 REST endpoint**, được kiểm thử qua **274 test (253 backend gồm 231 unit và 22 integration, cộng 21 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười lăm Flyway migration (V1–V15)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **15 ảnh chụp giao diện** thực tế. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng tại thời điểm bảo vệ.
+Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở), hệ thống cung cấp **45 REST endpoint**, được kiểm thử qua **425 test (355 backend gồm 301 unit và 54 integration, cộng 70 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **15 ảnh chụp giao diện** thực tế. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
 
 **Bảng KL.2. Tổng hợp các chỉ số định lượng kết quả đạt được**
 
@@ -328,13 +352,13 @@ Về số liệu định lượng, hệ thống cung cấp **39 REST endpoint**,
 | Tổng số commit nguyên tử | hơn 152 |
 | Tổng số dòng mã (Java + TypeScript) | khoảng 25 000 |
 | Số mô-đun backend (bounded context) | 8 (11 submodule Maven) |
-| Số endpoint REST | 39 |
+| Số endpoint REST | 45 |
 | Số sự kiện cross-module | 9 |
 | Số topic WebSocket | 2 |
-| Số file Flyway migration | 15 (V1 đến V15) |
-| Test backend (unit + integration) | 253 (231 + 22) |
-| Test frontend (Vitest + Testing Library) | 21 |
-| Tổng số test toàn dự án | 274 |
+| Số file Flyway migration | 17 (V1 đến V17) |
+| Test backend (unit + integration) | 355 (301 + 54) |
+| Test frontend (Vitest + Testing Library) | 70 |
+| Tổng số test toàn dự án | 425 |
 | Tỉ lệ build xanh trên mỗi commit ở `main` | 100% |
 | Số trang Mini App / Web Admin | 13 / 13 |
 | Số Dockerfile / container Docker Compose | 3 / 5 |
@@ -355,9 +379,8 @@ Việc liệt kê thẳng thắn các hạn chế cùng phân loại và phươn
 
 ## Hướng phát triển
 
-Các hướng phát triển được phân theo độ ưu tiên kinh doanh và độ phức tạp kỹ thuật:
+Các hướng phát triển được phân theo độ ưu tiên kinh doanh và độ phức tạp kỹ thuật. Năm hạng mục hoàn thiện trong scope từng liệt kê ở đây (chat ẩn danh, lưu địa chỉ, timeline trạng thái, modal gán shipper theo khoảng cách/rating, hoàn thiện luồng duyệt shipper) cùng việc mở rộng test frontend **đã được thực hiện sau bảo vệ** — chi tiết trình bày ở mục 4.7. Các hướng còn lại:
 
-- **Hoàn thiện trong scope hiện tại (1–2 tuần/hạng mục):** chat ẩn danh giữa khách và shipper qua Bot làm trung gian; lưu địa chỉ thường dùng của khách kèm autocomplete; hiển thị timeline `status_history` trên Web Admin; modal "Gán shipper" với filter theo khoảng cách và rating; hoàn thiện FSM đăng ký shipper; mở rộng test frontend lên 40+ case.
 - **Mở rộng vượt scope (1–2 tháng/hạng mục):** ưu tiên cao là *mở rộng sang Zalo Mini App* (~75 triệu MAU tại Việt Nam, tái sử dụng khoảng 80% UI, chỉ thay SDK và cơ chế xác thực) và *tích hợp thêm cổng thanh toán Momo/ZaloPay/VietQR* qua abstraction `PaymentGateway`. Các hướng khác gồm multi-tenant SaaS, ứng dụng di động React Native, gợi ý sản phẩm bằng học máy, loyalty program, voice ordering, đa ngôn ngữ, quản lý kho barcode và tối ưu lộ trình last-mile.
 - **Củng cố cho production (1–2 tháng):** TLS/HTTPS thật (Let's Encrypt), chuyển Bot sang webhook mode, distributed lock (ShedLock) cho scheduler, CI/CD pipeline (GitHub Actions), observability (Prometheus + Grafana + Loki + OpenTelemetry), rate limiting, backup strategy, và penetration testing.
 - **Nghiên cứu nâng cao:** dự đoán nhu cầu, định giá động, phát hiện bất thường, học tăng cường cho tối ưu lộ trình, federated learning, blockchain proof-of-order và privacy-preserving location — mỗi hướng có thể trở thành một đề tài nghiên cứu riêng.

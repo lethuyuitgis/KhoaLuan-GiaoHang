@@ -191,7 +191,7 @@ Bên cạnh tám đóng góp định tính nói trên, Bảng 1.3 tổng hợp c
 | Số kiểm thử frontend | 21 |
 | Tổng số kiểm thử tự động | 274 |
 | Tỷ lệ build thành công trên mỗi commit | 100% |
-| Số Flyway migration | 15 (V1 đến V15) |
+| Số Flyway migration | 17 (V1 đến V17) |
 | Số ngữ cảnh nghiệp vụ (bounded context) | 8 |
 | Số endpoint REST | 39 |
 | Số kênh WebSocket | 2 (vị trí giao hàng theo đơn; đơn mới cho quản trị) |

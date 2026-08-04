@@ -1,12 +1,12 @@
 # CHƯƠNG 3: THIẾT KẾ HỆ THỐNG
 
-Chương này trình bày thiết kế dữ liệu của hệ thống quản lý giao hàng dựa trên nền tảng Telegram và cổng thanh toán VNPay. Toàn bộ dữ liệu nghiệp vụ được lưu trữ trong một cơ sở dữ liệu quan hệ PostgreSQL 16, gồm khoảng mười lăm bảng chính, được tạo lập và tiến hoá tuần tự bằng công cụ quản lý phiên bản lược đồ Flyway thông qua các tập tin di trú (migration) đánh số từ V1 đến V15. Nội dung chương được tổ chức thành sáu phần lớn: hai phần đầu trình bày thiết kế dữ liệu ở mức khái niệm và mức logic — bao gồm mô hình thực thể liên kết (ERD), đặc tả chi tiết từng bảng và mô hình quan hệ; bốn phần tiếp theo lần lượt trình bày thiết kế kiến trúc tổng thể theo phong cách Modular Monolith, thiết kế giao diện lập trình ứng dụng (API), thiết kế các máy trạng thái hữu hạn điều khiển vòng đời nghiệp vụ, và thiết kế bảo mật theo nguyên tắc phòng thủ nhiều lớp.
+Chương này trình bày thiết kế dữ liệu của hệ thống quản lý giao hàng dựa trên nền tảng Telegram và cổng thanh toán VNPay. Toàn bộ dữ liệu nghiệp vụ được lưu trữ trong một cơ sở dữ liệu quan hệ PostgreSQL 16, gồm khoảng mười bảy bảng chính, được tạo lập và tiến hoá tuần tự bằng công cụ quản lý phiên bản lược đồ Flyway thông qua các tập tin di trú (migration) đánh số từ V1 đến V17. Nội dung chương được tổ chức thành sáu phần lớn: hai phần đầu trình bày thiết kế dữ liệu ở mức khái niệm và mức logic — bao gồm mô hình thực thể liên kết (ERD), đặc tả chi tiết từng bảng và mô hình quan hệ; bốn phần tiếp theo lần lượt trình bày thiết kế kiến trúc tổng thể theo phong cách Modular Monolith, thiết kế giao diện lập trình ứng dụng (API), thiết kế các máy trạng thái hữu hạn điều khiển vòng đời nghiệp vụ, và thiết kế bảo mật theo nguyên tắc phòng thủ nhiều lớp.
 
 ## 3.1. Phân tích và thiết kế dữ liệu
 
 ### 3.1.1. Mô hình thực thể liên kết (ERD)
 
-Mô hình thực thể liên kết (Entity Relationship Diagram — ERD) là công cụ mô hình hoá dữ liệu ở mức khái niệm, biểu diễn các thực thể (entity) trong hệ thống cùng các mối quan hệ (relationship) giữa chúng mà chưa đi sâu vào kiểu dữ liệu hay ràng buộc cụ thể. Sơ đồ dưới đây được tái sử dụng và mở rộng từ thiết kế lược đồ cơ sở dữ liệu của hệ thống, thể hiện đầy đủ mười bảy thực thể chính và các quan hệ giữa chúng.
+Mô hình thực thể liên kết (Entity Relationship Diagram — ERD) là công cụ mô hình hoá dữ liệu ở mức khái niệm, biểu diễn các thực thể (entity) trong hệ thống cùng các mối quan hệ (relationship) giữa chúng mà chưa đi sâu vào kiểu dữ liệu hay ràng buộc cụ thể. Sơ đồ dưới đây được tái sử dụng và mở rộng từ thiết kế lược đồ cơ sở dữ liệu của hệ thống, thể hiện đầy đủ mười chín thực thể chính và các quan hệ giữa chúng.
 
 ```mermaid
 erDiagram
@@ -18,6 +18,7 @@ erDiagram
   telegram_user ||--o{ delivery_assignment : delivers
   telegram_user ||--o{ rating : rates_as_customer
   telegram_user ||--o{ rating : rated_as_shipper
+  telegram_user ||--o{ saved_address : saves
 
   admin_user ||--o{ refresh_token : has
 
@@ -30,6 +31,7 @@ erDiagram
   orders ||--o| rating : rated_by
 
   delivery_assignment ||--o{ location_ping : produces
+  delivery_assignment ||--o{ chat_message : carries_chat
 
   payment ||--o{ payment_transaction : audit_log
 
@@ -56,7 +58,7 @@ Các thực thể phụ trợ gồm: **admin_user** (tài khoản quản trị W
 
 ### 3.1.2. Mô hình thực thể logic
 
-Mô hình thực thể logic đặc tả chi tiết từng bảng ở mức có thể hiện thực trực tiếp trên hệ quản trị cơ sở dữ liệu, bao gồm tên cột, kiểu dữ liệu và các ràng buộc/khoá đi kèm. Toàn bộ đặc tả dưới đây phản ánh trung thực các tập tin di trú Flyway V1–V15 của hệ thống. Quy ước ký hiệu: **PK** — khoá chính (Primary Key); **FK** — khoá ngoại (Foreign Key); **UQ** — ràng buộc duy nhất (Unique); **NN** — không rỗng (Not Null); **CK** — ràng buộc kiểm tra (Check).
+Mô hình thực thể logic đặc tả chi tiết từng bảng ở mức có thể hiện thực trực tiếp trên hệ quản trị cơ sở dữ liệu, bao gồm tên cột, kiểu dữ liệu và các ràng buộc/khoá đi kèm. Toàn bộ đặc tả dưới đây phản ánh trung thực các tập tin di trú Flyway V1–V17 của hệ thống. Quy ước ký hiệu: **PK** — khoá chính (Primary Key); **FK** — khoá ngoại (Foreign Key); **UQ** — ràng buộc duy nhất (Unique); **NN** — không rỗng (Not Null); **CK** — ràng buộc kiểm tra (Check).
 
 #### a) Bảng `telegram_user` (V2)
 
@@ -352,6 +354,38 @@ Bản ghi cấu hình cửa hàng dạng đơn nhất (singleton). Ràng buộc 
 | free_km | NUMERIC(8,3) | NN, mặc định 0 |
 | updated_at | TIMESTAMPTZ | NN, mặc định NOW() |
 
+#### r) Bảng `saved_address` (V16)
+
+Địa chỉ giao thường dùng của khách, tự lưu khi đặt đơn thành công (mục 4.7.4). Khử trùng theo cặp toạ độ để một địa điểm chỉ xuất hiện một lần cho mỗi khách.
+
+| Cột | Kiểu | Ràng buộc |
+|---|---|---|
+| id | BIGSERIAL | PK |
+| customer_id | BIGINT | FK → telegram_user(id), NN, ON DELETE CASCADE |
+| address | TEXT | NN |
+| lat | NUMERIC(10,7) | NN |
+| lng | NUMERIC(10,7) | NN |
+| use_count | INT | NN, mặc định 1 |
+| last_used_at | TIMESTAMPTZ | NN, mặc định NOW() |
+| created_at | TIMESTAMPTZ | NN, mặc định NOW() |
+
+Ràng buộc: UQ `(customer_id, lat, lng)`. Chỉ mục: `idx_saved_address_customer` trên `(customer_id, last_used_at DESC)`.
+
+#### s) Bảng `chat_message` (V17)
+
+Tin nhắn chat ẩn danh khách ↔ shipper qua bot làm trung gian (mục 4.7.5). Trường `sender_user_id` chỉ phục vụ audit nội bộ, không bao giờ lộ cho bên kia.
+
+| Cột | Kiểu | Ràng buộc |
+|---|---|---|
+| id | BIGSERIAL | PK |
+| assignment_id | UUID | FK → delivery_assignment(id), NN, ON DELETE CASCADE |
+| sender_role | VARCHAR(16) | NN (CUSTOMER / SHIPPER) |
+| sender_user_id | BIGINT | NN |
+| body | TEXT | NN |
+| created_at | TIMESTAMPTZ | NN, mặc định NOW() |
+
+Chỉ mục: `idx_chat_message_assignment` trên `(assignment_id, created_at)`.
+
 ## 3.2. Mô hình quan hệ
 
 ### 3.2.1. Mô hình quan hệ ER rút gọn
@@ -553,9 +587,9 @@ API của hệ thống tuân theo phong cách REST: tài nguyên được địn
 
 ### 3.4.3. Danh sách endpoint
 
-Hệ thống công bố 39 endpoint REST, liệt kê đầy đủ trong Bảng 3.3 (mỗi dòng ứng với một đường dẫn; một số đường dẫn phục vụ nhiều phương thức HTTP).
+Hệ thống công bố 45 endpoint REST, liệt kê đầy đủ trong Bảng 3.3 (mỗi dòng ứng với một đường dẫn; một số đường dẫn phục vụ nhiều phương thức HTTP). Sáu endpoint cuối bảng thuộc pha hoàn thiện sau bảo vệ (mục 4.7).
 
-**Bảng 3.3. Danh sách đầy đủ 39 endpoint REST của hệ thống**
+**Bảng 3.3. Danh sách đầy đủ 45 endpoint REST của hệ thống**
 
 | Phương thức | Đường dẫn | Vai trò | Mô tả |
 |---|---|---|---|
@@ -597,6 +631,12 @@ Hệ thống công bố 39 endpoint REST, liệt kê đầy đủ trong Bảng 3
 | GET | `/api/admin/reports/top-shippers` | Chủ shop | Xếp hạng shipper theo doanh thu |
 | GET | `/api/admin/reports/cancellation` | Chủ shop | Báo cáo tỉ lệ huỷ đơn |
 | GET, PUT | `/api/admin/settings` | Chủ shop | Xem / cập nhật cấu hình shop (`shop_config`) |
+| POST | `/api/admin/shippers/{id}/reject` | Chủ shop | Từ chối shipper đang chờ, xoá hồ sơ `PENDING` (mục 4.7.1) |
+| GET | `/api/admin/orders/{id}/history` | Chủ shop | Timeline `status_history` của đơn (mục 4.7.2) |
+| GET | `/api/admin/orders/{id}/candidate-shippers` | Chủ shop | Shipper khả dụng xếp theo khoảng cách + rating (mục 4.7.3) |
+| GET | `/api/admin/orders/{id}/chat` | Chủ shop | Bản ghi hội thoại ẩn danh của đơn, phục vụ audit (mục 4.7.5) |
+| GET | `/api/addresses` | Khách hàng | Địa chỉ giao đã lưu của khách (mục 4.7.4) |
+| DELETE | `/api/addresses/{id}` | Khách hàng | Xoá một địa chỉ đã lưu (mục 4.7.4) |
 | POST | `/api/bot/webhook` | Telegram | Nhận cập nhật bot ở chế độ webhook (header secret token) |
 
 ## 3.5. Thiết kế máy trạng thái
@@ -662,13 +702,23 @@ Song song với trạng thái phiên gán, bản thân shipper mang trạng thá
 
 ### 3.5.3. Máy trạng thái hội thoại bot (ConversationState)
 
-Bot Telegram duy trì một máy trạng thái hội thoại cho mỗi người dùng, lưu trong bảng `conversation_state` (mục 3.1.2) với ngữ cảnh JSONB kèm theo. Luồng tiêu biểu là nhập nhận xét sau khi đánh giá sao: khi khách bấm số sao, hệ thống ghi đánh giá rồi chuyển hội thoại sang trạng thái chờ nhận xét; tin nhắn văn bản kế tiếp của khách được hiểu là nhận xét và lưu vào bảng `rating`, sau đó hội thoại trở về trạng thái nghỉ.
+Bot Telegram duy trì một máy trạng thái hội thoại cho mỗi người dùng, lưu trong bảng `conversation_state` (mục 3.1.2) với ngữ cảnh JSONB kèm theo. Cùng một cơ chế FSM tổng quát phục vụ ba luồng hội thoại có trạng thái: (i) nhập nhận xét sau khi đánh giá sao; (ii) đăng ký shipper bốn bước; (iii) chat ẩn danh với đối tác giao hàng.
+
+Luồng **nhận xét đánh giá**: khi khách bấm số sao, hệ thống ghi đánh giá rồi chuyển sang trạng thái chờ nhận xét; tin nhắn kế tiếp được lưu vào bảng `rating` và hội thoại trở về nghỉ.
+
+Luồng **đăng ký shipper**: từ nút chọn vai trò, hội thoại đi qua chuỗi `AWAITING_NAME → AWAITING_PHONE → AWAITING_VEHICLE → AWAITING_PLATE`, mỗi bước xác thực đầu vào (ví dụ chuỗi bắt đầu bằng `/` không được nhận làm họ tên) trước khi tạo hồ sơ shipper `PENDING`; lệnh `/cancel` thoát ở bất kỳ bước nào.
+
+Luồng **chat ẩn danh** (mục 4.7.5): khi shipper nhận đơn, mỗi bên bấm nút "💬 Chat" để vào trạng thái `CHAT_ACTIVE` (ngữ cảnh lưu `assignmentId` + vai trò). Trong trạng thái này, mọi tin văn bản được gửi lại cho bên kia dưới dạng văn bản mới có tiền tố vai trò; các lệnh khác vẫn thoát ra để xử lý bình thường; `/thoat` hoặc việc đơn hoàn tất sẽ đóng hội thoại.
 
 ```mermaid
 stateDiagram-v2
     [*] --> IDLE
     IDLE --> CUSTOMER_RATING_COMMENT : khách bấm sao,<br/>RatingService.rate xong
     CUSTOMER_RATING_COMMENT --> IDLE : khách gõ text (lưu comment)<br/>hoặc /skip
+    IDLE --> SHIPPER_REG_AWAITING_NAME : chọn vai trò Shipper
+    SHIPPER_REG_AWAITING_NAME --> IDLE : hoàn tất đăng ký<br/>hoặc /cancel
+    IDLE --> CHAT_ACTIVE : bấm 💬 Chat<br/>(đơn đang giao)
+    CHAT_ACTIVE --> IDLE : /thoat hoặc đơn hoàn tất
 ```
 
 Trạng thái hội thoại có thời gian sống 30 phút: một tác vụ định kỳ dọn các trạng thái quá hạn dựa trên chỉ mục `idx_conversation_state_updated_at`, tránh tình huống người dùng bị "kẹt" vĩnh viễn trong một trạng thái chờ nhập.
@@ -719,4 +769,4 @@ Hai bảng kiểm toán cung cấp khả năng truy vết hậu kỳ. Bảng `pa
 
 ## 3.7. Kết luận chương
 
-Chương 3 đã trình bày trọn vẹn các mảng thiết kế của hệ thống: thiết kế dữ liệu với mô hình thực thể liên kết, đặc tả logic 15 bảng do các migration Flyway V1–V15 tạo lập và mô hình quan hệ tường minh; kiến trúc tổng thể Modular Monolith gồm 8 bounded context phụ thuộc một chiều, giao tiếp bằng sự kiện ứng dụng và triển khai bằng Docker Compose năm container; thiết kế API với 39 endpoint REST phân vùng theo vai trò cùng ba cơ chế xác thực; các máy trạng thái hữu hạn điều khiển vòng đời đơn hàng bảy trạng thái, phiên giao của shipper và hội thoại bot; và thiết kế bảo mật phòng thủ nhiều lớp với mô hình STRIDE cùng 11 lớp đối phó. Toàn bộ thiết kế này là cơ sở để Chương 4 trình bày kết quả sản phẩm đã xây dựng được trên cả ba kênh Mini App, Bot Telegram và Web Admin.
+Chương 3 đã trình bày trọn vẹn các mảng thiết kế của hệ thống: thiết kế dữ liệu với mô hình thực thể liên kết, đặc tả logic 17 bảng do các migration Flyway V1–V17 tạo lập và mô hình quan hệ tường minh; kiến trúc tổng thể Modular Monolith gồm 8 bounded context phụ thuộc một chiều, giao tiếp bằng sự kiện ứng dụng và triển khai bằng Docker Compose năm container; thiết kế API với 45 endpoint REST phân vùng theo vai trò cùng ba cơ chế xác thực; các máy trạng thái hữu hạn điều khiển vòng đời đơn hàng bảy trạng thái, phiên giao của shipper và hội thoại bot; và thiết kế bảo mật phòng thủ nhiều lớp với mô hình STRIDE cùng 11 lớp đối phó. Toàn bộ thiết kế này là cơ sở để Chương 4 trình bày kết quả sản phẩm đã xây dựng được trên cả ba kênh Mini App, Bot Telegram và Web Admin.

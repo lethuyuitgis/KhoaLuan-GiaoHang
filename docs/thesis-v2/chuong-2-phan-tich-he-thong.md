@@ -23,6 +23,8 @@ Khách hàng là người dùng cuối tương tác với hệ thống hoàn to�
 - **Theo dõi vị trí shipper thời gian thực.** Khi đơn đang ở trạng thái giao (`DELIVERING`), khách theo dõi vị trí shipper di chuyển trên bản đồ Leaflet.
 - **Huỷ đơn.** Khách chủ động huỷ đơn khi đơn còn ở trạng thái `PENDING` hoặc `CONFIRMED`.
 - **Đánh giá shipper.** Sau khi đơn được giao thành công (`DELIVERED`), khách chấm điểm shipper từ 1 đến 5 sao kèm bình luận tuỳ chọn thông qua bot Telegram.
+- **Lưu và tái dùng địa chỉ giao.** Địa chỉ giao được tự động lưu khi đặt đơn thành công; ở lần checkout sau, khách chọn nhanh từ danh sách địa chỉ đã lưu ngay trong ô tìm kiếm (autocomplete), khỏi nhập lại (mục 4.7.4).
+- **Chat ẩn danh với shipper.** Trong lúc đơn đang giao, khách nhắn tin trực tiếp với shipper qua bot làm trung gian mà không lộ số điện thoại hay tài khoản Telegram của hai bên (mục 4.7.5).
 
 **b) Nhóm chức năng của Shipper**
 
@@ -34,6 +36,8 @@ Shipper là nhân viên giao hàng nội bộ của shop, tương tác qua bot T
 - **Đánh dấu đã giao.** Shipper xác nhận đã giao hàng thành công, kết thúc assignment.
 - **Báo cáo sự cố giao hàng.** Trường hợp không liên lạc được khách, shipper báo cáo để chuyển đơn sang trạng thái hoàn trả (`RETURNED`).
 - **Chuyển trạng thái sẵn sàng.** Shipper bật/tắt trạng thái `AVAILABLE`/`OFFLINE` để hệ thống biết có thể gán đơn hay không.
+- **Đăng ký làm shipper qua bot.** Người dùng đăng ký làm shipper qua hội thoại bot bốn bước (họ tên → số điện thoại → phương tiện → biển số), tạo hồ sơ ở trạng thái chờ duyệt và nhận thông báo khi được chủ shop duyệt (mục 4.7.1).
+- **Chat ẩn danh với khách.** Shipper nhắn tin với khách hàng của đơn đang giao qua bot trung gian, không lộ định danh hai bên (mục 4.7.5).
 
 **c) Nhóm chức năng của Chủ shop**
 
@@ -43,17 +47,18 @@ Chủ shop quản trị toàn hệ thống qua Web Admin, xác thực bằng ema
 - **Xem dashboard.** Chủ shop xem các chỉ số vận hành quan trọng (KPI) và ba biểu đồ: doanh thu theo ngày, top shipper, tỉ lệ huỷ đơn.
 - **Quản lý đơn hàng thời gian thực.** Chủ shop xem danh sách đơn, lọc theo trạng thái và khoảng ngày, nhận đơn mới đẩy về theo thời gian thực qua WebSocket.
 - **Xác nhận đơn COD.** Chủ shop xác nhận các đơn thanh toán tiền mặt để chuyển từ `PENDING` sang `CONFIRMED`.
-- **Gán shipper cho đơn.** Chủ shop chọn shipper phù hợp và gán đơn, kích hoạt luồng offer qua bot.
+- **Gán shipper cho đơn.** Chủ shop chọn shipper phù hợp và gán đơn, kích hoạt luồng offer qua bot; danh sách ứng viên được xếp hạng theo khoảng cách (từ vị trí gần nhất của shipper đến điểm lấy hàng) và điểm đánh giá (mục 4.7.3).
+- **Xem timeline trạng thái đơn.** Chủ shop xem dòng thời gian đầy đủ các lần chuyển trạng thái của đơn (từ trạng thái nào sang trạng thái nào, thời điểm, ghi chú) phục vụ tra soát (mục 4.7.2).
 - **Huỷ đơn.** Chủ shop huỷ đơn kèm lý do ở các trạng thái cho phép.
 - **Quản lý sản phẩm.** Chủ shop thêm, sửa, xoá sản phẩm (CRUD).
-- **Quản lý và duyệt shipper.** Chủ shop duyệt shipper đăng ký mới, khoá và mở khoá shipper.
+- **Quản lý, duyệt và từ chối shipper.** Chủ shop duyệt hoặc từ chối shipper đăng ký mới qua bot (hoàn tất vòng đăng ký–duyệt), khoá và mở khoá shipper (mục 4.7.1).
 - **Xem báo cáo thống kê.** Chủ shop xem báo cáo doanh thu, top shipper theo doanh thu và tỉ lệ huỷ theo khoảng thời gian tuỳ chọn.
 
 Việc gom nhóm theo vai trò cho thấy ba tác nhân có mối liên hệ tuần tự chặt chẽ: khách hàng khởi tạo nhu cầu (đặt đơn), chủ shop điều phối (xác nhận, gán), shipper thực thi (giao hàng), và vòng lặp khép lại khi khách đánh giá. Chính sự đan xen này đòi hỏi một cơ chế đồng bộ trạng thái xuyên suốt — được hiện thực bằng máy trạng thái đơn hàng bảy trạng thái.
 
 **d) Bảng yêu cầu chức năng**
 
-Từ ba nhóm chức năng theo vai trò, các yêu cầu được hệ thống hoá thành 15 yêu cầu chức năng (Functional Requirement — FR) đánh mã FR1 đến FR15. Mỗi yêu cầu là một đơn vị có thể kiểm chứng độc lập; toàn bộ 15 yêu cầu này về sau được hiện thực qua 39 REST endpoint của hệ thống.
+Từ ba nhóm chức năng theo vai trò, các yêu cầu được hệ thống hoá thành 20 yêu cầu chức năng (Functional Requirement — FR) đánh mã FR1 đến FR20 — trong đó FR16–FR20 thuộc pha hoàn thiện sau bảo vệ (mục 4.7). Mỗi yêu cầu là một đơn vị có thể kiểm chứng độc lập; toàn bộ được hiện thực qua 45 REST endpoint của hệ thống.
 
 **Bảng 2.1. Bảng yêu cầu chức năng theo vai trò**
 
@@ -74,6 +79,11 @@ Từ ba nhóm chức năng theo vai trò, các yêu cầu được hệ thống 
 | FR13 | Chủ shop | Quản lý đơn: xem, lọc theo trạng thái và khoảng ngày, xác nhận, gán shipper, huỷ |
 | FR14 | Chủ shop | CRUD sản phẩm; quản lý shipper (duyệt, khoá, mở khoá) |
 | FR15 | Chủ shop | Xem báo cáo doanh thu, top shipper, tỉ lệ huỷ theo khoảng thời gian chọn trước |
+| FR16 | Khách hàng | Tự lưu địa chỉ giao khi đặt đơn và gợi ý lại (autocomplete) ở lần checkout sau |
+| FR17 | Khách hàng, Shipper | Chat ẩn danh khách ↔ shipper qua bot trung gian (giấu định danh hai bên), lưu lịch sử hội thoại |
+| FR18 | Chủ shop | Xem timeline lịch sử chuyển trạng thái của từng đơn |
+| FR19 | Chủ shop | Gán shipper với danh sách ứng viên xếp theo khoảng cách và điểm đánh giá |
+| FR20 | Chủ shop | Duyệt hoặc từ chối shipper đăng ký qua bot, hoàn tất vòng đăng ký–duyệt |
 
 **e) Bảng yêu cầu phi chức năng**
 
@@ -566,6 +576,6 @@ Sơ đồ mức dưới đỉnh làm rõ ba điểm thiết kế then chốt c�
 
 ## 2.5. Kết luận chương
 
-Chương 2 đã hoàn thành việc phân tích hệ thống quản lý giao hàng theo trình tự phương pháp luận chặt chẽ. Trước hết, các chức năng được xác định và gom nhóm theo ba vai trò (khách hàng, shipper, chủ shop), hệ thống hoá thành 15 yêu cầu chức năng và 7 yêu cầu phi chức năng kèm tiêu chí đo lường (Bảng 2.1 và Bảng 2.2), rồi tổ chức lại thành sáu phân hệ nghiệp vụ qua sơ đồ phân cấp chức năng. Tiếp đó, bảy quy trình nghiệp vụ trọng tâm — đặt đơn COD, đặt đơn và thanh toán VNPay với IPN, gán shipper và giao hàng kèm Live Location, đánh giá shipper, chủ shop quản lý và gán đơn, đăng ký và duyệt shipper, hết hạn thanh toán PENDING — được mô tả bằng lời kết hợp sơ đồ tuần tự và lưu đồ. Sáu use case quan trọng nhất được đặc tả chi tiết dưới dạng bảng theo chuẩn UML (Bảng 2.3 đến Bảng 2.8) với đầy đủ tác nhân, điều kiện trước, luồng chính, luồng thay thế, ngoại lệ và điều kiện sau. Cuối cùng, dòng dữ liệu trong hệ thống được biểu diễn qua ba mức DFD, làm rõ ranh giới hệ thống, các tiến trình xử lý, sáu kho dữ liệu chính và cơ chế tích hợp cổng thanh toán VNPay.
+Chương 2 đã hoàn thành việc phân tích hệ thống quản lý giao hàng theo trình tự phương pháp luận chặt chẽ. Trước hết, các chức năng được xác định và gom nhóm theo ba vai trò (khách hàng, shipper, chủ shop), hệ thống hoá thành 20 yêu cầu chức năng (FR1–FR15 tại thời điểm bảo vệ, FR16–FR20 hoàn thiện sau bảo vệ) và 7 yêu cầu phi chức năng kèm tiêu chí đo lường (Bảng 2.1 và Bảng 2.2), rồi tổ chức lại thành sáu phân hệ nghiệp vụ qua sơ đồ phân cấp chức năng. Tiếp đó, bảy quy trình nghiệp vụ trọng tâm — đặt đơn COD, đặt đơn và thanh toán VNPay với IPN, gán shipper và giao hàng kèm Live Location, đánh giá shipper, chủ shop quản lý và gán đơn, đăng ký và duyệt shipper, hết hạn thanh toán PENDING — được mô tả bằng lời kết hợp sơ đồ tuần tự và lưu đồ. Sáu use case quan trọng nhất được đặc tả chi tiết dưới dạng bảng theo chuẩn UML (Bảng 2.3 đến Bảng 2.8) với đầy đủ tác nhân, điều kiện trước, luồng chính, luồng thay thế, ngoại lệ và điều kiện sau. Cuối cùng, dòng dữ liệu trong hệ thống được biểu diễn qua ba mức DFD, làm rõ ranh giới hệ thống, các tiến trình xử lý, sáu kho dữ liệu chính và cơ chế tích hợp cổng thanh toán VNPay.
 
 Toàn bộ kết quả phân tích trong chương này — đặc biệt là máy trạng thái đơn hàng bảy trạng thái, ranh giới phân hệ và cấu trúc dòng dữ liệu — là cơ sở trực tiếp để Chương 3 trình bày thiết kế chi tiết kiến trúc, cơ sở dữ liệu, API và các cơ chế bảo mật của hệ thống.
