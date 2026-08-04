@@ -5,6 +5,16 @@ export type OrderStatus =
 export type PaymentMethod = 'COD' | 'VNPAY';
 export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
 
+/** One entry of an order's status timeline (a row of status_history). */
+export interface StatusHistoryResponse {
+  id: number;
+  fromStatus: OrderStatus | null;
+  toStatus: OrderStatus;
+  changedByUserId: number | null;
+  changedAt: string;
+  note: string | null;
+}
+
 export interface OrderItemResponse {
   id: number;
   productId: number;

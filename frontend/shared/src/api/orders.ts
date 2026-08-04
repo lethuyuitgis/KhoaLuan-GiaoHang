@@ -1,5 +1,5 @@
 import type { AxiosInstance } from 'axios';
-import type { CreateOrderRequest, OrderResponse, OrderSummary, Page } from '../types';
+import type { CreateOrderRequest, OrderResponse, OrderSummary, Page, StatusHistoryResponse } from '../types';
 
 export async function createOrder(
   client: AxiosInstance,
@@ -31,5 +31,14 @@ export async function cancelOrder(
   reason?: string
 ): Promise<OrderResponse> {
   const { data } = await client.post<OrderResponse>(`/api/orders/${id}/cancel`, { reason });
+  return data;
+}
+
+/** Web Admin: status timeline of an order, oldest→newest (as stored). */
+export async function getAdminOrderHistory(
+  client: AxiosInstance,
+  id: string
+): Promise<StatusHistoryResponse[]> {
+  const { data } = await client.get<StatusHistoryResponse[]>(`/api/admin/orders/${id}/history`);
   return data;
 }

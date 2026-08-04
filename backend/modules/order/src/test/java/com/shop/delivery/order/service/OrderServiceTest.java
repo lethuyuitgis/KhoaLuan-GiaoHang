@@ -141,6 +141,36 @@ class OrderServiceTest {
             .isInstanceOf(NotFoundException.class);
     }
 
+    @Test
+    void listHistoryShouldReturnEntriesOrderedForExistingOrder() {
+        UUID id = UUID.randomUUID();
+        when(orderRepo.findById(id)).thenReturn(Optional.of(makeOrder(id, OrderStatus.CONFIRMED)));
+        StatusHistory h1 = historyEntry(id, null, OrderStatus.PENDING);
+        StatusHistory h2 = historyEntry(id, OrderStatus.PENDING, OrderStatus.CONFIRMED);
+        when(statusHistoryRepo.findAllByOrderIdOrderByChangedAtAsc(id)).thenReturn(List.of(h1, h2));
+
+        List<StatusHistory> result = service.listHistory(id);
+
+        assertThat(result).containsExactly(h1, h2);
+    }
+
+    @Test
+    void listHistoryShouldThrowWhenOrderMissing() {
+        UUID id = UUID.randomUUID();
+        when(orderRepo.findById(id)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.listHistory(id))
+            .isInstanceOf(NotFoundException.class);
+    }
+
+    private StatusHistory historyEntry(UUID orderId, OrderStatus from, OrderStatus to) {
+        StatusHistory h = new StatusHistory();
+        h.setOrderId(orderId);
+        h.setFromStatus(from);
+        h.setToStatus(to);
+        return h;
+    }
+
     private Product makeProduct(Long id, String name, BigDecimal price, int stock) {
         Product p = new Product();
         p.setId(id);

@@ -173,6 +173,16 @@ public class OrderService {
             .orElseThrow(() -> new NotFoundException("ORDER_NOT_FOUND", "Đơn " + id + " không tồn tại"));
     }
 
+    /**
+     * Status timeline for an order, oldest→newest. Validates the order exists
+     * (404 otherwise) before returning its {@code status_history} rows.
+     */
+    @Transactional(readOnly = true)
+    public List<StatusHistory> listHistory(UUID id) {
+        findById(id); // 404 if the order does not exist
+        return statusHistoryRepo.findAllByOrderIdOrderByChangedAtAsc(id);
+    }
+
     @Transactional(readOnly = true)
     public Page<Order> findMine(Long customerId, Pageable pageable) {
         return orderRepo.findAllByCustomerIdOrderByCreatedAtDesc(customerId, pageable);

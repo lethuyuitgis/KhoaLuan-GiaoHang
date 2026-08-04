@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formatVnd, formatDateTime, type OrderResponse } from '@shop/shared';
+import { formatVnd, formatDateTime, getAdminOrderHistory, type OrderResponse } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { StatusTimeline } from '@/components/StatusTimeline';
 import { AssignShipperModal } from '@/components/AssignShipperModal';
 
 export function OrderDetailPage() {
@@ -18,6 +19,14 @@ export function OrderDetailPage() {
       const { data } = await api.get<OrderResponse>(`/api/admin/orders/${id}`);
       return data;
     },
+    enabled: !!id,
+  });
+
+  // Child key of ['admin','order',id] → confirm/cancel/assign invalidations of
+  // the order automatically cascade a history refetch (prefix match).
+  const { data: history } = useQuery({
+    queryKey: ['admin', 'order', id, 'history'],
+    queryFn: () => getAdminOrderHistory(api, id!),
     enabled: !!id,
   });
 
@@ -158,6 +167,11 @@ export function OrderDetailPage() {
               )}
             </div>
           )}
+
+          <div className="bg-white rounded-lg shadow p-4">
+            <h2 className="font-semibold mb-3">Lịch sử trạng thái</h2>
+            <StatusTimeline entries={history ?? []} />
+          </div>
         </div>
       </div>
       {order.status === 'DELIVERED' && (

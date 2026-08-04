@@ -3,9 +3,11 @@ package com.shop.delivery.order.api.mapper;
 import com.shop.delivery.order.api.dto.OrderItemResponse;
 import com.shop.delivery.order.api.dto.OrderResponse;
 import com.shop.delivery.order.api.dto.OrderSummary;
+import com.shop.delivery.order.api.dto.StatusHistoryResponse;
 import com.shop.delivery.order.entity.Order;
 import com.shop.delivery.order.entity.OrderItem;
 import com.shop.delivery.order.entity.Product;
+import com.shop.delivery.order.entity.StatusHistory;
 import com.shop.delivery.order.repository.OrderItemRepository;
 import com.shop.delivery.order.repository.ProductRepository;
 import org.springframework.stereotype.Component;
@@ -61,5 +63,12 @@ public class OrderMapper {
         String image = product != null ? product.getImageUrl() : null;
         return new OrderItemResponse(item.getId(), item.getProductId(), name, image,
             item.getQuantity(), item.getUnitPrice(), item.getSubtotal());
+    }
+
+    public StatusHistoryResponse toHistoryResponse(StatusHistory h) {
+        return new StatusHistoryResponse(
+            h.getId(), h.getFromStatus(), h.getToStatus(),
+            h.getChangedByUserId(), h.getChangedAt(), h.getNote()
+        );
     }
 }

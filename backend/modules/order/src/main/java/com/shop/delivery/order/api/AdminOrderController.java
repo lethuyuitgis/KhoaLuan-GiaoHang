@@ -5,6 +5,7 @@ import com.shop.delivery.order.api.dto.CancelOrderRequest;
 import com.shop.delivery.order.api.dto.ConfirmOrderRequest;
 import com.shop.delivery.order.api.dto.OrderResponse;
 import com.shop.delivery.order.api.dto.OrderSummary;
+import com.shop.delivery.order.api.dto.StatusHistoryResponse;
 import com.shop.delivery.order.api.mapper.OrderMapper;
 import com.shop.delivery.order.service.OrderService;
 import org.springframework.data.domain.Page;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -42,6 +44,11 @@ public class AdminOrderController {
     @GetMapping("/{id}")
     public OrderResponse get(@PathVariable UUID id) {
         return mapper.toResponse(service.findById(id));
+    }
+
+    @GetMapping("/{id}/history")
+    public List<StatusHistoryResponse> history(@PathVariable UUID id) {
+        return service.listHistory(id).stream().map(mapper::toHistoryResponse).toList();
     }
 
     @PostMapping("/{id}/confirm")
