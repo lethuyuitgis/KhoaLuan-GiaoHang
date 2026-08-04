@@ -22,3 +22,22 @@ export interface CreateShipperRequest {
   vehicleType: VehicleType;
   licensePlate?: string;
 }
+
+/**
+ * An AVAILABLE shipper ranked as a candidate for assigning a specific order.
+ * distanceKm/lastLocationAt are null when the shipper has no location history
+ * (never delivered) — the UI shows "chưa rõ vị trí" and sorts them last.
+ */
+export interface ShipperCandidateResponse {
+  userId: number;
+  firstName: string | null;
+  lastName: string | null;
+  username: string | null;
+  vehicleType: VehicleType;
+  licensePlate: string | null;
+  ratingAvg: number;
+  ratingCount: number;
+  totalDeliveries: number;
+  distanceKm: number | null;
+  lastLocationAt: string | null;
+}
