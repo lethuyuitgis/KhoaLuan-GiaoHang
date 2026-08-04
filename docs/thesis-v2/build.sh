@@ -32,6 +32,9 @@ cd "$WORK"
 pandoc "${FILES[@]}" -o "$OUT/BAO-CAO-KLTN.docx" --reference-doc="$REF" \
        --resource-path="$WORK"
 
+# 2b. Nới giãn cách bảng (padding ô + giãn dòng) — TRƯỚC khi cấy bìa
+python3 "$SRC/space-tables.py" "$OUT/BAO-CAO-KLTN.docx"
+
 # 3. Cấy nguyên trang bìa (khung viền + logo + bảng thông tin) từ template
 python3 "$SRC/inject-cover.py" "$TEMPLATE" "$OUT/BAO-CAO-KLTN.docx"
 
