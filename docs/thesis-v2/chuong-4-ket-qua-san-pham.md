@@ -263,37 +263,22 @@ Web Admin là giao diện chạy trên trình duyệt desktop dành cho chủ sh
 
 Mini App khách hàng chạy trực tiếp bên trong Telegram, không yêu cầu cài ứng dụng ngoài. Khách được đăng nhập tự động qua `initData` (HMAC-SHA256) mà không cần nhập mật khẩu. Luồng trải nghiệm gồm: duyệt danh mục → thêm giỏ hàng → checkout (COD/VNPay) → theo dõi đơn trên bản đồ realtime → xem lịch sử và đánh giá shipper.
 
-**Danh mục sản phẩm.** Trang danh mục hiển thị các sản phẩm của shop kèm ảnh, tên, giá. Khách bấm thêm sản phẩm vào giỏ ngay tại đây; giao diện được tối ưu cho màn hình di động trong khung Telegram.
-
-![Hình 4.9. Danh mục sản phẩm trên Mini App khách hàng](screenshots/miniapp-cust-01-catalog.png)
-
-**Giỏ hàng.** Giỏ hàng liệt kê các sản phẩm đã chọn, cho phép tăng/giảm số lượng, xoá món và hiển thị tạm tính. Trạng thái giỏ được lưu bền vững (persist) bằng Zustand nên không mất khi khách rời và quay lại.
-
-![Hình 4.10. Giỏ hàng đã có sản phẩm](screenshots/miniapp-cust-05-cart-filled.png)
-
-**Thanh toán (Checkout).** Trang checkout cho phép khách ghim toạ độ giao hàng trên bản đồ Leaflet (phí ship tính tự động theo Haversine), nhập thông tin liên hệ và chọn phương thức thanh toán COD hoặc VNPay. Với VNPay, hệ thống mở trang thanh toán qua `Telegram.WebApp.openLink`.
-
-![Hình 4.11. Trang thanh toán (checkout) chọn phương thức COD/VNPay](screenshots/miniapp-cust-06-checkout.png)
-
-**Lịch sử đơn hàng.** Trang lịch sử liệt kê các đơn của khách kèm trạng thái hiện tại, cho phép khách theo dõi tiến trình từng đơn theo thời gian.
-
-![Hình 4.12. Lịch sử đơn hàng của khách](screenshots/miniapp-cust-03-orders.png)
-
-**Chi tiết đơn và bản đồ tracking.** Khi đơn đang được giao, khách theo dõi vị trí shipper theo thời gian thực trên bản đồ react-leaflet + OpenStreetMap, với độ trễ end-to-end dưới ba giây nhờ Telegram Live Location và WebSocket STOMP. Sau khi đơn hoàn tất, khách đánh giá shipper 1–5 sao kèm bình luận qua FSM hội thoại trong Bot.
-
-![Hình 4.13. Chi tiết đơn hàng và bản đồ theo dõi vị trí shipper realtime](screenshots/miniapp-cust-07-order-detail.png)
+| Giao diện | Mô tả |
+|:---:|:---|
+| ![](screenshots/miniapp-cust-01-catalog.png){width="4.3cm"} | **Hình 4.9 — Danh mục sản phẩm.** Trang danh mục hiển thị các sản phẩm của shop kèm ảnh, tên, giá. Khách bấm thêm sản phẩm vào giỏ ngay tại đây; giao diện được tối ưu cho màn hình di động trong khung Telegram. |
+| ![](screenshots/miniapp-cust-05-cart-filled.png){width="4.3cm"} | **Hình 4.10 — Giỏ hàng.** Giỏ hàng liệt kê các sản phẩm đã chọn, cho phép tăng/giảm số lượng, xoá món và hiển thị tạm tính. Trạng thái giỏ được lưu bền vững (persist) bằng Zustand nên không mất khi khách rời và quay lại. |
+| ![](screenshots/miniapp-cust-06-checkout.png){width="4.3cm"} | **Hình 4.11 — Thanh toán (Checkout).** Trang checkout cho phép khách ghim toạ độ giao hàng trên bản đồ Leaflet (phí ship tính tự động theo Haversine), nhập thông tin liên hệ và chọn phương thức thanh toán COD hoặc VNPay. Với VNPay, hệ thống mở trang thanh toán qua `Telegram.WebApp.openLink`. |
+| ![](screenshots/miniapp-cust-03-orders.png){width="4.3cm"} | **Hình 4.12 — Lịch sử đơn hàng.** Trang lịch sử liệt kê các đơn của khách kèm trạng thái hiện tại, cho phép khách theo dõi tiến trình từng đơn theo thời gian. |
+| ![](screenshots/miniapp-cust-07-order-detail.png){width="4.3cm"} | **Hình 4.13 — Chi tiết đơn và bản đồ tracking.** Khi đơn đang được giao, khách theo dõi vị trí shipper theo thời gian thực trên bản đồ react-leaflet + OpenStreetMap, với độ trễ end-to-end dưới ba giây nhờ Telegram Live Location và WebSocket STOMP. Sau khi đơn hoàn tất, khách đánh giá shipper 1–5 sao kèm bình luận qua FSM hội thoại trong Bot. |
 
 ### 4.6.3. Giao diện Mini App Shipper
 
 Mini App shipper cũng chạy bên trong Telegram, phục vụ đội shipper nội bộ của shop. Shipper đăng ký qua Bot (FSM bốn bước: tên → số điện thoại → loại xe → biển số), chờ chủ shop duyệt, sau đó nhận và thực hiện các đơn giao.
 
-**Danh sách phân công (assignment).** Trang danh sách hiển thị các đơn được gán cho shipper cùng trạng thái tương ứng. Shipper nhận/từ chối offer qua inline keyboard của Bot; các nút "Bắt đầu giao" và "Đã giao xong" điều khiển chuyển trạng thái trong máy trạng thái giao hàng.
-
-![Hình 4.14. Danh sách đơn được phân công cho shipper](screenshots/miniapp-ship-01-assignments.png)
-
-**Chi tiết phân công.** Trang chi tiết hiển thị thông tin đơn, địa chỉ và toạ độ giao, thông tin liên hệ khách. Khi bắt đầu giao, shipper chia sẻ Telegram Live Location để khách theo dõi; khi hoàn tất, shipper đánh dấu đã giao và có thể đánh giá lại khách hàng.
-
-![Hình 4.15. Chi tiết đơn phân công của shipper](screenshots/miniapp-ship-02-assignment-detail.png)
+| Giao diện | Mô tả |
+|:---:|:---|
+| ![](screenshots/miniapp-ship-01-assignments.png){width="4.3cm"} | **Hình 4.14 — Danh sách phân công (assignment).** Trang danh sách hiển thị các đơn được gán cho shipper cùng trạng thái tương ứng. Shipper nhận/từ chối offer qua inline keyboard của Bot; các nút "Bắt đầu giao" và "Đã giao xong" điều khiển chuyển trạng thái trong máy trạng thái giao hàng. |
+| ![](screenshots/miniapp-ship-02-assignment-detail.png){width="4.3cm"} | **Hình 4.15 — Chi tiết phân công.** Trang chi tiết hiển thị thông tin đơn, địa chỉ và toạ độ giao, thông tin liên hệ khách. Khi bắt đầu giao, shipper chia sẻ Telegram Live Location để khách theo dõi; khi hoàn tất, shipper đánh dấu đã giao và có thể đánh giá lại khách hàng. |
 
 ## 4.7. Các tính năng hoàn thiện sau bảo vệ
 
