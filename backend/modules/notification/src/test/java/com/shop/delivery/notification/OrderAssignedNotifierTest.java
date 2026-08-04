@@ -2,6 +2,7 @@ package com.shop.delivery.notification;
 
 import com.shop.delivery.bot.sender.BotSender;
 import com.shop.delivery.delivery.repository.RatingRepository;
+import com.shop.delivery.delivery.service.event.OrderAcceptedEvent;
 import com.shop.delivery.delivery.service.event.OrderDeliveredEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,11 +13,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -49,6 +52,28 @@ class OrderAssignedNotifierTest {
 
         // Shipper side: existing thank-you must still fire
         verify(bot).sendText(2001L, "✅ Hoàn thành đơn DH001. Chúc bạn ngày làm việc tốt lành!");
+    }
+
+    @Test
+    void onOrderAccepted_offersBothPartiesAChatButton() {
+        UUID assignmentId = UUID.randomUUID();
+        OrderAcceptedEvent e = new OrderAcceptedEvent(
+            assignmentId, UUID.randomUUID(), "DH003", 2001L, 1001L);
+
+        notifier.onOrderAccepted(e);
+
+        ArgumentCaptor<SendMessage> cap = ArgumentCaptor.forClass(SendMessage.class);
+        verify(bot, times(2)).execute(cap.capture());
+        List<SendMessage> sent = cap.getAllValues();
+        // Both the shipper (2001) and the customer (1001) are messaged.
+        assertThat(sent).extracting(SendMessage::getChatId).containsExactlyInAnyOrder("2001", "1001");
+        // Each carries a "Chat" button opening this assignment's chat.
+        for (SendMessage m : sent) {
+            assertThat(m.getReplyMarkup()).isInstanceOf(InlineKeyboardMarkup.class);
+            InlineKeyboardMarkup kb = (InlineKeyboardMarkup) m.getReplyMarkup();
+            assertThat(kb.getKeyboard().get(0).get(0).getCallbackData())
+                .isEqualTo("CHAT_OPEN:" + assignmentId);
+        }
     }
 
     @Test

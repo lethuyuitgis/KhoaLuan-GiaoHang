@@ -2,8 +2,10 @@ package com.shop.delivery.delivery.api.admin;
 
 import com.shop.delivery.auth.api.admin.AdminPrincipal;
 import com.shop.delivery.delivery.api.admin.dto.AssignShipperRequest;
+import com.shop.delivery.delivery.api.admin.dto.ChatMessageResponse;
 import com.shop.delivery.delivery.api.admin.dto.ShipperCandidateResponse;
 import com.shop.delivery.delivery.entity.DeliveryAssignment;
+import com.shop.delivery.delivery.service.ChatService;
 import com.shop.delivery.delivery.service.DeliveryAssignmentService;
 import com.shop.delivery.delivery.service.ShipperCandidateService;
 import com.shop.delivery.delivery.service.command.AssignShipperCommand;
@@ -27,11 +29,14 @@ public class AdminAssignController {
 
     private final DeliveryAssignmentService service;
     private final ShipperCandidateService candidateService;
+    private final ChatService chatService;
 
     public AdminAssignController(DeliveryAssignmentService service,
-                                 ShipperCandidateService candidateService) {
+                                 ShipperCandidateService candidateService,
+                                 ChatService chatService) {
         this.service = service;
         this.candidateService = candidateService;
+        this.chatService = chatService;
     }
 
     public record AssignmentResponse(
@@ -53,5 +58,13 @@ public class AdminAssignController {
                                      @Valid @RequestBody AssignShipperRequest req) {
         DeliveryAssignment a = service.assign(new AssignShipperCommand(orderId, req.shipperId(), admin.adminUserId()));
         return new AssignmentResponse(a.getId(), a.getOrderId(), a.getShipperId(), a.getStatus().name());
+    }
+
+    /** Anonymous chat transcript of an order (customer↔shipper), for audit. */
+    @GetMapping("/{orderId}/chat")
+    public List<ChatMessageResponse> chat(@PathVariable UUID orderId) {
+        return chatService.historyForOrder(orderId).stream()
+            .map(m -> new ChatMessageResponse(m.getId(), m.getSenderRole(), m.getBody(), m.getCreatedAt()))
+            .toList();
     }
 }

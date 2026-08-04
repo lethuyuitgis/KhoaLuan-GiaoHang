@@ -1,5 +1,6 @@
 package com.shop.delivery.notification;
 
+import com.shop.delivery.bot.fsm.ChatStates;
 import com.shop.delivery.bot.sender.BotSender;
 import com.shop.delivery.delivery.repository.RatingRepository;
 import com.shop.delivery.delivery.service.event.OrderAcceptedEvent;
@@ -70,8 +71,23 @@ public class OrderAssignedNotifier {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderAccepted(OrderAcceptedEvent e) {
-        bot.sendText(e.shipperId(), "✅ Bạn đã nhận đơn " + e.orderCode() + ". Mở Mini App để bắt đầu giao.");
-        bot.sendText(e.customerId(), "🚴 Shipper đã nhận đơn " + e.orderCode() + ". Đơn sắp được giao.");
+        // Offer both parties a one-tap entry into anonymous chat for this delivery.
+        bot.execute(withChatButton(e.shipperId(), e.assignmentId(),
+            "✅ Bạn đã nhận đơn " + e.orderCode() + ". Mở Mini App để bắt đầu giao."));
+        bot.execute(withChatButton(e.customerId(), e.assignmentId(),
+            "🚴 Shipper đã nhận đơn " + e.orderCode() + ". Đơn sắp được giao."));
+    }
+
+    private SendMessage withChatButton(Long chatId, java.util.UUID assignmentId, String text) {
+        InlineKeyboardButton chatBtn = InlineKeyboardButton.builder()
+            .text("💬 Chat")
+            .callbackData(ChatStates.CALLBACK_CHAT_OPEN + assignmentId)
+            .build();
+        return SendMessage.builder()
+            .chatId(chatId)
+            .text(text)
+            .replyMarkup(InlineKeyboardMarkup.builder().keyboard(List.of(List.of(chatBtn))).build())
+            .build();
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
