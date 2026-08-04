@@ -679,7 +679,7 @@ Hệ thống áp dụng nguyên tắc phòng thủ nhiều lớp (defense-in-dep
 
 ### 3.6.1. Mô hình đe doạ và 11 lớp phòng thủ
 
-Các mối đe doạ được nhận diện có hệ thống theo mô hình STRIDE (Spoofing — giả mạo danh tính, Tampering — can thiệp dữ liệu, Repudiation — chối bỏ hành vi, Information disclosure — rò rỉ thông tin, Denial of service — từ chối dịch vụ, Elevation of privilege — leo thang đặc quyền) [21], [22]. Từ đó hệ thống thiết kế 11 lớp phòng thủ, tổng hợp trong Bảng 3.5.
+Các mối đe doạ được nhận diện có hệ thống theo mô hình STRIDE (Spoofing — giả mạo danh tính, Tampering — can thiệp dữ liệu, Repudiation — chối bỏ hành vi, Information disclosure — rò rỉ thông tin, Denial of service — từ chối dịch vụ, Elevation of privilege — leo thang đặc quyền) [17], [18]. Từ đó hệ thống thiết kế 11 lớp phòng thủ, tổng hợp trong Bảng 3.5.
 
 **Bảng 3.5. Mô hình đe doạ và 11 lớp phòng thủ (defense-in-depth)**
 
