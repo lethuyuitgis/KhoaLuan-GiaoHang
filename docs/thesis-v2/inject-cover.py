@@ -22,6 +22,18 @@ import zipfile
 from pathlib import Path
 
 SPACING = '<w:spacing w:before="0" w:after="0" w:line="240" w:lineRule="auto"/>'
+# Trang bìa là section RIÊNG với lề đối xứng của template (1440 twips = 2.54cm
+# mọi phía) — tách khỏi lề đóng-gáy bất đối xứng của thân bài (trái 3.5cm) để
+# khung bìa neo theo cột không bị đẩy lệch sang phải. Footer bìa gắn ngay section
+# này (default), không cần titlePg vì bìa chỉ 1 trang.
+COVER_SECTPR = (
+    '<w:p><w:pPr><w:sectPr>'
+    '<w:footerReference w:type="default" r:id="rIdCoverFtr"/>'
+    '<w:pgSz w:w="11909" w:h="16834"/>'
+    '<w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" '
+    'w:header="720" w:footer="720" w:gutter="0"/>'
+    '</w:sectPr></w:pPr></w:p>'
+)
 FOOTER_PART = 'word/footerCover.xml'
 FOOTER_CT = ('application/vnd.openxmlformats-officedocument'
              '.wordprocessingml.footer+xml')
@@ -113,18 +125,9 @@ def main():
             if item == 'word/document.xml':
                 xml = data.decode('utf-8')
                 xml = merge_root_namespaces(xml, template_xml)
-                xml = xml.replace('<w:body>', '<w:body>' + cover, 1)
-                # footer ngày tháng chỉ trên trang bìa
-                xml = re.sub(
-                    r'<w:sectPr([^>]*)>',
-                    r'<w:sectPr\1>'
-                    r'<w:footerReference w:type="first" r:id="rIdCoverFtr"/>',
-                    xml, count=1)
-                if '<w:titlePg' not in xml:
-                    i = xml.find('<w:docGrid')
-                    if i < 0:
-                        i = xml.find('</w:sectPr>')
-                    xml = xml[:i] + '<w:titlePg/>' + xml[i:]
+                # Bìa + section-break riêng (lề đối xứng) rồi mới đến thân bài;
+                # thân bài giữ nguyên sectPr cuối (lề đóng-gáy bất đối xứng).
+                xml = xml.replace('<w:body>', '<w:body>' + cover + COVER_SECTPR, 1)
                 data = xml.encode('utf-8')
             elif item == '[Content_Types].xml':
                 ct = data.decode('utf-8')
