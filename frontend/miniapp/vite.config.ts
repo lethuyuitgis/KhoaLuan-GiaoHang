@@ -11,6 +11,22 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    // Split vendor bundles so the initial chunk stays under 500 KB —
+    // same pattern as webadmin/vite.config.ts.
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'query-vendor': ['@tanstack/react-query'],
+          'chart-vendor': ['recharts'],
+          'map-vendor':   ['leaflet', 'react-leaflet'],
+          'ws-vendor':    ['@stomp/stompjs', 'sockjs-client'],
+          'i18n-vendor':  ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     host: true,

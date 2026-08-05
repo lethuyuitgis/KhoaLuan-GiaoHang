@@ -14,6 +14,20 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    // Split vendor bundles so the initial chunk stays under 500 KB —
+    // same pattern as webadmin/vite.config.ts (zaloapp has no recharts/stomp).
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'query-vendor': ['@tanstack/react-query'],
+          'map-vendor':   ['leaflet', 'react-leaflet'],
+          'i18n-vendor':  ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+        },
+      },
+    },
+  },
   server: {
     port: 5182,
     host: true,
