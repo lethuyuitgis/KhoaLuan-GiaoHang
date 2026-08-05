@@ -181,6 +181,28 @@ class DeliveryAssignmentServiceTest {
     }
 
     @Test
+    void startShouldThrowBusinessRuleWhenShipperAlreadyDeliveringAnotherOrder() {
+        // Quy tắc "1 shipper chỉ giao 1 đơn tại một thời điểm" phải trả lỗi nghiệp vụ
+        // (422) thay vì để vi phạm rơi xuống unique index uq_assignment_shipper_started (500).
+        DeliveryAssignmentService service = newService();
+        UUID assignmentId = UUID.randomUUID();
+        DeliveryAssignment a = new DeliveryAssignment();
+        a.setId(assignmentId);
+        a.setOrderId(UUID.randomUUID());
+        a.setShipperId(8888L);
+        a.setStatus(AssignmentStatus.ACCEPTED);
+
+        when(assignmentRepo.findById(assignmentId)).thenReturn(Optional.of(a));
+        when(assignmentRepo.existsByShipperIdAndStatus(8888L, AssignmentStatus.STARTED)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.start(assignmentId, 8888L))
+            .isInstanceOf(BusinessRuleException.class)
+            .hasFieldOrPropertyWithValue("code", "SHIPPER_ALREADY_DELIVERING");
+
+        verify(assignmentRepo, org.mockito.Mockito.never()).save(any(DeliveryAssignment.class));
+    }
+
+    @Test
     void completeShouldTransitionAssignmentAndOrderToDelivered() {
         DeliveryAssignmentService service = newService();
         UUID assignmentId = UUID.randomUUID();

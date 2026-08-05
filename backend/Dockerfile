@@ -3,7 +3,7 @@
 # ─────────────────────────────────────────────────────────────────
 # Stage 1: build the executable jar with Maven
 # ─────────────────────────────────────────────────────────────────
-FROM maven:3.9.9-eclipse-temurin-17-alpine AS builder
+FROM maven:3.9.9-eclipse-temurin-17 AS builder
 
 WORKDIR /workspace
 
@@ -42,13 +42,14 @@ RUN test -f app/target/delivery-app.jar
 # ─────────────────────────────────────────────────────────────────
 # Stage 2: minimal JRE runtime
 # ─────────────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine AS runtime
+FROM eclipse-temurin:17-jre AS runtime
 
 # Create a non-root user for the app. Spring Boot doesn't need root.
-RUN addgroup -S app && adduser -S app -G app -u 1001 -h /home/app
+RUN groupadd --system app && useradd --system --gid app --uid 1001 --home /home/app app
 
-# wget for healthcheck (curl is ~1 MB heavier on alpine; wget is busybox-bundled)
-# Note: alpine's busybox wget supports -q (quiet) and -O - (stdout) — enough for /actuator/health.
+# wget for healthcheck (Ubuntu-based temurin image ships without wget/curl)
+RUN apt-get update && apt-get install -y --no-install-recommends wget \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 COPY --from=builder --chown=app:app /workspace/app/target/delivery-app.jar /app/app.jar

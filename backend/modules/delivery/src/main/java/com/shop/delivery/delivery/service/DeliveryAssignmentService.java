@@ -142,6 +142,12 @@ public class DeliveryAssignmentService {
             throw new BusinessRuleException("INVALID_ASSIGNMENT_STATE",
                 "Phải accept trước khi bắt đầu giao (hiện tại: " + a.getStatus() + ")");
         }
+        // Backstop cuối cùng vẫn là partial unique index uq_assignment_shipper_started (V8);
+        // precheck này biến vi phạm thường gặp thành lỗi nghiệp vụ 422 thay vì 500.
+        if (assignmentRepo.existsByShipperIdAndStatus(actingShipperId, AssignmentStatus.STARTED)) {
+            throw new BusinessRuleException("SHIPPER_ALREADY_DELIVERING",
+                "Bạn đang giao một đơn khác — hãy hoàn tất đơn đó trước khi bắt đầu đơn mới");
+        }
 
         a.setStatus(AssignmentStatus.STARTED);
         a.setStartedAt(Instant.now());
