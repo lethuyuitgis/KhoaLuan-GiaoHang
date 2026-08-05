@@ -46,6 +46,23 @@ def loosen_cell_paragraphs(table):
                 pf.space_after = Pt(2)
 
 
+def enable_hyphenation(doc):
+    """Bật tự động ngắt từ để giảm khoảng trắng do căn đều 2 bên.
+
+    Ngôn ngữ mặc định là en-US nên chỉ các từ tiếng Anh (Spring, Application…)
+    bị ngắt; từ tiếng Việt không có trong từ điển Anh nên không bị ngắt bậy.
+    doNotHyphenateCaps tránh ngắt từ viết hoa (acronym).
+    """
+    settings = doc.settings.element
+    for tag, val in [('w:autoHyphenation', 'true'),
+                     ('w:doNotHyphenateCaps', 'true'),
+                     ('w:hyphenationZone', '357')]:  # ~0.63cm
+        if settings.find(qn(tag)) is None:
+            el = OxmlElement(tag)
+            el.set(qn('w:val'), val)
+            settings.append(el)
+
+
 def main(path):
     doc = Document(path)
     n = 0
@@ -53,8 +70,9 @@ def main(path):
         set_table_cell_margins(table)
         loosen_cell_paragraphs(table)
         n += 1
+    enable_hyphenation(doc)
     doc.save(path)
-    print(f"space-tables: đã nới giãn cách {n} bảng")
+    print(f"space-tables: nới giãn cách {n} bảng + bật hyphenation")
 
 
 if __name__ == '__main__':
