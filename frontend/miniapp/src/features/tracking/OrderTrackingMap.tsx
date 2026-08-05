@@ -67,11 +67,11 @@ export function OrderTrackingMap({
   ];
 
   return (
-    <div className="w-full h-64 rounded-lg overflow-hidden mb-3 relative">
+    <div className="w-full h-64 rounded-lg overflow-hidden mb-3 relative z-0">
       <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png"
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker position={pickup} icon={shopIcon} />
         <Marker position={destination} icon={destIcon} />

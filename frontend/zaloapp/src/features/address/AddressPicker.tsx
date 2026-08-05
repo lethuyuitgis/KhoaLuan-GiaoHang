@@ -182,7 +182,9 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
         )}
       </div>
 
-      <div className="w-full h-[250px] rounded-xl overflow-hidden border border-gray-200 relative">
+      {/* z-0: chặn stacking context — pane/control của Leaflet (z-index 400–1000)
+          không được đè lên nút Đặt hàng dạng fixed bên ngoài. */}
+      <div className="w-full h-[250px] rounded-xl overflow-hidden border border-gray-200 relative z-0">
         <MapContainer
           center={initialCenter}
           zoom={hasPin ? 16 : 13}
@@ -191,7 +193,7 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
         >
           <TileLayer
             attribution='&copy; OpenStreetMap'
-            url="https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png"
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {hasPin && (
             <Marker
