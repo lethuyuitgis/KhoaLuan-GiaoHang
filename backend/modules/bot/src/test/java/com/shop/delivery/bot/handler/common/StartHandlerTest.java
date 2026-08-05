@@ -110,6 +110,26 @@ class StartHandlerTest {
     }
 
     @Test
+    void handle_returningUser_withMiniappUrl_attachesWebAppButton() {
+        // User cũ không nhận role picker — nếu /start chỉ trả text trơn thì
+        // người chưa cấu hình Menu Button trong BotFather không còn đường vào app.
+        when(userRepo.existsById(1001L)).thenReturn(true);
+        when(botProps.getMiniappUrl()).thenReturn("https://example.com/miniapp");
+
+        handler.handle(UpdateFixtures.textMessage(1L, 1001L, "alice", "/start"));
+
+        ArgumentCaptor<SendMessage> msgCap = ArgumentCaptor.forClass(SendMessage.class);
+        verify(sender).execute(msgCap.capture());
+        assertThat(msgCap.getValue().getText()).contains("trở lại");
+        InlineKeyboardMarkup kb = (InlineKeyboardMarkup) msgCap.getValue().getReplyMarkup();
+        InlineKeyboardButton btn = kb.getKeyboard().get(0).get(0);
+        assertThat(btn.getText()).contains("Đặt hàng");
+        assertThat(btn.getWebApp().getUrl()).isEqualTo("https://example.com/miniapp");
+        verify(sender, never()).sendText(org.mockito.ArgumentMatchers.anyLong(),
+            org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
     void handle_newUser_withMiniappUrl_usesWebAppButton() {
         when(userRepo.existsById(1001L)).thenReturn(false);
         when(botProps.getMiniappUrl()).thenReturn("https://example.com/miniapp");

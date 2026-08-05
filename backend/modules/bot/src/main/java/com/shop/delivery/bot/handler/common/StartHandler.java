@@ -81,7 +81,7 @@ public class StartHandler implements UpdateHandler {
         String displayName = from.getFirstName() != null ? from.getFirstName() : "bạn";
 
         if (isReturning) {
-            sender.sendText(chatId, String.format(WELCOME_BACK, displayName));
+            sendWelcomeBack(chatId, displayName);
         } else {
             sendRolePicker(chatId, displayName);
         }
@@ -90,16 +90,42 @@ public class StartHandler implements UpdateHandler {
             userId, from.getUserName(), isReturning);
     }
 
+    /**
+     * Returning users don't get the role picker, so without a configured
+     * Menu Button in BotFather the /start reply would be their only way into
+     * the app — attach the Mini App button when the URL is configured.
+     */
+    private void sendWelcomeBack(Long chatId, String displayName) {
+        String text = String.format(WELCOME_BACK, displayName);
+        String miniappUrl = botProps.getMiniappUrl();
+        if (miniappUrl == null || miniappUrl.isBlank()) {
+            sender.sendText(chatId, text);
+            return;
+        }
+        InlineKeyboardMarkup kb = InlineKeyboardMarkup.builder()
+            .keyboard(List.of(List.of(webAppOrderButton(miniappUrl))))
+            .build();
+        sender.execute(SendMessage.builder()
+            .chatId(chatId)
+            .text(text)
+            .replyMarkup(kb)
+            .build());
+    }
+
+    private InlineKeyboardButton webAppOrderButton(String miniappUrl) {
+        return InlineKeyboardButton.builder()
+            .text("🛍️ Đặt hàng")
+            .webApp(new WebAppInfo(miniappUrl))
+            .build();
+    }
+
     private void sendRolePicker(Long chatId, String displayName) {
         InlineKeyboardButton customerBtn;
         // Use a Mini App button for customers if miniapp URL is configured;
         // fall back to a plain callback otherwise (dev/test environments).
         String miniappUrl = botProps.getMiniappUrl();
         if (miniappUrl != null && !miniappUrl.isBlank()) {
-            customerBtn = InlineKeyboardButton.builder()
-                .text("🛍️ Đặt hàng")
-                .webApp(new WebAppInfo(miniappUrl))
-                .build();
+            customerBtn = webAppOrderButton(miniappUrl);
         } else {
             customerBtn = InlineKeyboardButton.builder()
                 .text("🛍️ Đặt hàng")
