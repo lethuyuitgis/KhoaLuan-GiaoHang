@@ -6,7 +6,7 @@ import { api } from '@/lib/api';
 import { ProductCard } from '@/components/ProductCard';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { PromoCarousel } from '@/components/PromoCarousel';
-import { CategoryChips, categorize, isBestseller, type CategoryKey } from '@/components/CategoryChips';
+import { CategoryChips, isBestseller, type CategoryKey } from '@/components/CategoryChips';
 import { useShopConfig } from '@/hooks/useShopConfig';
 
 export function CatalogPage() {
@@ -30,7 +30,7 @@ export function CatalogPage() {
       }
       if (category === 'all')        return true;
       if (category === 'bestseller') return isBestseller(p.id);
-      return categorize(p.id) === category;
+      return p.category === category;
     });
   }, [items, search, category]);
 

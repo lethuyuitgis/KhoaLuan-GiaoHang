@@ -47,11 +47,6 @@ export function CategoryChips({ value, onChange }: Props) {
   );
 }
 
-export function categorize(productId: number): CategoryKey {
-  const buckets: CategoryKey[] = ['food', 'drink', 'dessert'];
-  return buckets[productId % buckets.length];
-}
-
 export function isBestseller(productId: number): boolean {
   return productId % 4 === 0;
 }

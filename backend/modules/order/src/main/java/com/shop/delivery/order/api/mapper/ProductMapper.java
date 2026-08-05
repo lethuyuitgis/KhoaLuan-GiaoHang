@@ -14,6 +14,7 @@ public class ProductMapper {
             p.getDescription(),
             p.getPrice(),
             p.getImageUrl(),
+            p.getCategory(),
             p.getStock(),
             p.isActive(),
             p.getCreatedAt()

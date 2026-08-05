@@ -44,13 +44,13 @@ public class AdminProductController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse create(@Valid @RequestBody CreateProductRequest req) {
-        Product p = service.create(req.name(), req.description(), req.price(), req.imageUrl(), req.stock());
+        Product p = service.create(req.name(), req.description(), req.price(), req.imageUrl(), req.category(), req.stock());
         return mapper.toResponse(p);
     }
 
     @PutMapping("/{id}")
     public ProductResponse update(@PathVariable Long id, @Valid @RequestBody UpdateProductRequest req) {
-        Product p = service.update(id, req.name(), req.description(), req.price(), req.imageUrl(), req.stock());
+        Product p = service.update(id, req.name(), req.description(), req.price(), req.imageUrl(), req.category(), req.stock());
         return mapper.toResponse(p);
     }
 

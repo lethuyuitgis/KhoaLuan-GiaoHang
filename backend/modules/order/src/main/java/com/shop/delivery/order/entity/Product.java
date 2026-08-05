@@ -31,6 +31,10 @@ public class Product extends BaseEntity {
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
+    // 'food' | 'drink' | 'dessert' — CHECK constraint ở V18.
+    @Column(name = "category", nullable = false, length = 20)
+    private String category = "food";
+
     @Column(name = "stock", nullable = false)
     private Integer stock;
 
@@ -47,6 +51,8 @@ public class Product extends BaseEntity {
     public void setPrice(BigDecimal price) { this.price = price; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
     public boolean isActive() { return active; }

@@ -9,6 +9,7 @@ public record ProductResponse(
     String description,
     BigDecimal price,
     String imageUrl,
+    String category,
     Integer stock,
     boolean active,
     Instant createdAt

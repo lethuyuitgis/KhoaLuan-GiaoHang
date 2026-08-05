@@ -52,13 +52,26 @@ class ProductServiceTest {
         });
 
         Product result = service.create("Áo polo", "Cotton 100%",
-            new BigDecimal("250000"), "https://img/url.jpg", 20);
+            new BigDecimal("250000"), "https://img/url.jpg", "drink", 20);
 
         assertThat(result.getId()).isEqualTo(99L);
         assertThat(result.getName()).isEqualTo("Áo polo");
         assertThat(result.getPrice()).isEqualByComparingTo("250000");
         assertThat(result.getStock()).isEqualTo(20);
+        assertThat(result.getCategory()).isEqualTo("drink");
         assertThat(result.isActive()).isTrue();
+    }
+
+    @Test
+    void createDefaultsCategoryToFoodWhenOmitted() {
+        // Miniapp lọc theo category thật (V18) — sản phẩm không khai báo phải rơi
+        // vào 'food' chứ không được để null (vi phạm NOT NULL + vỡ filter).
+        when(repo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Product result = service.create("Áo polo", null,
+            new BigDecimal("250000"), null, null, null);
+
+        assertThat(result.getCategory()).isEqualTo("food");
     }
 
     @Test
@@ -94,12 +107,13 @@ class ProductServiceTest {
         when(repo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
 
         service.update(1L, "New Name", "New Desc",
-            new BigDecimal("300000"), null, 5);
+            new BigDecimal("300000"), null, "dessert", 5);
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
         verify(repo).save(captor.capture());
         assertThat(captor.getValue().getName()).isEqualTo("New Name");
         assertThat(captor.getValue().getPrice()).isEqualByComparingTo("300000");
+        assertThat(captor.getValue().getCategory()).isEqualTo("dessert");
         assertThat(captor.getValue().getStock()).isEqualTo(5);
     }
 

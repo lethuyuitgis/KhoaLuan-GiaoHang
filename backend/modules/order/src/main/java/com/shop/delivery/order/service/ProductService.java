@@ -20,12 +20,14 @@ public class ProductService {
     }
 
     @Transactional
-    public Product create(String name, String description, BigDecimal price, String imageUrl, Integer stock) {
+    public Product create(String name, String description, BigDecimal price, String imageUrl,
+                          String category, Integer stock) {
         Product p = new Product();
         p.setName(name);
         p.setDescription(description);
         p.setPrice(price);
         p.setImageUrl(imageUrl);
+        p.setCategory(category != null ? category : "food");
         p.setStock(stock != null ? stock : 0);
         p.setActive(true);
         return repo.save(p);
@@ -48,12 +50,14 @@ public class ProductService {
     }
 
     @Transactional
-    public Product update(Long id, String name, String description, BigDecimal price, String imageUrl, Integer stock) {
+    public Product update(Long id, String name, String description, BigDecimal price, String imageUrl,
+                          String category, Integer stock) {
         Product p = findById(id);
         if (name != null) p.setName(name);
         if (description != null) p.setDescription(description);
         if (price != null) p.setPrice(price);
         if (imageUrl != null) p.setImageUrl(imageUrl);
+        if (category != null) p.setCategory(category);
         if (stock != null) p.setStock(stock);
         return repo.save(p);
     }

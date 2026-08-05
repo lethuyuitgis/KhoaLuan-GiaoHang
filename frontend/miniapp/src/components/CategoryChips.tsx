@@ -51,17 +51,6 @@ export function CategoryChips({ value, onChange }: Props) {
   );
 }
 
-/**
- * Deterministic mapping product.id → category. Used until backend exposes a
- * real `category` field on products. Keeps the demo demo-feels-real without
- * a schema change.
- */
-export function categorize(productId: number): CategoryKey {
-  // Skip 'all' (it's a filter, not a bucket) and 'bestseller' (handled by separate logic).
-  const buckets: CategoryKey[] = ['food', 'drink', 'dessert'];
-  return buckets[productId % buckets.length];
-}
-
 export function isBestseller(productId: number): boolean {
   // Top quarter of products get the bestseller tag — deterministic so the
   // homepage section always has content.
