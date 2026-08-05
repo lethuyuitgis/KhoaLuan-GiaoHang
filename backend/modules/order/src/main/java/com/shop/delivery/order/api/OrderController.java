@@ -15,6 +15,7 @@ import com.shop.delivery.shared.exception.NotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -64,7 +65,8 @@ public class OrderController {
 
     @GetMapping("/mine")
     public Page<OrderSummary> mine(@CurrentUser TelegramUser user,
-                                   @PageableDefault(size = 20) Pageable pageable) {
+                                   @PageableDefault(size = 20, sort = "createdAt",
+                                       direction = Sort.Direction.DESC) Pageable pageable) {
         return service.findMine(user.getId(), pageable).map(mapper::toSummary);
     }
 

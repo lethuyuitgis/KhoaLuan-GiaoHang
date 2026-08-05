@@ -10,6 +10,7 @@ import com.shop.delivery.order.api.mapper.OrderMapper;
 import com.shop.delivery.order.service.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -37,7 +38,8 @@ public class AdminOrderController {
     }
 
     @GetMapping
-    public Page<OrderSummary> listAll(@PageableDefault(size = 50) Pageable pageable) {
+    public Page<OrderSummary> listAll(
+            @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         return service.findAll(pageable).map(mapper::toSummary);
     }
 
