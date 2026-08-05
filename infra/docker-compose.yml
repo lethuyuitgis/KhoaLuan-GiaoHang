@@ -56,6 +56,7 @@ services:
       BOT_MODE:         ${BOT_MODE:-polling}
       BOT_WEBHOOK_URL:    ${BOT_WEBHOOK_URL:-}
       BOT_WEBHOOK_SECRET: ${BOT_WEBHOOK_SECRET:-}
+      MINIAPP_URL:        ${MINIAPP_URL:-}
       JWT_SECRET:       ${JWT_SECRET}
       VNPAY_TMN_CODE:    ${VNPAY_TMN_CODE}
       VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET}

@@ -90,6 +90,9 @@ bot:
   mode:           ${BOT_MODE:polling}
   webhook-url:    ${BOT_WEBHOOK_URL:}
   webhook-secret: ${BOT_WEBHOOK_SECRET:}
+  # HTTPS public URL of the Mini App. Empty → "Đặt hàng" falls back to a
+  # plain callback button (which has no handler), so set this in prod.
+  miniapp-url:    ${MINIAPP_URL:}
 
 shop:
   pickup:

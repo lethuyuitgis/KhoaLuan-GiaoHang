@@ -30,6 +30,7 @@ bot:
   token: ${BOT_TOKEN:dev-token-not-set}
   username: ${BOT_USERNAME:DevBot}
   mode: polling
+  miniapp-url: ${MINIAPP_URL:}
 
 shop:
   pickup:
