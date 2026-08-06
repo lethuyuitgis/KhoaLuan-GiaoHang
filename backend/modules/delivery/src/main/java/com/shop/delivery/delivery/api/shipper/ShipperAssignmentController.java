@@ -9,6 +9,10 @@ import com.shop.delivery.delivery.domain.AssignmentStatus;
 import com.shop.delivery.delivery.entity.DeliveryAssignment;
 import com.shop.delivery.delivery.service.DeliveryAssignmentService;
 import com.shop.delivery.order.entity.Order;
+import com.shop.delivery.order.entity.OrderItem;
+import com.shop.delivery.order.entity.Product;
+import com.shop.delivery.order.repository.OrderItemRepository;
+import com.shop.delivery.order.repository.ProductRepository;
 import com.shop.delivery.order.service.OrderService;
 import com.shop.delivery.shared.exception.AuthenticationException;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/shipper/assignments")
@@ -27,13 +33,19 @@ public class ShipperAssignmentController {
     private final DeliveryAssignmentService service;
     private final OrderService orderService;
     private final RoleResolver roleResolver;
+    private final OrderItemRepository itemRepo;
+    private final ProductRepository productRepo;
 
     public ShipperAssignmentController(DeliveryAssignmentService service,
                                        OrderService orderService,
-                                       RoleResolver roleResolver) {
+                                       RoleResolver roleResolver,
+                                       OrderItemRepository itemRepo,
+                                       ProductRepository productRepo) {
         this.service = service;
         this.orderService = orderService;
         this.roleResolver = roleResolver;
+        this.itemRepo = itemRepo;
+        this.productRepo = productRepo;
     }
 
     private void requireShipper(TelegramUser user) {
@@ -89,8 +101,22 @@ public class ShipperAssignmentController {
             o.getCustomerId(), o.getCustomerName(), o.getCustomerPhone(),
             o.getDeliveryAddress(), o.getDeliveryLat(), o.getDeliveryLng(),
             o.getDistanceKm(), o.getDeliveryFee(), o.getTotal(),
+            o.getPaymentMethod().name(), o.getPaymentStatus().name(), o.getNote(),
+            loadItems(o.getId()), o.getShipperCommission(),
             a.getStatus(), o.getStatus().name(),
             a.getAssignedAt(), a.getAcceptedAt(), a.getStartedAt(), a.getDeliveredAt()
         );
+    }
+
+    /** Món ×SL để shipper biết lấy gì ở shop; tên tra từ bảng product. */
+    private List<AssignmentResponse.AssignmentItem> loadItems(UUID orderId) {
+        List<OrderItem> items = itemRepo.findAllByOrderId(orderId);
+        Map<Long, String> names = productRepo
+            .findAllById(items.stream().map(OrderItem::getProductId).toList())
+            .stream().collect(Collectors.toMap(Product::getId, Product::getName));
+        return items.stream()
+            .map(i -> new AssignmentResponse.AssignmentItem(
+                names.getOrDefault(i.getProductId(), "SP#" + i.getProductId()), i.getQuantity()))
+            .toList();
     }
 }

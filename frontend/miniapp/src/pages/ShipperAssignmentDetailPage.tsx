@@ -108,8 +108,11 @@ export function ShipperAssignmentDetailPage() {
     CANCELLED: 'bg-red-100 text-red-700', REJECTED: 'bg-red-100 text-red-700',
   };
 
+  // COD chưa thanh toán → shipper phải thu tiền mặt của khách khi giao.
+  const mustCollect = assignment.paymentMethod === 'COD' && assignment.paymentStatus !== 'SUCCESS';
+
   return (
-    <div className="px-4 pt-4 pb-28">
+    <div className="px-4 pt-4 pb-40">
       <button onClick={() => navigate(-1)} className="mb-3 text-sm text-gray-500 active:text-gray-700">
         ← Quay lại
       </button>
@@ -122,47 +125,90 @@ export function ShipperAssignmentDetailPage() {
       </div>
       <p className="text-xs text-gray-500 mb-4">{formatDateTime(assignment.assignedAt)}</p>
 
+      {/* Thu tiền — thông tin quan trọng nhất với shipper nên đứng đầu, màu nổi. */}
+      {mustCollect ? (
+        <section className="bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl shadow-lg shadow-orange-500/25 p-4 mb-3 text-white">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-100">💵 Thu tiền mặt của khách</p>
+          <p className="text-3xl font-extrabold mt-1 tabular-nums">{formatVnd(assignment.total)}</p>
+          <p className="text-xs mt-1 text-amber-100">Thanh toán COD — thu đủ khi giao hàng</p>
+        </section>
+      ) : (
+        <section className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg shadow-emerald-500/25 p-4 mb-3 text-white">
+          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-100">✅ Đã thanh toán online</p>
+          <p className="text-3xl font-extrabold mt-1 tabular-nums">{formatVnd(assignment.total)}</p>
+          <p className="text-xs mt-1 text-emerald-100">VNPay — KHÔNG thu tiền khách</p>
+        </section>
+      )}
+
+      {/* Món hàng — biết lấy gì ở shop. */}
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
-        <h2 className="text-sm font-semibold text-gray-500 mb-2">Khách hàng</h2>
-        <p className="text-sm font-medium">{assignment.customerName ?? '(chưa có tên)'}</p>
-        {assignment.customerPhone && (
-          <a
-            href={`tel:${assignment.customerPhone}`}
-            className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium active:scale-95 transition"
-          >
-            📞 {assignment.customerPhone}
-          </a>
+        <h2 className="text-sm font-semibold text-gray-500 mb-2">🛍 Món hàng ({assignment.items.length})</h2>
+        <ul className="divide-y divide-gray-50">
+          {assignment.items.map((it, idx) => (
+            <li key={idx} className="flex items-center justify-between py-1.5 text-sm">
+              <span className="text-gray-800">{it.productName}</span>
+              <span className="font-semibold text-gray-600 tabular-nums">×{it.quantity}</span>
+            </li>
+          ))}
+        </ul>
+        {assignment.note && (
+          <p className="mt-2 text-xs bg-amber-50 border border-amber-100 text-amber-800 rounded-xl px-3 py-2">
+            📝 Ghi chú của khách: {assignment.note}
+          </p>
         )}
       </section>
 
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
-        <h2 className="text-sm font-semibold text-gray-500 mb-2">Địa chỉ giao</h2>
-        <p className="text-sm flex items-start gap-2">
-          <span>📍</span>
-          <span>{assignment.deliveryAddress}</span>
-        </p>
-        <div className="mt-2 flex justify-between text-xs text-gray-500">
-          <span>📏 Khoảng cách: {assignment.distanceKm} km</span>
+        <h2 className="text-sm font-semibold text-gray-500 mb-2">👤 Khách hàng</h2>
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-medium">{assignment.customerName ?? '(chưa có tên)'}</p>
+          {assignment.customerPhone && (
+            <a
+              href={`tel:${assignment.customerPhone}`}
+              className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-sm font-semibold active:scale-95 transition"
+            >
+              📞 Gọi
+            </a>
+          )}
+        </div>
+        {assignment.customerPhone && (
+          <p className="text-xs text-gray-500 mt-1 tabular-nums">{assignment.customerPhone}</p>
+        )}
+      </section>
+
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3">
+        <h2 className="text-sm font-semibold text-gray-500 mb-2">📍 Địa chỉ giao</h2>
+        <p className="text-sm text-gray-800">{assignment.deliveryAddress}</p>
+        <div className="mt-2 flex justify-between items-center text-xs text-gray-500">
+          <span>📏 {assignment.distanceKm} km</span>
           <a
             href={`https://www.google.com/maps?q=${assignment.deliveryLat},${assignment.deliveryLng}`}
             target="_blank"
             rel="noreferrer"
-            className="text-emerald-600 font-medium active:scale-95"
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 font-semibold active:scale-95 transition"
           >
-            Xem bản đồ →
+            🗺 Chỉ đường
           </a>
         </div>
       </section>
 
       <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-3 text-sm">
         <div className="flex justify-between items-center">
-          <span className="text-gray-500">Phí ship</span>
-          <span className="font-bold text-orange-600 text-base">{formatVnd(assignment.deliveryFee)}</span>
+          <span className="text-gray-500">Tổng đơn (hàng + ship)</span>
+          <span className="font-medium tabular-nums">{formatVnd(assignment.total)}</span>
         </div>
         <div className="flex justify-between items-center mt-2">
-          <span className="text-gray-500">Tổng đơn</span>
-          <span className="font-medium">{formatVnd(assignment.total)}</span>
+          <span className="text-gray-500">Phí ship khách trả</span>
+          <span className="font-medium tabular-nums">{formatVnd(assignment.deliveryFee)}</span>
         </div>
+        {assignment.shipperCommission != null && (
+          <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+            <span className="text-gray-700 font-medium">Thu nhập của bạn</span>
+            <span className="font-bold text-emerald-600 text-base tabular-nums">
+              +{formatVnd(assignment.shipperCommission)}
+            </span>
+          </div>
+        )}
       </section>
 
       {assignment.status === 'ACCEPTED' && (

@@ -1,5 +1,10 @@
 export type AssignmentStatus = 'OFFERED' | 'ACCEPTED' | 'REJECTED' | 'STARTED' | 'COMPLETED' | 'CANCELLED';
 
+export interface AssignmentItem {
+  productName: string;
+  quantity: number;
+}
+
 export interface AssignmentResponse {
   id: string;
   orderId: string;
@@ -13,6 +18,11 @@ export interface AssignmentResponse {
   distanceKm: string;
   deliveryFee: number;
   total: number;
+  paymentMethod: 'COD' | 'VNPAY';
+  paymentStatus: 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
+  note: string | null;
+  items: AssignmentItem[];
+  shipperCommission: number | null;
   status: AssignmentStatus;
   orderStatus: string;
   assignedAt: string;
