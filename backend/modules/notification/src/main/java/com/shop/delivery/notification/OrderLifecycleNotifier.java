@@ -6,7 +6,11 @@ import com.shop.delivery.auth.entity.UserRole;
 import com.shop.delivery.auth.repository.UserRoleRepository;
 import com.shop.delivery.bot.sender.BotSender;
 import com.shop.delivery.order.entity.Order;
+import com.shop.delivery.order.entity.OrderItem;
+import com.shop.delivery.order.entity.Product;
+import com.shop.delivery.order.repository.OrderItemRepository;
 import com.shop.delivery.order.repository.OrderRepository;
+import com.shop.delivery.order.repository.ProductRepository;
 import com.shop.delivery.shared.event.OrderConfirmedEvent;
 import com.shop.delivery.shared.event.OrderCreatedEvent;
 import com.shop.delivery.shared.event.PaymentFailedEvent;
@@ -19,8 +23,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Listener for order/payment lifecycle events that fall outside the shipper-centric
@@ -50,27 +62,45 @@ public class OrderLifecycleNotifier {
 
     private static final Logger log = LoggerFactory.getLogger(OrderLifecycleNotifier.class);
 
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+    private static final DateTimeFormatter VN_TIME = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
+
     private final BotSender bot;
     private final UserRoleRepository roleRepo;
     private final OrderRepository orderRepo;
+    private final OrderItemRepository itemRepo;
+    private final ProductRepository productRepo;
 
-    public OrderLifecycleNotifier(BotSender bot, UserRoleRepository roleRepo, OrderRepository orderRepo) {
+    public OrderLifecycleNotifier(BotSender bot, UserRoleRepository roleRepo, OrderRepository orderRepo,
+                                  OrderItemRepository itemRepo, ProductRepository productRepo) {
         this.bot = bot;
         this.roleRepo = roleRepo;
         this.orderRepo = orderRepo;
+        this.itemRepo = itemRepo;
+        this.productRepo = productRepo;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderCreated(OrderCreatedEvent e) {
         String paymentLabel = "VNPAY".equals(e.paymentMethod()) ? "VNPay" : "COD";
-        // Event chỉ mang id/code — địa chỉ giao lấy từ đơn (REQUIRES_NEW, sau commit
-        // nên đơn chắc chắn đã có trong DB).
+        // Event chỉ mang id/code — chi tiết đơn (món, tiền, khách, địa chỉ) lấy
+        // từ DB; chạy AFTER_COMMIT nên đơn chắc chắn đã có.
         Order order = lookupOrder(e.orderId());
-        String address = order != null && order.getDeliveryAddress() != null
-            ? order.getDeliveryAddress() : "(không rõ)";
+        if (order == null) {
+            log.warn("OrderCreated: cannot find order {} — sending minimal ping", e.orderId());
+            broadcastToAdmins("🆕 Đơn mới " + e.orderCode() + "\nMở Admin để xác nhận.",
+                "OrderCreated " + e.orderCode());
+            return;
+        }
         String text = String.format(
-            "🆕 Đơn mới %s\n💳 Thanh toán: %s\n👤 Khách: %d\n📍 Giao đến: %s\nMở Admin để xác nhận.",
-            e.orderCode(), paymentLabel, e.customerId(), address
+            "🆕 Đơn mới %s\n%s\n💰 Tổng tiền: %s\n💳 Thanh toán: %s\n👤 Khách: %s — %s\n📍 Giao đến: %s\n🕐 %s\nMở Admin để xác nhận.",
+            e.orderCode(),
+            describeItems(e.orderId()),
+            formatVnd(order.getTotal()),
+            paymentLabel,
+            order.getCustomerName(), order.getCustomerPhone(),
+            order.getDeliveryAddress(),
+            formatVnTime(order.getCreatedAt())
         );
         broadcastToAdmins(text, "OrderCreated " + e.orderCode());
     }
@@ -113,6 +143,32 @@ public class OrderLifecycleNotifier {
     }
 
     // --- helpers ------------------------------------------------------------
+
+    /** "• Phở bò tái ×2" mỗi món một dòng; tên tra từ bảng product theo id. */
+    private String describeItems(UUID orderId) {
+        List<OrderItem> items = itemRepo.findAllByOrderId(orderId);
+        if (items.isEmpty()) return "• (không có sản phẩm)";
+        Map<Long, String> names = productRepo
+            .findAllById(items.stream().map(OrderItem::getProductId).toList())
+            .stream().collect(Collectors.toMap(Product::getId, Product::getName));
+        return items.stream()
+            .map(i -> "• " + names.getOrDefault(i.getProductId(), "SP#" + i.getProductId())
+                + " ×" + i.getQuantity())
+            .collect(Collectors.joining("\n"));
+    }
+
+    /** 175000 → "175.000đ" (chấm ngăn nghìn kiểu VN, không phụ thuộc locale máy). */
+    private static String formatVnd(BigDecimal amount) {
+        if (amount == null) return "0đ";
+        DecimalFormatSymbols sym = new DecimalFormatSymbols();
+        sym.setGroupingSeparator('.');
+        return new DecimalFormat("#,##0", sym).format(amount) + "đ";
+    }
+
+    private static String formatVnTime(Instant instant) {
+        if (instant == null) return "";
+        return VN_TIME.format(instant.atZone(VN_ZONE));
+    }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
     protected Long lookupCustomerId(UUID orderId) {

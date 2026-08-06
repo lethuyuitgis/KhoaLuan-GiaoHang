@@ -6,7 +6,11 @@ import com.shop.delivery.auth.entity.UserRole;
 import com.shop.delivery.auth.repository.UserRoleRepository;
 import com.shop.delivery.bot.sender.BotSender;
 import com.shop.delivery.order.entity.Order;
+import com.shop.delivery.order.entity.OrderItem;
+import com.shop.delivery.order.entity.Product;
+import com.shop.delivery.order.repository.OrderItemRepository;
 import com.shop.delivery.order.repository.OrderRepository;
+import com.shop.delivery.order.repository.ProductRepository;
 import com.shop.delivery.shared.event.OrderConfirmedEvent;
 import com.shop.delivery.shared.event.OrderCreatedEvent;
 import com.shop.delivery.shared.event.PaymentFailedEvent;
@@ -19,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -36,6 +41,8 @@ class OrderLifecycleNotifierTest {
     @Mock BotSender bot;
     @Mock UserRoleRepository roleRepo;
     @Mock OrderRepository orderRepo;
+    @Mock OrderItemRepository itemRepo;
+    @Mock ProductRepository productRepo;
 
     @InjectMocks OrderLifecycleNotifier notifier;
 
@@ -70,12 +77,25 @@ class OrderLifecycleNotifierTest {
             inactive(7003L)
         ));
 
-        // Admin cần thấy địa chỉ giao ngay trong thông báo để chuẩn bị đơn
-        // mà không phải mở Admin — thiếu nó thông báo chỉ còn là tiếng chuông.
+        // Thông báo phải đủ để admin chuẩn bị đơn mà không cần mở Admin:
+        // món + số lượng, tổng tiền, khách + SĐT, địa chỉ, giờ đặt (giờ VN).
         UUID orderId = UUID.randomUUID();
         Order order = new Order();
+        order.setCustomerName("Nguyễn An");
+        order.setCustomerPhone("0901234001");
         order.setDeliveryAddress("302 Cầu Giấy, Hà Nội");
+        order.setTotal(new BigDecimal("175000"));
+        order.setCreatedAt(Instant.parse("2026-08-06T02:30:00Z")); // 09:30 giờ VN
         when(orderRepo.findById(orderId)).thenReturn(Optional.of(order));
+
+        OrderItem item = new OrderItem();
+        item.setProductId(2L);
+        item.setQuantity(3);
+        when(itemRepo.findAllByOrderId(orderId)).thenReturn(List.of(item));
+        Product buncha = new Product();
+        buncha.setId(2L);
+        buncha.setName("Bún chả Hà Nội");
+        when(productRepo.findAllById(List.of(2L))).thenReturn(List.of(buncha));
 
         notifier.onOrderCreated(new OrderCreatedEvent(orderId, "DH-1", 9000L, "COD"));
 
@@ -86,7 +106,13 @@ class OrderLifecycleNotifierTest {
         verify(bot, never()).sendText(eq(7003L), org.mockito.ArgumentMatchers.anyString());
 
         assertThat(textCap.getValue())
-            .contains("DH-1").contains("COD").contains("302 Cầu Giấy, Hà Nội");
+            .contains("DH-1")
+            .contains("Bún chả Hà Nội ×3")
+            .contains("175.000đ")
+            .contains("COD")
+            .contains("Nguyễn An — 0901234001")
+            .contains("302 Cầu Giấy, Hà Nội")
+            .contains("09:30 06/08/2026");
     }
 
     @Test
