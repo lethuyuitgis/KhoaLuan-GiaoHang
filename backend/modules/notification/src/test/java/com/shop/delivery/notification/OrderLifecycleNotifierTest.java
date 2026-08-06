@@ -70,8 +70,14 @@ class OrderLifecycleNotifierTest {
             inactive(7003L)
         ));
 
-        notifier.onOrderCreated(new OrderCreatedEvent(
-            UUID.randomUUID(), "DH-1", 9000L, "COD"));
+        // Admin cần thấy địa chỉ giao ngay trong thông báo để chuẩn bị đơn
+        // mà không phải mở Admin — thiếu nó thông báo chỉ còn là tiếng chuông.
+        UUID orderId = UUID.randomUUID();
+        Order order = new Order();
+        order.setDeliveryAddress("302 Cầu Giấy, Hà Nội");
+        when(orderRepo.findById(orderId)).thenReturn(Optional.of(order));
+
+        notifier.onOrderCreated(new OrderCreatedEvent(orderId, "DH-1", 9000L, "COD"));
 
         ArgumentCaptor<String> textCap = ArgumentCaptor.forClass(String.class);
         verify(bot).sendText(eq(7001L), textCap.capture());
@@ -79,7 +85,8 @@ class OrderLifecycleNotifierTest {
         verify(bot, never()).sendText(eq(9000L), org.mockito.ArgumentMatchers.anyString());
         verify(bot, never()).sendText(eq(7003L), org.mockito.ArgumentMatchers.anyString());
 
-        assertThat(textCap.getValue()).contains("DH-1").contains("COD");
+        assertThat(textCap.getValue())
+            .contains("DH-1").contains("COD").contains("302 Cầu Giấy, Hà Nội");
     }
 
     @Test

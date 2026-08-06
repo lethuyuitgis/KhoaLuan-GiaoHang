@@ -63,9 +63,14 @@ public class OrderLifecycleNotifier {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderCreated(OrderCreatedEvent e) {
         String paymentLabel = "VNPAY".equals(e.paymentMethod()) ? "VNPay" : "COD";
+        // Event chỉ mang id/code — địa chỉ giao lấy từ đơn (REQUIRES_NEW, sau commit
+        // nên đơn chắc chắn đã có trong DB).
+        Order order = lookupOrder(e.orderId());
+        String address = order != null && order.getDeliveryAddress() != null
+            ? order.getDeliveryAddress() : "(không rõ)";
         String text = String.format(
-            "🆕 Đơn mới %s\n💳 Thanh toán: %s\n👤 Khách: %d\nMở Admin để xác nhận.",
-            e.orderCode(), paymentLabel, e.customerId()
+            "🆕 Đơn mới %s\n💳 Thanh toán: %s\n👤 Khách: %d\n📍 Giao đến: %s\nMở Admin để xác nhận.",
+            e.orderCode(), paymentLabel, e.customerId(), address
         );
         broadcastToAdmins(text, "OrderCreated " + e.orderCode());
     }
