@@ -20,7 +20,9 @@ export default function App() {
         <ThemeProvider>
         <ZaloProvider>
           <ToastProvider>
-            <BrowserRouter>
+            {/* basename theo Vite base: '/' khi dev, '/zaloapp/' khi build prod —
+                thiếu nó thì mở app tại /zaloapp/ là rơi thẳng vào route 404. */}
+            <BrowserRouter basename={import.meta.env.BASE_URL}>
               <Routes>
                 <Route element={<Layout />}>
                   <Route index element={<SplashPage />} />
