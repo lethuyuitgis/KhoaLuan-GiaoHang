@@ -154,6 +154,14 @@ function AssignmentCard({ a, onNav, onAccept, onReject }: {
   onAccept: () => void;
   onReject: () => void;
 }) {
+  const isDone = ['COMPLETED', 'CANCELLED', 'REJECTED'].includes(a.status);
+  // Hoa hồng backend tính sẵn nếu có; chưa có thì ước lượng 80% phí ship.
+  const expected = a.shipperCommission ?? Math.round(Number(a.deliveryFee ?? 0) * 0.8);
+  const mustCollect = a.paymentMethod === 'COD' && a.paymentStatus !== 'SUCCESS';
+  const itemsSummary = (a.items ?? [])
+    .map(it => `${it.productName} ×${it.quantity}`)
+    .join(', ');
+
   return (
     <article
       className="bg-white rounded-xl p-3 space-y-1.5 shadow-sm active:scale-[0.98] transition cursor-pointer"
@@ -163,16 +171,33 @@ function AssignmentCard({ a, onNav, onAccept, onReject }: {
         <span className={`text-xs uppercase font-semibold px-2 py-0.5 rounded-full ${STATUS_BADGE[a.status] ?? 'bg-gray-100 text-gray-700'}`}>
           {STATUS_LABEL[a.status] ?? a.status}
         </span>
-        {a.status !== 'COMPLETED' && a.status !== 'CANCELLED' && a.status !== 'REJECTED' && (
-          <span className="text-sm font-bold text-[var(--brand-primary)]">
-            +{formatVnd(Math.round(Number(a.deliveryFee ?? 0) * 0.8))} dự kiến
+        {!isDone && (
+          <span className="text-sm font-bold text-[var(--brand-primary)] tabular-nums">
+            +{formatVnd(expected)} dự kiến
           </span>
         )}
       </header>
-      <p className="text-sm font-mono">{a.orderCode}</p>
-      <p className="text-xs text-gray-500">
-        {formatRelative(a.assignedAt)} · {Number(a.distanceKm ?? 0).toFixed(1)} km
-      </p>
+      <p className="text-sm font-mono font-semibold">{a.orderCode}</p>
+      <p className="text-xs text-gray-600 line-clamp-1">📍 {a.deliveryAddress}</p>
+      {itemsSummary && (
+        <p className="text-xs text-gray-500 line-clamp-1">🛍 {itemsSummary}</p>
+      )}
+      <div className="flex items-center justify-between gap-2 pt-0.5">
+        <p className="text-xs text-gray-500">
+          {formatRelative(a.assignedAt)} · {Number(a.distanceKm ?? 0).toFixed(1)} km
+        </p>
+        {!isDone && (
+          mustCollect ? (
+            <span className="shrink-0 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 tabular-nums">
+              💵 Thu {formatVnd(a.total)}
+            </span>
+          ) : (
+            <span className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+              ✅ Đã trả online
+            </span>
+          )
+        )}
+      </div>
       {a.status === 'OFFERED' && (
         <div className="flex gap-2 pt-1" onClick={e => e.stopPropagation()}>
           <button
