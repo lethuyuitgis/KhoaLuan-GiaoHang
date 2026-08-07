@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@/styles/leaflet-overrides.css';
+import type { SavedAddress } from '@shop/shared';
 import {
   createRateLimiter,
   isInHanoi,
@@ -42,9 +43,13 @@ interface Props {
   lng: number | null;
   onChange: (next: { address: string; lat: number; lng: number }) => void;
   error?: string;
+  /** The customer's saved addresses, surfaced as autocomplete suggestions. */
+  savedAddresses?: SavedAddress[];
+  /** Remove a saved address (called from the ✕ on a saved suggestion). */
+  onDeleteSaved?: (id: number) => void;
 }
 
-export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
+export function AddressPicker({ address, lat, lng, onChange, error, savedAddresses, onDeleteSaved }: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<NominatimResult[]>([]);
@@ -62,10 +67,18 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
   ];
   const hasPin = lat !== null && lng !== null;
 
+  // Saved-address suggestions: recent ones on empty focus, filtered while typing.
+  const savedMatches = useMemo(() => {
+    const list = savedAddresses ?? [];
+    const q = query.trim().toLowerCase();
+    const filtered = q.length === 0 ? list : list.filter(a => a.address.toLowerCase().includes(q));
+    return filtered.slice(0, 5);
+  }, [savedAddresses, query]);
+
   useEffect(() => {
     if (query.trim().length < 3) {
+      // Clear Nominatim results, but keep dropdown open so saved addresses still show.
       setSuggestions([]);
-      setShowSuggestions(false);
       return;
     }
     const handle = window.setTimeout(() => {
@@ -94,6 +107,13 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
     setShowSuggestions(false);
     setQuery(r.label);
     applyLocation(r.lat, r.lng, r.displayName);
+  }
+
+  function pickSaved(a: SavedAddress) {
+    setShowSuggestions(false);
+    setQuery(a.address);
+    // Saved addresses already carry a resolved label + coords — no geocoding.
+    applyLocation(a.lat, a.lng, a.address);
   }
 
   function applyLocation(nextLat: number, nextLng: number, displayName?: string) {
@@ -147,7 +167,8 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => window.setTimeout(() => setShowSuggestions(false), 150)}
             placeholder={t('address.search')}
             className="flex-1 bg-transparent text-sm outline-none"
             aria-label={t('address.searchAria')}
@@ -155,12 +176,37 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
           />
           {searching && <span className="text-xs text-gray-400">…</span>}
         </div>
-        {showSuggestions && suggestions.length > 0 && (
+        {showSuggestions && (savedMatches.length > 0 || suggestions.length > 0) && (
           <ul
             className="absolute z-[1100] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden"
             role="listbox"
             data-testid="address-suggestions"
           >
+            {savedMatches.map(a => (
+              <li key={`saved-${a.id}`} role="option" aria-selected="false"
+                  className="flex items-stretch border-b border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => pickSaved(a)}
+                  className="flex-1 min-w-0 text-left px-3 py-2 text-sm hover:bg-amber-50 active:bg-amber-100"
+                  data-testid="saved-suggestion"
+                >
+                  <span className="font-medium block text-gray-800 truncate">⭐ {a.address}</span>
+                  <span className="text-[11px] text-amber-600">{t('address.saved')}</span>
+                </button>
+                {onDeleteSaved && (
+                  <button
+                    type="button"
+                    aria-label={t('address.deleteSaved')}
+                    onClick={() => onDeleteSaved(a.id)}
+                    className="px-3 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                    data-testid="delete-saved"
+                  >
+                    ✕
+                  </button>
+                )}
+              </li>
+            ))}
             {suggestions.map((r, idx) => (
               <li key={`${r.lat}-${r.lng}-${idx}`} role="option" aria-selected="false">
                 <button
@@ -175,7 +221,7 @@ export function AddressPicker({ address, lat, lng, onChange, error }: Props) {
             ))}
           </ul>
         )}
-        {showSuggestions && query.trim().length >= 3 && !searching && suggestions.length === 0 && (
+        {showSuggestions && query.trim().length >= 3 && !searching && suggestions.length === 0 && savedMatches.length === 0 && (
           <div className="absolute z-[1100] mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg px-3 py-2 text-xs text-gray-500">
             {t('address.notFound')}
           </div>
