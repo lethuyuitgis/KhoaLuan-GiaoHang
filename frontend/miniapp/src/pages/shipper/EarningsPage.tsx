@@ -146,6 +146,16 @@ export function EarningsPage() {
         ) : (
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={chart} margin={{ top: 18, right: 4, left: -16, bottom: 0 }}>
+              <defs>
+                <linearGradient id="earnToday" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--brand-primary)" stopOpacity={1} />
+                  <stop offset="100%" stopColor="var(--brand-primary)" stopOpacity={0.72} />
+                </linearGradient>
+                <linearGradient id="earnRest" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--brand-primary-light,#fdba74)" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="var(--brand-primary-light,#fdba74)" stopOpacity={0.5} />
+                </linearGradient>
+              </defs>
               <XAxis
                 dataKey="day"
                 axisLine={false}
@@ -167,7 +177,7 @@ export function EarningsPage() {
                 {chart.map((c, i) => (
                   <Cell
                     key={i}
-                    fill={c.isToday ? 'var(--brand-primary)' : 'var(--brand-primary-light,#fdba74)'}
+                    fill={c.isToday ? 'url(#earnToday)' : 'url(#earnRest)'}
                   />
                 ))}
               </Bar>
