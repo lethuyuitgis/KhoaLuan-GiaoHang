@@ -159,5 +159,12 @@
   "lang.ja": "日本語",
   "lang.zh": "中文",
   "address.saved": "저장됨",
-  "address.deleteSaved": "저장된 주소 삭제"
+  "address.deleteSaved": "저장된 주소 삭제",
+  "chat.title": "배송원과 채팅",
+  "chat.empty": "아직 메시지가 없습니다. 배송원에게 메시지를 보내세요.",
+  "chat.you": "나",
+  "chat.shipper": "배송원",
+  "chat.placeholder": "메시지 입력…",
+  "chat.send": "보내기",
+  "chat.sendError": "전송 실패, 다시 시도하세요."
 }

@@ -159,5 +159,12 @@
   "lang.ja": "日本語",
   "lang.zh": "中文",
   "address.saved": "保存済み",
-  "address.deleteSaved": "保存した住所を削除"
+  "address.deleteSaved": "保存した住所を削除",
+  "chat.title": "配達員とチャット",
+  "chat.empty": "メッセージはまだありません。配達員に送りましょう。",
+  "chat.you": "あなた",
+  "chat.shipper": "配達員",
+  "chat.placeholder": "メッセージを入力…",
+  "chat.send": "送信",
+  "chat.sendError": "送信に失敗しました。再試行してください。"
 }

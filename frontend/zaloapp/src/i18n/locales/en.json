@@ -159,5 +159,12 @@
   "lang.ja": "日本語",
   "lang.zh": "中文",
   "address.saved": "Saved",
-  "address.deleteSaved": "Delete saved address"
+  "address.deleteSaved": "Delete saved address",
+  "chat.title": "Chat with shipper",
+  "chat.empty": "No messages yet. Send a note to your shipper.",
+  "chat.you": "You",
+  "chat.shipper": "Shipper",
+  "chat.placeholder": "Type a message…",
+  "chat.send": "Send",
+  "chat.sendError": "Failed to send, try again."
 }

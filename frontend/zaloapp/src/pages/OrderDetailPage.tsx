@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getOrder, cancelOrder, formatVnd, formatDateTime, type PaymentStatus } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { OrderChat } from '@/components/OrderChat';
 import { useToast } from '@/components/Toast';
 
 const CANCELLABLE = new Set(['PENDING', 'CONFIRMED']);
@@ -121,6 +122,10 @@ export function OrderDetailPage() {
           </p>
           <p className="text-xs text-brand-600 mt-1.5 leading-relaxed">{t('orderDetail.deliveredHintZalo')}</p>
         </div>
+      )}
+
+      {(order.status === 'ASSIGNED' || order.status === 'DELIVERING') && (
+        <OrderChat orderId={order.id} active />
       )}
 
       <section className={SECTION_CARD_CLS}>

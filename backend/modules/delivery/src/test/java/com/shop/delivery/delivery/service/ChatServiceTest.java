@@ -8,17 +8,25 @@ import com.shop.delivery.delivery.repository.ChatMessageRepository;
 import com.shop.delivery.delivery.repository.DeliveryAssignmentRepository;
 import com.shop.delivery.order.entity.Order;
 import com.shop.delivery.order.service.OrderService;
+import com.shop.delivery.shared.event.CustomerChatSentEvent;
+import com.shop.delivery.shared.exception.BusinessRuleException;
+import com.shop.delivery.shared.exception.NotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,6 +35,7 @@ class ChatServiceTest {
     @Mock DeliveryAssignmentRepository assignmentRepo;
     @Mock ChatMessageRepository chatRepo;
     @Mock OrderService orderService;
+    @Mock ApplicationEventPublisher events;
     @InjectMocks ChatService service;
 
     private final UUID assignmentId = UUID.randomUUID();
@@ -99,5 +108,74 @@ class ChatServiceTest {
     void historyForOrderEmptyWhenNeverAssigned() {
         when(assignmentRepo.findByOrderId(orderId)).thenReturn(Optional.empty());
         assertThat(service.historyForOrder(orderId)).isEmpty();
+    }
+
+    @Test
+    void sendFromCustomerRecordsAndPublishesRelayEvent() {
+        when(assignmentRepo.findByOrderId(orderId)).thenReturn(Optional.of(assignment(AssignmentStatus.ACCEPTED)));
+        when(assignmentRepo.findById(assignmentId)).thenReturn(Optional.of(assignment(AssignmentStatus.ACCEPTED)));
+        stubOrder();
+        when(chatRepo.save(any(ChatMessage.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.sendFromCustomer(orderId, customerId, "shipper tới chưa");
+
+        ArgumentCaptor<ChatMessage> mCap = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(chatRepo).save(mCap.capture());
+        assertThat(mCap.getValue().getSenderRole()).isEqualTo(ChatRole.CUSTOMER);
+        ArgumentCaptor<CustomerChatSentEvent> eCap = ArgumentCaptor.forClass(CustomerChatSentEvent.class);
+        verify(events).publishEvent(eCap.capture());
+        assertThat(eCap.getValue().shipperId()).isEqualTo(shipperId);
+        assertThat(eCap.getValue().body()).isEqualTo("shipper tới chưa");
+    }
+
+    @Test
+    void sendFromCustomerRejectedWhenNotOwner() {
+        // Ownership is checked first — a non-owner is rejected before any
+        // assignment lookup (no leak of the order's state).
+        stubOrder();
+
+        assertThatThrownBy(() -> service.sendFromCustomer(orderId, 999L, "hi"))
+            .isInstanceOf(NotFoundException.class);
+        verify(events, never()).publishEvent(any());
+    }
+
+    @Test
+    void sendFromCustomerRejectedWhenChatClosed() {
+        when(assignmentRepo.findByOrderId(orderId)).thenReturn(Optional.of(assignment(AssignmentStatus.COMPLETED)));
+        when(assignmentRepo.findById(assignmentId)).thenReturn(Optional.of(assignment(AssignmentStatus.COMPLETED)));
+        stubOrder();
+
+        assertThatThrownBy(() -> service.sendFromCustomer(orderId, customerId, "hi"))
+            .isInstanceOf(BusinessRuleException.class);
+        verify(events, never()).publishEvent(any());
+    }
+
+    @Test
+    void sendFromCustomerThrowsWhenNoAssignment() {
+        stubOrder(); // owner check passes, but there's no assignment yet
+        when(assignmentRepo.findByOrderId(orderId)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.sendFromCustomer(orderId, customerId, "hi"))
+            .isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void historyForCustomerReturnsMessagesForOwner() {
+        when(assignmentRepo.findByOrderId(orderId)).thenReturn(Optional.of(assignment(AssignmentStatus.ACCEPTED)));
+        when(assignmentRepo.findById(assignmentId)).thenReturn(Optional.of(assignment(AssignmentStatus.ACCEPTED)));
+        stubOrder();
+        ChatMessage m = new ChatMessage();
+        when(chatRepo.findByAssignmentIdOrderByCreatedAtAsc(assignmentId)).thenReturn(java.util.List.of(m));
+
+        assertThat(service.historyForCustomer(orderId, customerId)).containsExactly(m);
+    }
+
+    @Test
+    void historyForCustomerRejectedWhenNotOwner() {
+        when(assignmentRepo.findByOrderId(orderId)).thenReturn(Optional.of(assignment(AssignmentStatus.ACCEPTED)));
+        when(assignmentRepo.findById(assignmentId)).thenReturn(Optional.of(assignment(AssignmentStatus.ACCEPTED)));
+        stubOrder();
+
+        assertThatThrownBy(() -> service.historyForCustomer(orderId, 999L))
+            .isInstanceOf(NotFoundException.class);
     }
 }

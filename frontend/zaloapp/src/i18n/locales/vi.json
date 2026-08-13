@@ -159,5 +159,12 @@
   "lang.ja": "日本語",
   "lang.zh": "中文",
   "address.saved": "Đã lưu",
-  "address.deleteSaved": "Xoá địa chỉ đã lưu"
+  "address.deleteSaved": "Xoá địa chỉ đã lưu",
+  "chat.title": "Nhắn tin với shipper",
+  "chat.empty": "Chưa có tin nhắn. Gửi lời nhắn cho shipper.",
+  "chat.you": "Bạn",
+  "chat.shipper": "Shipper",
+  "chat.placeholder": "Nhập tin nhắn…",
+  "chat.send": "Gửi",
+  "chat.sendError": "Gửi thất bại, thử lại."
 }

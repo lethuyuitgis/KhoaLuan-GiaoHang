@@ -159,5 +159,12 @@
   "lang.ja": "日本語",
   "lang.zh": "中文",
   "address.saved": "已保存",
-  "address.deleteSaved": "删除已保存地址"
+  "address.deleteSaved": "删除已保存地址",
+  "chat.title": "与配送员聊天",
+  "chat.empty": "还没有消息。给配送员发条消息吧。",
+  "chat.you": "你",
+  "chat.shipper": "配送员",
+  "chat.placeholder": "输入消息…",
+  "chat.send": "发送",
+  "chat.sendError": "发送失败，请重试。"
 }
