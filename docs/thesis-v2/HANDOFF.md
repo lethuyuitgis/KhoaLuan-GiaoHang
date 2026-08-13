@@ -53,16 +53,17 @@ Build: `bash docs/thesis/build.sh` → `docs/thesis/build/out/`
   1.6 Phân công công việc (bảng 3 SV).
 - Số liệu đã đồng bộ chuẩn (39 endpoint, telegrambots 6.9.7.1).
 
-## Số liệu chuẩn (canonical — đã verify với mã nguồn, cập nhật 2026-08-04 sau 5 feature)
+## Số liệu chuẩn (canonical — đã verify với mã nguồn, cập nhật sau Zalo Mini App)
 | Chỉ số | Giá trị |
 |---|---|
 | Maven submodule | 11 (8 bounded context lúc bảo vệ + `promotion` pha mở rộng + 2 stub `miniapp`/`webadmin`) |
-| Bounded context | 8 tại thời điểm bảo vệ, 9 sau hai pha mở rộng (5 feature 2026-08-04 KHÔNG thêm module) |
-| Flyway migration | **17** (V1–V17); V16 `saved_address`, V17 `chat_message` thuộc pha hoàn thiện 2026-08-04 |
-| Test backend | **355** = 301 unit (surefire) + 54 integration (`*IT.java`, failsafe) |
-| Test frontend | **70** (shared 9 + miniapp 43 + webadmin 18) · **Tổng 425** |
-| Endpoint REST | **45** đếm theo path (Bảng 3.3 thesis-v2); 63 nếu đếm theo method-mapping. 5 feature thêm 6 path: shipper reject, order history/candidate-shippers/chat, addresses GET+DELETE |
-| Yêu cầu chức năng (FR) | 20 (FR1–15 lúc bảo vệ + FR16–20 hoàn thiện sau bảo vệ, mục 4.7 CH4) |
+| Bounded context | 8 tại thời điểm bảo vệ, 9 sau mở rộng (5 feature + Zalo KHÔNG thêm module) |
+| App frontend | **3** (webadmin, miniapp Telegram, zaloapp Zalo) + gói shared |
+| Flyway migration | **17** (V1–V17); V16 `saved_address`, V17 `chat_message` |
+| Test backend | **369** = 314 unit (surefire) + 55 integration (`*IT.java`, failsafe) |
+| Test frontend | **122** (shared 9 + miniapp 43 + webadmin 18 + zaloapp 52) · **Tổng 491** |
+| Endpoint REST | **46** đếm theo path (Bảng 3.3 thesis-v2); 65 theo method-mapping. Zalo thêm 1 path: `/api/orders/{id}/chat` (GET+POST, chat khách) |
+| Yêu cầu chức năng (FR) | 20 (FR1–15 lúc bảo vệ + FR16–20 sau bảo vệ, mục 4.7 CH4); Zalo tái dùng cùng FR |
 | Đóng góp kỹ thuật | **8** (Ch1 §1.4.1–1.4.8; §1.4.9 là chỉ số định lượng, không phải đóng góp) |
 | Thư viện Telegram | `telegrambots-spring-boot-starter` **6.9.7.1** (KHÔNG phải 7.x) |
 | Yêu cầu MoSCoW | 8 Must + 3 Should (đã xong) + 2 Could + 2 Won't = 15 |

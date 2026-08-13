@@ -1,6 +1,6 @@
 # CHƯƠNG 4: KẾT QUẢ SẢN PHẨM
 
-Chương này trình bày kết quả sản phẩm cuối cùng của đề tài *"Hệ thống quản lý giao hàng tích hợp Telegram Mini App, Web Admin và VNPay"*. Nội dung đi từ nền tảng đến sản phẩm hoàn chỉnh: tổng hợp các công nghệ đã sử dụng cùng vai trò của từng công nghệ (mục 4.1); cấu trúc dự án và tổ chức mã nguồn (mục 4.2); các quyết định cài đặt then chốt của những mô-đun chính — máy trạng thái đơn hàng, tích hợp Telegram Bot, tích hợp VNPay và kênh realtime WebSocket (mục 4.3); chiến lược và kết quả kiểm thử với 425 test tự động (mục 4.4); phương án đóng gói và triển khai bằng Docker Compose (mục 4.5); cuối cùng là giao diện chương trình thực tế qua các ảnh chụp màn hình của cả ba kênh — Web Admin cho chủ shop, Mini App cho khách hàng và Mini App cho shipper (mục 4.6). Toàn bộ ảnh chụp được lấy trực tiếp từ hệ thống đang vận hành với bộ dữ liệu seed phục vụ demo.
+Chương này trình bày kết quả sản phẩm cuối cùng của đề tài *"Hệ thống quản lý giao hàng tích hợp Telegram Mini App, Web Admin và VNPay"*. Nội dung đi từ nền tảng đến sản phẩm hoàn chỉnh: tổng hợp các công nghệ đã sử dụng cùng vai trò của từng công nghệ (mục 4.1); cấu trúc dự án và tổ chức mã nguồn (mục 4.2); các quyết định cài đặt then chốt của những mô-đun chính — máy trạng thái đơn hàng, tích hợp Telegram Bot, tích hợp VNPay và kênh realtime WebSocket (mục 4.3); chiến lược và kết quả kiểm thử với 491 test tự động (mục 4.4); phương án đóng gói và triển khai bằng Docker Compose (mục 4.5); cuối cùng là giao diện chương trình thực tế qua các ảnh chụp màn hình của cả ba kênh — Web Admin cho chủ shop, Mini App cho khách hàng và Mini App cho shipper (mục 4.6). Toàn bộ ảnh chụp được lấy trực tiếp từ hệ thống đang vận hành với bộ dữ liệu seed phục vụ demo.
 
 ## 4.1. Công nghệ sử dụng
 
@@ -10,13 +10,13 @@ Hệ thống được xây dựng trên một tập công nghệ mã nguồn m�
 
 Java 17 là phiên bản Long-Term Support (LTS) của nền tảng Java, cung cấp các tính năng hiện đại như record, sealed class, pattern matching và text block giúp mã nguồn ngắn gọn, an toàn kiểu. Spring Boot 3.4 là framework nền tảng cho toàn bộ backend, dựa trên Spring Framework 6 và chuẩn Jakarta EE 9+.
 
-Trong đề tài, Java 17 và Spring Boot 3.4 đóng vai trò xương sống của tầng backend: hiện thực toàn bộ tám bounded context (shared, auth, order, delivery, payment, bot, notification, app), 45 REST endpoint, tầng bảo mật Spring Security, truy xuất dữ liệu qua Spring Data JPA, kênh realtime Spring WebSocket (STOMP), quản lý migration bằng Flyway và tích hợp Telegram Bot qua `telegrambots-spring-boot-starter` 6.9.7.1. Cơ chế `@TransactionalEventListener(AFTER_COMMIT)` của Spring được dùng để phát và xử lý sự kiện cross-module một cách an toàn giao dịch.
+Trong đề tài, Java 17 và Spring Boot 3.4 đóng vai trò xương sống của tầng backend: hiện thực toàn bộ tám bounded context (shared, auth, order, delivery, payment, bot, notification, app), 46 REST endpoint, tầng bảo mật Spring Security, truy xuất dữ liệu qua Spring Data JPA, kênh realtime Spring WebSocket (STOMP), quản lý migration bằng Flyway và tích hợp Telegram Bot qua `telegrambots-spring-boot-starter` 6.9.7.1. Cơ chế `@TransactionalEventListener(AFTER_COMMIT)` của Spring được dùng để phát và xử lý sự kiện cross-module một cách an toàn giao dịch.
 
 ### 4.1.2. React 18 và Vite 5
 
 React 18 là thư viện JavaScript xây dựng giao diện người dùng theo mô hình component, hỗ trợ concurrent rendering và hook. Vite 5 là công cụ build và dev-server thế hệ mới dựa trên esbuild và Rollup, cho thời gian khởi động và hot-reload gần như tức thì.
 
-Trong đề tài, React 18 + Vite 5 (với TypeScript 5.6) là nền tảng cho hai frontend: Web Admin cho chủ shop và Mini App cho khách hàng + shipper (mỗi ứng dụng khoảng mười ba trang). Hệ sinh thái đi kèm gồm: TanStack Query 5 quản lý trạng thái server và cache, Zustand 4 quản lý trạng thái phía client (ví dụ giỏ hàng persist), Tailwind CSS 3 cho styling tiện dụng, Recharts 3 vẽ biểu đồ Dashboard, `@twa-dev/sdk` 7 tương tác Telegram WebApp và react-leaflet + OpenStreetMap cho bản đồ tracking. Cấu hình Vite `manualChunks` tách Recharts thành chunk lazy-load, đưa bundle initial của Web Admin xuống khoảng 121 KB gzipped.
+Trong đề tài, React 18 + Vite 5 (với TypeScript 5.6) là nền tảng cho ba ứng dụng frontend: Web Admin cho chủ shop, Telegram Mini App cho khách hàng + shipper, và Zalo Mini App cho khách hàng (mục 4.8) — cả ba dùng chung gói `@shop/shared`. Hệ sinh thái đi kèm gồm: TanStack Query 5 quản lý trạng thái server và cache, Zustand 4 quản lý trạng thái phía client (ví dụ giỏ hàng persist), Tailwind CSS 3 cho styling tiện dụng, Recharts 3 vẽ biểu đồ Dashboard, `@twa-dev/sdk` 7 tương tác Telegram WebApp và react-leaflet + OpenStreetMap cho bản đồ tracking. Cấu hình Vite `manualChunks` tách Recharts thành chunk lazy-load, đưa bundle initial của Web Admin xuống khoảng 121 KB gzipped.
 
 ### 4.1.3. PostgreSQL 16 và Flyway
 
@@ -65,10 +65,11 @@ KhoaLuan-GiaoHang/
 │   │   ├── promotion/                    # Voucher — bổ sung ở pha mở rộng
 │   │   └── miniapp/, webadmin/           # Static resource serving stub
 │   └── mvnw, mvnw.cmd                    # Maven wrapper
-├── frontend/                             # pnpm workspace với 3 package
+├── frontend/                             # pnpm workspace với 4 package
 │   ├── shared/                           # @shop/shared — types + helpers
 │   ├── miniapp/                          # @shop/miniapp — Telegram Mini App
-│   └── webadmin/                         # @shop/webadmin — Web Admin
+│   ├── webadmin/                         # @shop/webadmin — Web Admin
+│   └── zaloapp/                          # @shop/zaloapp — Zalo Mini App (mục 4.8)
 ├── infra/
 │   ├── docker-compose.yml                # Full stack demo (5 service)
 │   ├── docker-compose.dev.yml            # Postgres-only cho dev
@@ -85,7 +86,7 @@ Backend là một project Maven multi-module với **mười một submodule**: 
 
 ### 4.2.3. Frontend pnpm workspace
 
-Frontend gồm ba workspace pnpm khai báo trong `frontend/pnpm-workspace.yaml`. Package `@shop/shared` chứa kiểu TypeScript cho DTO backend (mỗi interface ứng với một response class Java), API client wrapper trên `axios` với interceptor tự chèn header xác thực (`X-Telegram-Init-Data` cho Mini App, `Authorization: Bearer` cho Web Admin) và các helper định dạng `formatVnd`, `formatDateTime`, `haversineKm`. Hai ứng dụng `@shop/miniapp` và `@shop/webadmin` import nó qua đường dẫn workspace (`"@shop/shared": "workspace:*"`); pnpm hardlink `frontend/shared/dist` vào `node_modules` của hai workspace tiêu thụ nên thay đổi DTO ở một nơi lan toả ngay, không cần publish gói lên registry.
+Frontend gồm bốn workspace pnpm khai báo trong `frontend/pnpm-workspace.yaml`. Package `@shop/shared` chứa kiểu TypeScript cho DTO backend (mỗi interface ứng với một response class Java), API client wrapper trên `axios` với interceptor tự chèn header xác thực (`X-Telegram-Init-Data` cho Telegram Mini App, `Authorization: Bearer` cho Web Admin, `X-Zalo-Access-Token` cho Zalo Mini App) và các helper định dạng `formatVnd`, `formatDateTime`, `haversineKm`. Ba ứng dụng `@shop/miniapp`, `@shop/webadmin` và `@shop/zaloapp` (mục 4.8) import nó qua đường dẫn workspace (`"@shop/shared": "workspace:*"`); pnpm hardlink `frontend/shared/dist` vào `node_modules` của các workspace tiêu thụ nên thay đổi DTO ở một nơi lan toả ngay, không cần publish gói lên registry.
 
 ### 4.2.4. Quản lý schema bằng Flyway
 
@@ -169,15 +170,15 @@ Giao tiếp giữa các module đi qua chín event record bất biến (Java 17 
 
 ### 4.4.1. Chiến lược kiểm thử backend
 
-Backend áp dụng mô hình *kim tự tháp kiểm thử* (testing pyramid) với **355 test** chia ba tầng. Tầng đáy gồm **301 unit test** dùng Mockito 5 và AssertJ 3, kiểm thử service, handler và helper ở mức class đơn lẻ với mọi dependency được mock; toàn bộ chạy bởi Maven Surefire trong chưa đầy mười giây, đủ nhanh để chạy trước mỗi commit. Tầng giữa gồm **54 integration test** (suffix `IT.java`, chạy bởi Maven Failsafe) dùng Testcontainers khởi động PostgreSQL 16 *thật* trong container và `@SpringBootTest`, kiểm thử tương tác đa thành phần — repository, service, listener, transaction propagation — trên schema thật đã apply đủ mười bảy Flyway migration; toàn bộ hoàn tất trong khoảng ba phút. Tầng đỉnh là các slice test `@WebMvcTest` kiểm thử validation của controller và cấu trúc JSON mà không cần boot toàn bộ context Spring.
+Backend áp dụng mô hình *kim tự tháp kiểm thử* (testing pyramid) với **369 test** chia ba tầng. Tầng đáy gồm **314 unit test** dùng Mockito 5 và AssertJ 3, kiểm thử service, handler và helper ở mức class đơn lẻ với mọi dependency được mock; toàn bộ chạy bởi Maven Surefire trong chưa đầy mười giây, đủ nhanh để chạy trước mỗi commit. Tầng giữa gồm **55 integration test** (suffix `IT.java`, chạy bởi Maven Failsafe) dùng Testcontainers khởi động PostgreSQL 16 *thật* trong container và `@SpringBootTest`, kiểm thử tương tác đa thành phần — repository, service, listener, transaction propagation — trên schema thật đã apply đủ mười bảy Flyway migration; toàn bộ hoàn tất trong khoảng ba phút. Tầng đỉnh là các slice test `@WebMvcTest` kiểm thử validation của controller và cấu trúc JSON mà không cần boot toàn bộ context Spring.
 
 Phân bổ test theo mô-đun phản ánh mức độ phức tạp nghiệp vụ: `bot` nhiều nhất với 74 test do phải phủ toàn bộ handler và máy trạng thái hội thoại (bao gồm luồng chat ẩn danh); kế đến `delivery` với 71 test (gồm integration test cho race condition khi gán shipper) và `order` với 47 test; `payment` 33 test tập trung vào chữ ký HMAC-SHA512 và tính idempotent của IPN; mô-đun `app` chỉ có integration test vì không chứa logic nghiệp vụ.
 
 ### 4.4.2. Kiểm thử frontend
 
-Frontend dùng Vitest kết hợp Testing Library với **70 test** tổ chức theo workspace: chín test cho `@shop/shared` chạy trong môi trường node, phủ các helper `formatVnd`, `formatDateTime`, `haversineKm` với các edge case (số âm, NaN, khoảng cách bằng 0); bốn mươi ba test cho `@shop/miniapp` chạy trong jsdom, phủ Zustand store `useCart`, i18n, `VoucherInput` và component `AddressPicker` (hiện địa chỉ đã lưu, lọc theo truy vấn, chọn điền thẳng); mười tám test cho `@shop/webadmin` phủ `auth-store`, `OrderStatusBadge`, `StatusTimeline`, `AssignShipperModal` (sao đánh giá, khoảng cách, đổi kiểu sắp xếp) và `ShippersPage` (mục chờ duyệt, thao tác duyệt/từ chối). Toàn bộ hoàn tất trong khoảng năm giây.
+Frontend dùng Vitest kết hợp Testing Library với **122 test** tổ chức theo workspace: chín test cho `@shop/shared` (các helper `formatVnd`, `formatDateTime`, `haversineKm` với edge case); bốn mươi ba test cho `@shop/miniapp` (Zustand store `useCart`, i18n, `VoucherInput`, `AddressPicker`); mười tám test cho `@shop/webadmin` (`auth-store`, `OrderStatusBadge`, `StatusTimeline`, `AssignShipperModal`, `ShippersPage`); và **năm mươi hai test cho `@shop/zaloapp`** — ứng dụng Zalo Mini App (mục 4.8) — phủ SDK wrapper, giỏ hàng, `AddressPicker`, `VoucherInput`, `OrderTrackingMap`, `OrderChat` và `RatingForm`. Toàn bộ hoàn tất trong khoảng năm giây.
 
-Tổng cộng toàn dự án có **425 test tự động (355 backend + 70 frontend)**. Quy trình xác minh chạy trước mỗi commit: `./mvnw verify` (Surefire + Failsafe + Testcontainers), `pnpm -r build` và `pnpm -r type-check`; tỉ lệ build xanh đạt 100% — không commit nào ở nhánh `main` mà bộ test thất bại.
+Tổng cộng toàn dự án có **491 test tự động (369 backend + 122 frontend)**. Quy trình xác minh chạy trước mỗi commit: `./mvnw verify` (Surefire + Failsafe + Testcontainers), `pnpm -r build` và `pnpm -r type-check`; tỉ lệ build xanh đạt 100% — không commit nào ở nhánh `main` mà bộ test thất bại.
 
 ### 4.4.3. Các lỗi nghiêm trọng phát hiện qua code review
 
@@ -304,6 +305,19 @@ Bổ sung bảng `saved_address` (Flyway **V16**, khử trùng theo `(customer_i
 
 Bổ sung bảng `chat_message` (Flyway **V17**) và luồng chat trung gian qua bot: khi shipper nhận đơn, cả hai bên nhận nút "💬 Chat" mở chế độ hội thoại (trạng thái FSM `CHAT_ACTIVE`). Tin nhắn được **gửi lại dưới dạng văn bản mới có tiền tố vai trò** ("🧑 Khách" / "🛵 Shipper"), tuyệt đối không dùng `forwardMessage` — nhờ đó không bên nào thấy tài khoản Telegram hay số điện thoại của bên kia. Phần miền (`ChatService` trong module `delivery`) phân giải hai bên và trạng thái mở/đóng của hội thoại (mở khi assignment `ACCEPTED/STARTED`); phần truyền (handler trong module `bot`) đảm nhiệm gửi qua `BotSender`, giữ đúng ranh giới `delivery` không phụ thuộc `bot`. Mọi tin được lưu phục vụ audit qua `GET /api/admin/orders/{orderId}/chat`.
 
+## 4.8. Mở rộng đa nền tảng: Zalo Mini App
+
+Hướng ưu tiên hàng đầu ở phần Hướng phát triển — *mở rộng sang Zalo Mini App* (~75 triệu người dùng hoạt động hàng tháng tại Việt Nam) — đã được hiện thực thành ứng dụng khách thứ ba (`frontend/zaloapp`), chạy song song với Telegram Mini App và Web Admin. Kiến trúc backend nghiệp vụ được tái sử dụng **nguyên vẹn** (cùng REST API, cùng cơ sở dữ liệu); chỉ lớp giao tiếp nền tảng thay đổi.
+
+Điểm khác biệt cốt lõi: **Zalo Mini App không có kênh Bot DM và WebSocket như Telegram**, nên các tính năng vốn chạy qua bot/STOMP được hiện thực lại bằng **REST + polling**:
+
+- **Xác thực**: thay `initData` (HMAC-SHA256) của Telegram bằng `zmp-sdk` `getAccessToken` phía client; backend bổ sung `ZaloAuthFilter` gọi Zalo OpenAPI `GET graph.zalo.me/v2.0/me` để xác minh token và upsert người dùng. Bộ lọc tự vô hiệu khi chưa cấu hình `ZALO_APP_ID`, nên có thể phát triển/kiểm thử trên trình duyệt thường qua cơ chế dev-bypass.
+- **Theo dõi shipper**: thay STOMP bằng poll `GET /api/orders/{id}/location` mỗi 5 giây.
+- **Chat ẩn danh**: khách Zalo nhắn qua REST (`POST /api/orders/{id}/chat`); backend phát `CustomerChatSentEvent` để module `notification` relay sang **bot Telegram của shipper**, giữ nguyên tính ẩn danh — một luồng chat *xuyên nền tảng* Zalo ↔ Telegram.
+- **Đánh giá**: khách Zalo chấm sao qua `POST /api/orders/{id}/rating` (thay vì FSM bot).
+
+Nhờ tách bạch domain/transport và dùng chung gói `@shop/shared` (kiểu dữ liệu + API helper), ứng dụng Zalo đạt **parity đầy đủ luồng khách** (đặt món, giỏ hàng, thanh toán, lưu địa chỉ + autocomplete, mã giảm giá, theo dõi bản đồ, chat, đánh giá) mà chỉ phát sinh một endpoint mới (chat khách) và hai lớp backend (`CustomerChatController`, `CustomerChatNotifier`). Việc đăng ký Zalo Official Account + xuất bản `.zmp` nằm ngoài phạm vi khoá luận (cần phê duyệt ~1–2 tuần của Zalo); phần mã tích hợp thật đã được chuẩn bị sẵn theo cơ chế *gated* — kích hoạt khi điền credential.
+
 # KẾT LUẬN
 
 ## Kết quả đạt được
@@ -328,7 +342,7 @@ Bổ sung bảng `chat_message` (Flyway **V17**) và luồng chat trung gian qua
 
 Về mặt kỹ thuật, đề tài đem lại các đóng góp chính: (i) **mô hình triển khai lai trên nền tảng Telegram** dùng đồng thời ba kênh (Mini App, Bot, Web Admin) phân vai theo thiết bị; (ii) **theo dõi GPS realtime bằng Telegram Live Location native** với độ trễ end-to-end dưới ba giây, tiết kiệm khoảng 80% công sức so với tự lập trình GPS streaming; (iii) **kiến trúc Modular Monolith với tám bounded context** giao tiếp qua Spring Application Events `@TransactionalEventListener(AFTER_COMMIT)`; (iv) **tích hợp VNPay với IPN-as-source-of-truth** kèm các đảm bảo cụ thể (constant-time hash comparison, idempotent IPN, JSONB audit trail bắt buộc, `Propagation.REQUIRES_NEW`); và (v) **mô hình bảo mật defense-in-depth gồm mười một lớp** đối phó song song, mỗi lớp có regression test khoá.
 
-Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở), hệ thống cung cấp **45 REST endpoint**, được kiểm thử qua **425 test (355 backend gồm 301 unit và 54 integration, cộng 70 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **15 ảnh chụp giao diện** thực tế. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
+Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở và mở rộng sang Zalo Mini App), hệ thống cung cấp **46 REST endpoint**, được kiểm thử qua **491 test (369 backend gồm 314 unit và 55 integration, cộng 122 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **15 ảnh chụp giao diện** thực tế. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
 
 **Bảng KL.2. Tổng hợp các chỉ số định lượng kết quả đạt được**
 
@@ -337,13 +351,13 @@ Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện c
 | Tổng số commit nguyên tử | hơn 152 |
 | Tổng số dòng mã (Java + TypeScript) | khoảng 25 000 |
 | Số mô-đun backend (bounded context) | 8 (11 submodule Maven) |
-| Số endpoint REST | 45 |
+| Số endpoint REST | 46 |
 | Số sự kiện cross-module | 9 |
 | Số topic WebSocket | 2 |
 | Số file Flyway migration | 17 (V1 đến V17) |
-| Test backend (unit + integration) | 355 (301 + 54) |
-| Test frontend (Vitest + Testing Library) | 70 |
-| Tổng số test toàn dự án | 425 |
+| Test backend (unit + integration) | 369 (314 + 55) |
+| Test frontend (Vitest + Testing Library) | 122 |
+| Tổng số test toàn dự án | 491 |
 | Tỉ lệ build xanh trên mỗi commit ở `main` | 100% |
 | Số trang Mini App / Web Admin | 13 / 13 |
 | Số Dockerfile / container Docker Compose | 3 / 5 |
@@ -366,11 +380,11 @@ Việc liệt kê thẳng thắn các hạn chế cùng phân loại và phươn
 
 Các hướng phát triển được phân theo độ ưu tiên kinh doanh và độ phức tạp kỹ thuật. Năm hạng mục hoàn thiện trong scope từng liệt kê ở đây (chat ẩn danh, lưu địa chỉ, timeline trạng thái, modal gán shipper theo khoảng cách/rating, hoàn thiện luồng duyệt shipper) cùng việc mở rộng test frontend **đã được thực hiện sau bảo vệ** — chi tiết trình bày ở mục 4.7. Các hướng còn lại:
 
-- **Mở rộng vượt scope (1–2 tháng/hạng mục):** ưu tiên cao là *mở rộng sang Zalo Mini App* (~75 triệu MAU tại Việt Nam, tái sử dụng khoảng 80% UI, chỉ thay SDK và cơ chế xác thực) và *tích hợp thêm cổng thanh toán Momo/ZaloPay/VietQR* qua abstraction `PaymentGateway`. Các hướng khác gồm multi-tenant SaaS, ứng dụng di động React Native, gợi ý sản phẩm bằng học máy, loyalty program, voice ordering, đa ngôn ngữ, quản lý kho barcode và tối ưu lộ trình last-mile.
+- **Mở rộng vượt scope (1–2 tháng/hạng mục):** hướng *mở rộng sang Zalo Mini App* trước đây đứng đầu danh sách **đã được hiện thực** (mục 4.8) — chỉ còn khâu đăng ký tài khoản Zalo + xuất bản chính thức. Ưu tiên còn lại là *tích hợp thêm cổng thanh toán Momo/ZaloPay/VietQR* qua abstraction `PaymentGateway`. Các hướng khác gồm multi-tenant SaaS, ứng dụng di động React Native, gợi ý sản phẩm bằng học máy, loyalty program, voice ordering, quản lý kho barcode và tối ưu lộ trình last-mile.
 - **Củng cố cho production (1–2 tháng):** TLS/HTTPS thật (Let's Encrypt), chuyển Bot sang webhook mode, distributed lock (ShedLock) cho scheduler, CI/CD pipeline (GitHub Actions), observability (Prometheus + Grafana + Loki + OpenTelemetry), rate limiting, backup strategy, và penetration testing.
 - **Nghiên cứu nâng cao:** dự đoán nhu cầu, định giá động, phát hiện bất thường, học tăng cường cho tối ưu lộ trình, federated learning, blockchain proof-of-order và privacy-preserving location — mỗi hướng có thể trở thành một đề tài nghiên cứu riêng.
 
-Trong đó, hai ưu tiên hàng đầu — mở rộng sang Zalo Mini App và tích hợp Momo/ZaloPay — sẽ tiếp tục được nghiên cứu ở giai đoạn sau khoá luận, với mục tiêu đưa hệ thống từ prototype hiện tại lên môi trường vận hành thực tế phục vụ các shop kinh doanh nhỏ và vừa tại Việt Nam.
+Trong đó, ưu tiên mở rộng sang Zalo Mini App đã hoàn thành ở mức mã nguồn (mục 4.8); hướng tích hợp Momo/ZaloPay sẽ tiếp tục được nghiên cứu ở giai đoạn sau khoá luận, với mục tiêu đưa hệ thống từ prototype hiện tại lên môi trường vận hành thực tế phục vụ các shop kinh doanh nhỏ và vừa tại Việt Nam.
 
 # TÀI LIỆU THAM KHẢO
 

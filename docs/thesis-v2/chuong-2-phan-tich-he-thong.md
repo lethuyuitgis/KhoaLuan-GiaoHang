@@ -58,7 +58,7 @@ Việc gom nhóm theo vai trò cho thấy ba tác nhân có mối liên hệ tu�
 
 **d) Bảng yêu cầu chức năng**
 
-Từ ba nhóm chức năng theo vai trò, các yêu cầu được hệ thống hoá thành 20 yêu cầu chức năng (Functional Requirement — FR) đánh mã FR1 đến FR20 — trong đó FR16–FR20 thuộc pha hoàn thiện sau bảo vệ (mục 4.7). Mỗi yêu cầu là một đơn vị có thể kiểm chứng độc lập; toàn bộ được hiện thực qua 45 REST endpoint của hệ thống.
+Từ ba nhóm chức năng theo vai trò, các yêu cầu được hệ thống hoá thành 20 yêu cầu chức năng (Functional Requirement — FR) đánh mã FR1 đến FR20 — trong đó FR16–FR20 thuộc pha hoàn thiện sau bảo vệ (mục 4.7). Mỗi yêu cầu là một đơn vị có thể kiểm chứng độc lập; toàn bộ được hiện thực qua 46 REST endpoint của hệ thống.
 
 **Bảng 2.1. Bảng yêu cầu chức năng theo vai trò**
 

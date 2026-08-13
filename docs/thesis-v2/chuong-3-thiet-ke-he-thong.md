@@ -583,13 +583,15 @@ API của hệ thống tuân theo phong cách REST: tài nguyên được địn
 
 **JWT (Web Admin).** Bộ lọc `JwtAuthFilter` đọc header `Authorization: Bearer <token>`; access token là JWS HS512 với payload `{sub: adminId, role: SHOP_OWNER, exp: ...}`, ký bằng khoá bí mật từ biến môi trường, thời hạn 15 phút. Refresh token là UUID v4 thời hạn 7 ngày, chỉ lưu giá trị băm SHA-256 trong bảng `refresh_token`, có thể thu hồi từng phiên.
 
+**Zalo access token (Zalo Mini App).** Yêu cầu từ Zalo Mini App (mục 4.8) mang header `X-Zalo-Access-Token` lấy từ `zmp-sdk`. Bộ lọc `ZaloAuthFilter` gọi Zalo OpenAPI `GET graph.zalo.me/v2.0/me` để xác minh token, upsert người dùng rồi gắn `currentUser` — cùng cơ chế `@CurrentUser` với Telegram. Bộ lọc tự vô hiệu khi chưa cấu hình `ZALO_APP_ID` (giai đoạn phát triển dùng dev-bypass), nên không ảnh hưởng luồng Telegram.
+
 **Ba endpoint không qua bộ lọc xác thực người dùng.** `/api/payment/vnpay/return` và `/api/payment/vnpay/ipn` được VNPay gọi trực tiếp nên không thể mang danh tính người dùng; cả hai được xác thực bằng chữ ký HMAC-SHA512 do VNPay ký trên toàn bộ tham số. `/api/bot/webhook` (chỉ kích hoạt ở chế độ webhook) được xác thực bằng header secret token do hệ thống đăng ký trước với Telegram. Như vậy 100% endpoint thay đổi trạng thái đều có cơ chế xác thực tương xứng.
 
 ### 3.4.3. Danh sách endpoint
 
-Hệ thống công bố 45 endpoint REST, liệt kê đầy đủ trong Bảng 3.3 (mỗi dòng ứng với một đường dẫn; một số đường dẫn phục vụ nhiều phương thức HTTP). Sáu endpoint cuối bảng thuộc pha hoàn thiện sau bảo vệ (mục 4.7).
+Hệ thống công bố 46 endpoint REST, liệt kê đầy đủ trong Bảng 3.3 (mỗi dòng ứng với một đường dẫn; một số đường dẫn phục vụ nhiều phương thức HTTP). Bảy endpoint cuối bảng thuộc pha hoàn thiện sau bảo vệ (mục 4.7 và 4.8).
 
-**Bảng 3.3. Danh sách đầy đủ 45 endpoint REST của hệ thống**
+**Bảng 3.3. Danh sách đầy đủ 46 endpoint REST của hệ thống**
 
 | Phương thức | Đường dẫn | Vai trò | Mô tả |
 |---|---|---|---|
@@ -637,6 +639,7 @@ Hệ thống công bố 45 endpoint REST, liệt kê đầy đủ trong Bảng 3
 | GET | `/api/admin/orders/{id}/chat` | Chủ shop | Bản ghi hội thoại ẩn danh của đơn, phục vụ audit (mục 4.7.5) |
 | GET | `/api/addresses` | Khách hàng | Địa chỉ giao đã lưu của khách (mục 4.7.4) |
 | DELETE | `/api/addresses/{id}` | Khách hàng | Xoá một địa chỉ đã lưu (mục 4.7.4) |
+| GET, POST | `/api/orders/{id}/chat` | Khách hàng | Chat ẩn danh với shipper qua REST (Zalo Mini App, mục 4.8) |
 | POST | `/api/bot/webhook` | Telegram | Nhận cập nhật bot ở chế độ webhook (header secret token) |
 
 ## 3.5. Thiết kế máy trạng thái
@@ -769,4 +772,4 @@ Hai bảng kiểm toán cung cấp khả năng truy vết hậu kỳ. Bảng `pa
 
 ## 3.7. Kết luận chương
 
-Chương 3 đã trình bày trọn vẹn các mảng thiết kế của hệ thống: thiết kế dữ liệu với mô hình thực thể liên kết, đặc tả logic 17 bảng do các migration Flyway V1–V17 tạo lập và mô hình quan hệ tường minh; kiến trúc tổng thể Modular Monolith gồm 8 bounded context phụ thuộc một chiều, giao tiếp bằng sự kiện ứng dụng và triển khai bằng Docker Compose năm container; thiết kế API với 45 endpoint REST phân vùng theo vai trò cùng ba cơ chế xác thực; các máy trạng thái hữu hạn điều khiển vòng đời đơn hàng bảy trạng thái, phiên giao của shipper và hội thoại bot; và thiết kế bảo mật phòng thủ nhiều lớp với mô hình STRIDE cùng 11 lớp đối phó. Toàn bộ thiết kế này là cơ sở để Chương 4 trình bày kết quả sản phẩm đã xây dựng được trên cả ba kênh Mini App, Bot Telegram và Web Admin.
+Chương 3 đã trình bày trọn vẹn các mảng thiết kế của hệ thống: thiết kế dữ liệu với mô hình thực thể liên kết, đặc tả logic 17 bảng do các migration Flyway V1–V17 tạo lập và mô hình quan hệ tường minh; kiến trúc tổng thể Modular Monolith gồm 8 bounded context phụ thuộc một chiều, giao tiếp bằng sự kiện ứng dụng và triển khai bằng Docker Compose năm container; thiết kế API với 46 endpoint REST phân vùng theo vai trò cùng bốn cơ chế xác thực (Telegram initData, JWT, Zalo access token, chữ ký VNPay/webhook); các máy trạng thái hữu hạn điều khiển vòng đời đơn hàng bảy trạng thái, phiên giao của shipper và hội thoại bot; và thiết kế bảo mật phòng thủ nhiều lớp với mô hình STRIDE cùng 11 lớp đối phó. Toàn bộ thiết kế này là cơ sở để Chương 4 trình bày kết quả sản phẩm đã xây dựng được trên cả ba kênh Mini App, Bot Telegram và Web Admin.
