@@ -19,6 +19,18 @@ chỉ thay layer auth + SDK + brand color.
 - [x] Smoke tests cho SDK wrapper + cart store
 - [x] `pnpm --filter @shop/zaloapp dev` chạy ở port `5182` (miniapp dùng 5173, webadmin 5181)
 
+### Parity luồng khách với Telegram miniapp (đã port — 2026-08)
+Zalo Mini App không có bot DM / WebSocket như Telegram nên các tính năng vốn
+chạy qua bot/STOMP được làm lại bằng REST + polling:
+- [x] **Lưu địa chỉ + autocomplete** — AddressPicker gợi ý địa chỉ đã lưu
+- [x] **Mã giảm giá (voucher)** ở checkout — VoucherInput (tiền hàng + phí ship)
+- [x] **Theo dõi shipper trên bản đồ** — `features/tracking`, poll `GET /orders/{id}/location` mỗi 5s
+- [x] **Chat ẩn danh khách↔shipper** — `OrderChat`, REST + poll; tin khách relay sang bot shipper
+- [x] **Đánh giá shipper** — `RatingForm` (POST `/orders/{id}/rating`) khi đơn DELIVERED
+- Backend thêm cho Zalo: `CustomerChatController` + `CustomerChatNotifier` (relay chat).
+  Các endpoint voucher/location/rating tái dùng nguyên (đã có sẵn cho miniapp).
+- **KHÔNG làm** (cố ý): trang shipper (Zalo chỉ phục vụ khách; shipper vẫn dùng Telegram bot).
+
 ### Cần Zalo Developer Account (chưa làm — out of thesis scope)
 - [ ] Đăng ký Zalo Official Account tại https://oa.zalo.me/ (mất ~1 tuần phê duyệt)
 - [ ] Tạo Zalo Mini App tại https://mini.zalo.me/devtools/
