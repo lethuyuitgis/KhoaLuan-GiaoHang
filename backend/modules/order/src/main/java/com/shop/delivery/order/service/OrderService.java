@@ -23,6 +23,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -191,6 +193,20 @@ public class OrderService {
     @Transactional(readOnly = true)
     public Page<Order> findAll(Pageable pageable) {
         return orderRepo.findAll(pageable);
+    }
+
+    /** Danh sách có lọc trạng thái — status null nghĩa là "Tất cả". */
+    @Transactional(readOnly = true)
+    public Page<Order> findAll(OrderStatus status, Pageable pageable) {
+        if (status == null) return orderRepo.findAll(pageable);
+        return orderRepo.findAllByStatusOrderByCreatedAtDesc(status, pageable);
+    }
+
+    /** Số đơn theo từng trạng thái — cho các tab lọc của trang Đơn hàng. */
+    @Transactional(readOnly = true)
+    public Map<String, Long> countByStatus() {
+        return orderRepo.countGroupByStatus().stream()
+            .collect(Collectors.toMap(r -> (String) r[0], r -> (Long) r[1]));
     }
 
     @Transactional

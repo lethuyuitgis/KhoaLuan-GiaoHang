@@ -7,6 +7,7 @@ import com.shop.delivery.order.api.dto.OrderResponse;
 import com.shop.delivery.order.api.dto.OrderSummary;
 import com.shop.delivery.order.api.dto.StatusHistoryResponse;
 import com.shop.delivery.order.api.mapper.OrderMapper;
+import com.shop.delivery.order.domain.OrderStatus;
 import com.shop.delivery.order.service.OrderService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,9 +20,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -39,8 +42,15 @@ public class AdminOrderController {
 
     @GetMapping
     public Page<OrderSummary> listAll(
+            @RequestParam(required = false) OrderStatus status,
             @PageableDefault(size = 50, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        return service.findAll(pageable).map(mapper::toSummary);
+        return service.findAll(status, pageable).map(mapper::toSummary);
+    }
+
+    /** Số đơn theo trạng thái — cho các tab lọc phía webadmin. */
+    @GetMapping("/status-counts")
+    public Map<String, Long> statusCounts() {
+        return service.countByStatus();
     }
 
     @GetMapping("/{id}")

@@ -19,24 +19,39 @@ const STATUS_VN: Record<OrderStatus | 'ALL', string> = {
   RETURNED: 'Hoàn về',
 };
 
+const PAGE_SIZE = 15;
+
 export function OrdersPage() {
   useAdminOrdersSocket();
 
   const [filter, setFilter] = useState<OrderStatus | 'ALL'>('ALL');
+  const [page, setPage] = useState(0);
 
+  // Phân trang server-side: đổi tab lọc là truy vấn lại từ trang 0.
   const { data, isLoading } = useQuery({
-    queryKey: ['admin', 'orders', 'list'],
+    queryKey: ['admin', 'orders', 'list', filter, page],
     queryFn: async () => {
-      const { data } = await api.get<Page<OrderSummary>>('/api/admin/orders?size=100');
+      const statusParam = filter === 'ALL' ? '' : `&status=${filter}`;
+      const { data } = await api.get<Page<OrderSummary>>(
+        `/api/admin/orders?size=${PAGE_SIZE}&page=${page}${statusParam}`);
       return data;
     },
   });
 
-  const filtered = data?.content.filter(o => filter === 'ALL' || o.status === filter) ?? [];
-  const counts = (data?.content ?? []).reduce<Record<string, number>>((acc, o) => {
-    acc[o.status] = (acc[o.status] ?? 0) + 1;
-    return acc;
-  }, {});
+  // Số đơn từng trạng thái cho tab — đếm trên toàn bảng, không phụ thuộc trang.
+  const { data: counts } = useQuery({
+    queryKey: ['admin', 'orders', 'status-counts'],
+    queryFn: async () => (await api.get<Record<string, number>>('/api/admin/orders/status-counts')).data,
+  });
+
+  const totalAll = Object.values(counts ?? {}).reduce((a, b) => a + b, 0);
+  const filtered = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 1;
+
+  function selectFilter(s: OrderStatus | 'ALL') {
+    setFilter(s);
+    setPage(0);
+  }
 
   return (
     <div>
@@ -53,12 +68,12 @@ export function OrdersPage() {
       {/* Filter pills */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm mb-4 p-2 flex gap-1.5 overflow-x-auto">
         {STATUSES.map(s => {
-          const count = s === 'ALL' ? (data?.totalElements ?? 0) : (counts[s] ?? 0);
+          const count = s === 'ALL' ? totalAll : (counts?.[s] ?? 0);
           const active = filter === s;
           return (
             <button
               key={s}
-              onClick={() => setFilter(s)}
+              onClick={() => selectFilter(s)}
               className={`px-3.5 py-1.5 text-sm rounded-lg whitespace-nowrap font-medium transition-colors flex items-center gap-1.5 ${
                 active
                   ? 'bg-orange-500 text-white shadow-sm'
@@ -131,6 +146,48 @@ export function OrdersPage() {
             ))}
           </tbody>
         </table>
+
+        {/* Thanh phân trang */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/60">
+            <p className="text-xs text-gray-500">
+              Trang {page + 1}/{totalPages} · {data?.totalElements ?? 0} đơn
+            </p>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                ← Trước
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i)
+                .filter(i => i === 0 || i === totalPages - 1 || Math.abs(i - page) <= 1)
+                .map((i, idx, arr) => (
+                  <span key={i} className="flex items-center">
+                    {idx > 0 && arr[idx - 1] !== i - 1 && <span className="px-1 text-gray-400">…</span>}
+                    <button
+                      onClick={() => setPage(i)}
+                      className={`min-w-[2rem] px-2 py-1.5 text-sm rounded-lg font-medium ${
+                        i === page
+                          ? 'bg-orange-500 text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  </span>
+                ))}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-200 bg-white font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Sau →
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
