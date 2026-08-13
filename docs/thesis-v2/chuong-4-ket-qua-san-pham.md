@@ -318,6 +318,14 @@ Hướng ưu tiên hàng đầu ở phần Hướng phát triển — *mở rộ
 
 Nhờ tách bạch domain/transport và dùng chung gói `@shop/shared` (kiểu dữ liệu + API helper), ứng dụng Zalo đạt **parity đầy đủ luồng khách** (đặt món, giỏ hàng, thanh toán, lưu địa chỉ + autocomplete, mã giảm giá, theo dõi bản đồ, chat, đánh giá) mà chỉ phát sinh một endpoint mới (chat khách) và hai lớp backend (`CustomerChatController`, `CustomerChatNotifier`). Việc đăng ký Zalo Official Account + xuất bản `.zmp` nằm ngoài phạm vi khoá luận (cần phê duyệt ~1–2 tuần của Zalo); phần mã tích hợp thật đã được chuẩn bị sẵn theo cơ chế *gated* — kích hoạt khi điền credential.
 
+Về giao diện, Zalo Mini App tái sử dụng nguyên vẹn hệ thống thiết kế của Mini App khách hàng nhưng chạy trong khung Zalo (tiêu đề *"Shop Giao Hàng • Zalo"*). Ba màn tiêu biểu dưới đây được chụp trực tiếp từ ứng dụng `frontend/zaloapp` đang chạy với cùng backend và bộ dữ liệu seed.
+
+| Giao diện | Mô tả |
+|:---:|:---|
+| ![](screenshots/zalo-01-catalog.png){width="4.3cm"} | **Hình 4.16 — Danh mục sản phẩm (Zalo).** Trang danh mục hiển thị sản phẩm kèm ảnh, tên, giá, banner khuyến mãi và bộ lọc theo nhóm hàng — dùng lại hoàn toàn các thành phần giao diện của Telegram Mini App qua gói `@shop/shared`, chỉ khác lớp xác thực (`zmp-sdk` thay cho `initData`). |
+| ![](screenshots/zalo-02-orders.png){width="4.3cm"} | **Hình 4.17 — Lịch sử đơn hàng (Zalo).** Danh sách đơn của khách kèm trạng thái, phương thức thanh toán và tổng tiền; dữ liệu lấy qua cùng REST API `GET /api/orders` với backend Telegram. |
+| ![](screenshots/zalo-03-order-detail.png){width="4.3cm"} | **Hình 4.18 — Chi tiết đơn (Zalo).** Trang chi tiết hiển thị món hàng, địa chỉ giao, thanh toán và trạng thái. Do Zalo không có kênh Bot/WebSocket, việc theo dõi vị trí dùng REST polling và luồng **chat/đánh giá được hiện thực xuyên nền tảng** (khách Zalo ↔ bot Telegram của shipper). |
+
 # KẾT LUẬN
 
 ## Kết quả đạt được
@@ -342,7 +350,7 @@ Nhờ tách bạch domain/transport và dùng chung gói `@shop/shared` (kiểu 
 
 Về mặt kỹ thuật, đề tài đem lại các đóng góp chính: (i) **mô hình triển khai lai trên nền tảng Telegram** dùng đồng thời ba kênh (Mini App, Bot, Web Admin) phân vai theo thiết bị; (ii) **theo dõi GPS realtime bằng Telegram Live Location native** với độ trễ end-to-end dưới ba giây, tiết kiệm khoảng 80% công sức so với tự lập trình GPS streaming; (iii) **kiến trúc Modular Monolith với tám bounded context** giao tiếp qua Spring Application Events `@TransactionalEventListener(AFTER_COMMIT)`; (iv) **tích hợp VNPay với IPN-as-source-of-truth** kèm các đảm bảo cụ thể (constant-time hash comparison, idempotent IPN, JSONB audit trail bắt buộc, `Propagation.REQUIRES_NEW`); và (v) **mô hình bảo mật defense-in-depth gồm mười một lớp** đối phó song song, mỗi lớp có regression test khoá.
 
-Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở và mở rộng sang Zalo Mini App), hệ thống cung cấp **46 REST endpoint**, được kiểm thử qua **491 test (369 backend gồm 314 unit và 55 integration, cộng 122 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **15 ảnh chụp giao diện** thực tế. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
+Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở và mở rộng sang Zalo Mini App), hệ thống cung cấp **46 REST endpoint**, được kiểm thử qua **491 test (369 backend gồm 314 unit và 55 integration, cộng 122 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **18 ảnh chụp giao diện** thực tế (gồm ba màn Zalo Mini App). Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
 
 **Bảng KL.2. Tổng hợp các chỉ số định lượng kết quả đạt được**
 
