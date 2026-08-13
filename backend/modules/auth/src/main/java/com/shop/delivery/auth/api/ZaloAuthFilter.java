@@ -11,10 +11,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -58,12 +60,14 @@ public class ZaloAuthFilter extends OncePerRequestFilter {
     private final boolean enabled;
     private final boolean devModeEnabled;
     private final String zaloAppId;
+    private final RestClient zaloApi;
 
     public ZaloAuthFilter(TelegramUserRepository userRepo,
                           Environment env,
                           @Value("${zalo.app-id:}") String zaloAppId) {
         this.userRepo = userRepo;
         this.zaloAppId = zaloAppId;
+        this.zaloApi = RestClient.builder().baseUrl("https://graph.zalo.me").build();
         this.devModeEnabled = List.of(env.getActiveProfiles()).contains("dev");
         // Filter is only "active" when an app id is configured. Without one
         // we can never verify a real token, so we early-exit on every request
@@ -103,10 +107,11 @@ public class ZaloAuthFilter extends OncePerRequestFilter {
 
         try {
             verifyTokenWithZalo(token).ifPresent(zaloUser -> {
-                userRepo.findById(zaloUser.id()).ifPresent(user -> {
-                    request.setAttribute(TelegramAuthFilter.ATTRIBUTE_CURRENT_USER, user);
-                    log.debug("Zalo auth OK userId={}", user.getId());
-                });
+                // Upsert: a first-time Zalo customer is created so they can order.
+                TelegramUser user = userRepo.findById(zaloUser.id())
+                    .orElseGet(() -> userRepo.save(zaloUser.toEntity()));
+                request.setAttribute(TelegramAuthFilter.ATTRIBUTE_CURRENT_USER, user);
+                log.debug("Zalo auth OK userId={}", user.getId());
             });
         } catch (Exception ex) {
             log.warn("Zalo token verify failed: {}", ex.getMessage());
@@ -142,7 +147,32 @@ public class ZaloAuthFilter extends OncePerRequestFilter {
                 return Optional.empty();
             }
         }
-        return Optional.empty();
+        // Real verification: GET https://graph.zalo.me/v2.0/me?fields=id,name
+        // with the Mini App access token in the `access_token` header. Zalo
+        // returns { id, name, error: 0 } on success, or a non-zero error.
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = zaloApi.get()
+                .uri(uri -> uri.path("/v2.0/me").queryParam("fields", "id,name").build())
+                .header("access_token", token)
+                .retrieve()
+                .body(Map.class);
+            if (body == null) return Optional.empty();
+            Object err = body.get("error");
+            boolean ok = err == null
+                || (err instanceof Number n ? n.intValue() == 0 : "0".equals(String.valueOf(err)));
+            Object idObj = body.get("id");
+            if (!ok || idObj == null) {
+                log.warn("Zalo /me rejected token: error={} message={}", err, body.get("message"));
+                return Optional.empty();
+            }
+            long id = Long.parseLong(String.valueOf(idObj));
+            String name = body.get("name") == null ? null : String.valueOf(body.get("name"));
+            return Optional.of(new ZaloUser(id, name, null));
+        } catch (Exception ex) {
+            log.warn("Zalo /me call failed: {}", ex.getMessage());
+            return Optional.empty();
+        }
     }
 
     /**

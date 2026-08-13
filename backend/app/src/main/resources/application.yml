@@ -68,6 +68,14 @@ vnpay:
   ipn-url:         ${VNPAY_IPN_URL:http://localhost:8080/api/payment/vnpay/ipn}
   timeout-minutes: 15
 
+zalo:
+  # Zalo Mini App auth (frontend/zaloapp). app-id is public (embedded in the
+  # shipped Mini App); app-secret is SECRET — set via env, never commit.
+  # ZaloAuthFilter self-disables when app-id is blank.
+  app-id:      ${ZALO_APP_ID:2561890966422977519}
+  app-secret:  ${ZALO_APP_SECRET:}
+  mini-app-id: ${ZALO_MINI_APP_ID:}
+
 jwt:
   access-ttl: PT15M
   refresh-ttl: P7D
