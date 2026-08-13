@@ -4,6 +4,17 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      // Cùng stack với miniapp/zaloapp (tailwind.config.ts của 2 app đó).
+      fontFamily: {
+        sans: [
+          '"Inter"',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          'sans-serif',
+        ],
+      },
       colors: {
         brand: {
           50: '#eff6ff',
