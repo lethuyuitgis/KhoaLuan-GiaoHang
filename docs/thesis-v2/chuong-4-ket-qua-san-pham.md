@@ -281,6 +281,12 @@ Mini App shipper cũng chạy bên trong Telegram, phục vụ đội shipper n�
 | ![](screenshots/miniapp-ship-01-assignments.png){width="4.3cm"} | **Hình 4.14 — Danh sách phân công (assignment).** Trang danh sách hiển thị các đơn được gán cho shipper cùng trạng thái tương ứng. Shipper nhận/từ chối offer qua inline keyboard của Bot; các nút "Bắt đầu giao" và "Đã giao xong" điều khiển chuyển trạng thái trong máy trạng thái giao hàng. |
 | ![](screenshots/miniapp-ship-02-assignment-detail.png){width="4.3cm"} | **Hình 4.15 — Chi tiết phân công.** Trang chi tiết hiển thị thông tin đơn, địa chỉ và toạ độ giao, thông tin liên hệ khách. Khi bắt đầu giao, shipper chia sẻ Telegram Live Location để khách theo dõi; khi hoàn tất, shipper đánh dấu đã giao và có thể đánh giá lại khách hàng. |
 
+### 4.6.4. Giao diện hội thoại Bot Telegram
+
+Bên cạnh Mini App, Bot Telegram (`shop_giaohang_bot`) đảm nhiệm các thao tác hội thoại nhanh không cần mở giao diện web. Hình 4.16 minh hoạ bốn luồng chính. *Do Bot chạy chế độ long-polling (không có endpoint web tĩnh), hình được tái dựng theo phong cách Telegram với **nội dung tin nhắn và inline keyboard lấy nguyên văn từ mã nguồn** hai module `bot` và `notification` (`OrderAssignedNotifier`, `ChatMessageHandler`, `RatingCallbackHandler`, các handler đăng ký shipper).*
+
+![Hình 4.16. Bốn luồng hội thoại chính của Bot Telegram: (a) đẩy offer đơn mới kèm inline keyboard Nhận/Từ chối; (b) chat ẩn danh khách ↔ shipper qua tiền tố vai trò 🧑 Khách / 🛵 Shipper — không dùng forwardMessage nên không lộ tài khoản; (c) đánh giá 1–5 sao sau khi giao xong (FSM); (d) đăng ký shipper qua lệnh /start theo FSM bốn bước tên → số điện thoại → phương tiện → biển số.](screenshots/bot-telegram-flows.png)
+
 ## 4.7. Các tính năng hoàn thiện sau bảo vệ
 
 Sau bảo vệ, năm hạng mục "hoàn thiện trong scope" đã được hiện thực trọn vẹn theo đúng quy trình sáu bước (Research → Plan → Plan-check → Execute → Code-review → Fix), mỗi hạng mục một nhánh riêng với kiểm thử đơn vị và tích hợp. Các tính năng tái sử dụng nguyên vẹn kiến trúc Modular Monolith hiện có — không phát sinh bounded context mới — và tuân thủ ranh giới phụ thuộc `bot → delivery → order`.
@@ -322,9 +328,9 @@ Về giao diện, Zalo Mini App tái sử dụng nguyên vẹn hệ thống thi�
 
 | Giao diện | Mô tả |
 |:---:|:---|
-| ![](screenshots/zalo-01-catalog.png){width="4.3cm"} | **Hình 4.16 — Danh mục sản phẩm (Zalo).** Trang danh mục hiển thị sản phẩm kèm ảnh, tên, giá, banner khuyến mãi và bộ lọc theo nhóm hàng — dùng lại hoàn toàn các thành phần giao diện của Telegram Mini App qua gói `@shop/shared`, chỉ khác lớp xác thực (`zmp-sdk` thay cho `initData`). |
-| ![](screenshots/zalo-02-orders.png){width="4.3cm"} | **Hình 4.17 — Lịch sử đơn hàng (Zalo).** Danh sách đơn của khách kèm trạng thái, phương thức thanh toán và tổng tiền; dữ liệu lấy qua cùng REST API `GET /api/orders` với backend Telegram. |
-| ![](screenshots/zalo-03-order-detail.png){width="4.3cm"} | **Hình 4.18 — Chi tiết đơn (Zalo).** Trang chi tiết hiển thị món hàng, địa chỉ giao, thanh toán và trạng thái. Do Zalo không có kênh Bot/WebSocket, việc theo dõi vị trí dùng REST polling và luồng **chat/đánh giá được hiện thực xuyên nền tảng** (khách Zalo ↔ bot Telegram của shipper). |
+| ![](screenshots/zalo-01-catalog.png){width="4.3cm"} | **Hình 4.17 — Danh mục sản phẩm (Zalo).** Trang danh mục hiển thị sản phẩm kèm ảnh, tên, giá, banner khuyến mãi và bộ lọc theo nhóm hàng — dùng lại hoàn toàn các thành phần giao diện của Telegram Mini App qua gói `@shop/shared`, chỉ khác lớp xác thực (`zmp-sdk` thay cho `initData`). |
+| ![](screenshots/zalo-02-orders.png){width="4.3cm"} | **Hình 4.18 — Lịch sử đơn hàng (Zalo).** Danh sách đơn của khách kèm trạng thái, phương thức thanh toán và tổng tiền; dữ liệu lấy qua cùng REST API `GET /api/orders` với backend Telegram. |
+| ![](screenshots/zalo-03-order-detail.png){width="4.3cm"} | **Hình 4.19 — Chi tiết đơn (Zalo).** Trang chi tiết hiển thị món hàng, địa chỉ giao, thanh toán và trạng thái. Do Zalo không có kênh Bot/WebSocket, việc theo dõi vị trí dùng REST polling và luồng **chat/đánh giá được hiện thực xuyên nền tảng** (khách Zalo ↔ bot Telegram của shipper). |
 
 # KẾT LUẬN
 
@@ -350,7 +356,7 @@ Về giao diện, Zalo Mini App tái sử dụng nguyên vẹn hệ thống thi�
 
 Về mặt kỹ thuật, đề tài đem lại các đóng góp chính: (i) **mô hình triển khai lai trên nền tảng Telegram** dùng đồng thời ba kênh (Mini App, Bot, Web Admin) phân vai theo thiết bị; (ii) **theo dõi GPS realtime bằng Telegram Live Location native** với độ trễ end-to-end dưới ba giây, tiết kiệm khoảng 80% công sức so với tự lập trình GPS streaming; (iii) **kiến trúc Modular Monolith với tám bounded context** giao tiếp qua Spring Application Events `@TransactionalEventListener(AFTER_COMMIT)`; (iv) **tích hợp VNPay với IPN-as-source-of-truth** kèm các đảm bảo cụ thể (constant-time hash comparison, idempotent IPN, JSONB audit trail bắt buộc, `Propagation.REQUIRES_NEW`); và (v) **mô hình bảo mật defense-in-depth gồm mười một lớp** đối phó song song, mỗi lớp có regression test khoá.
 
-Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở và mở rộng sang Zalo Mini App), hệ thống cung cấp **46 REST endpoint**, được kiểm thử qua **491 test (369 backend gồm 314 unit và 55 integration, cộng 122 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **18 ảnh chụp giao diện** thực tế (gồm ba màn Zalo Mini App). Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
+Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở và mở rộng sang Zalo Mini App), hệ thống cung cấp **46 REST endpoint**, được kiểm thử qua **491 test (369 backend gồm 314 unit và 55 integration, cộng 122 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **18 ảnh chụp giao diện** thực tế (gồm ba màn Zalo Mini App) cùng một hình tái dựng bốn luồng hội thoại Bot Telegram. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
 
 **Bảng KL.2. Tổng hợp các chỉ số định lượng kết quả đạt được**
 
