@@ -166,5 +166,15 @@
   "chat.shipper": "Shipper",
   "chat.placeholder": "Nhập tin nhắn…",
   "chat.send": "Gửi",
-  "chat.sendError": "Gửi thất bại, thử lại."
+  "chat.sendError": "Gửi thất bại, thử lại.",
+  "voucher.section": "Khuyến mãi",
+  "voucher.labelProducts": "Mã giảm tiền hàng",
+  "voucher.labelShipping": "Mã giảm phí ship",
+  "voucher.placeholder": "Nhập mã",
+  "voucher.apply": "Áp",
+  "voucher.remove": "Gỡ",
+  "voucher.discount": "Giảm {{amount}}",
+  "voucher.invalid": "Mã không hợp lệ hoặc không áp dụng được cho đơn này.",
+  "voucher.discountProducts": "Giảm tiền hàng",
+  "voucher.discountShipping": "Giảm phí ship"
 }

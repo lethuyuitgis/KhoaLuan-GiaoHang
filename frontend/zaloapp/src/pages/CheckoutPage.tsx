@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-import { createOrder, listSavedAddresses, deleteSavedAddress, formatVnd, type CreateOrderRequest, type PaymentMethod } from '@shop/shared';
+import { createOrder, listSavedAddresses, deleteSavedAddress, formatVnd, type CreateOrderRequest, type PaymentMethod, type ValidateVoucherResponse } from '@shop/shared';
 import { api } from '@/lib/api';
 import { useCart } from '@/features/cart/use-cart';
+import { VoucherInput } from '@/components/VoucherInput';
 import { usePayWithVnpay } from '@/features/payment/use-pay-with-vnpay';
 import { useToast } from '@/components/Toast';
 import { AddressPicker } from '@/features/address/AddressPicker';
@@ -31,6 +32,8 @@ export function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [note, setNote] = useState('');
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [productsVoucher, setProductsVoucher] = useState<ValidateVoucherResponse | null>(null);
+  const [shippingVoucher, setShippingVoucher] = useState<ValidateVoucherResponse | null>(null);
 
   const payWithVnpay = usePayWithVnpay();
   const qc = useQueryClient();
@@ -98,6 +101,10 @@ export function CheckoutPage() {
       items: cart.items.map(i => ({ productId: i.product.id, quantity: i.quantity })),
       paymentMethod,
       note: note || undefined,
+      voucherCodes: {
+        products: productsVoucher?.code,
+        shipping: shippingVoucher?.code,
+      },
     });
   };
 
@@ -139,9 +146,45 @@ export function CheckoutPage() {
               </div>
             ))}
           </div>
-          <div className="border-t border-brand-100 mt-3 pt-3 flex justify-between font-bold">
-            <span className="text-brand-800">{t('checkout.subtotal')}</span>
-            <span className="text-brand-700">{formatVnd(cart.subtotal(), i18n.language)}</span>
+          <div className="border-t border-brand-100 mt-3 pt-3 space-y-1">
+            <div className="flex justify-between font-bold">
+              <span className="text-brand-800">{t('checkout.subtotal')}</span>
+              <span className="text-brand-700">{formatVnd(cart.subtotal(), i18n.language)}</span>
+            </div>
+            {(productsVoucher?.discountAmount ?? 0) > 0 && (
+              <div className="flex justify-between text-sm text-green-700">
+                <span>{t('voucher.discountProducts')}</span>
+                <span>− {formatVnd(productsVoucher!.discountAmount, i18n.language)}</span>
+              </div>
+            )}
+            {(shippingVoucher?.discountAmount ?? 0) > 0 && (
+              <div className="flex justify-between text-sm text-green-700">
+                <span>{t('voucher.discountShipping')}</span>
+                <span>− {formatVnd(shippingVoucher!.discountAmount, i18n.language)}</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className={SECTION_CARD_CLS}>
+          <h2 className={SECTION_TITLE_CLS}>{t('voucher.section')}</h2>
+          <div className="space-y-4">
+            <VoucherInput
+              label={t('voucher.labelProducts')}
+              target="PRODUCTS"
+              subtotal={cart.subtotal()}
+              deliveryFee={0}
+              onApplied={setProductsVoucher}
+              onRemoved={() => setProductsVoucher(null)}
+            />
+            <VoucherInput
+              label={t('voucher.labelShipping')}
+              target="SHIPPING"
+              subtotal={cart.subtotal()}
+              deliveryFee={0}
+              onApplied={setShippingVoucher}
+              onRemoved={() => setShippingVoucher(null)}
+            />
           </div>
         </section>
 

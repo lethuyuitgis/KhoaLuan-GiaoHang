@@ -166,5 +166,15 @@
   "chat.shipper": "配送员",
   "chat.placeholder": "输入消息…",
   "chat.send": "发送",
-  "chat.sendError": "发送失败，请重试。"
+  "chat.sendError": "发送失败，请重试。",
+  "voucher.section": "优惠",
+  "voucher.labelProducts": "商品折扣码",
+  "voucher.labelShipping": "运费折扣码",
+  "voucher.placeholder": "输入代码",
+  "voucher.apply": "应用",
+  "voucher.remove": "移除",
+  "voucher.discount": "减 {{amount}}",
+  "voucher.invalid": "代码无效或不适用于此订单。",
+  "voucher.discountProducts": "商品折扣",
+  "voucher.discountShipping": "运费折扣"
 }

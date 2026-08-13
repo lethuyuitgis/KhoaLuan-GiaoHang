@@ -166,5 +166,15 @@
   "chat.shipper": "配達員",
   "chat.placeholder": "メッセージを入力…",
   "chat.send": "送信",
-  "chat.sendError": "送信に失敗しました。再試行してください。"
+  "chat.sendError": "送信に失敗しました。再試行してください。",
+  "voucher.section": "プロモーション",
+  "voucher.labelProducts": "商品割引コード",
+  "voucher.labelShipping": "送料割引コード",
+  "voucher.placeholder": "コードを入力",
+  "voucher.apply": "適用",
+  "voucher.remove": "削除",
+  "voucher.discount": "{{amount}} 割引",
+  "voucher.invalid": "コードが無効か、この注文に適用できません。",
+  "voucher.discountProducts": "商品割引",
+  "voucher.discountShipping": "送料割引"
 }

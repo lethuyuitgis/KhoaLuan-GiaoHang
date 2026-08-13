@@ -166,5 +166,15 @@
   "chat.shipper": "Shipper",
   "chat.placeholder": "Type a message…",
   "chat.send": "Send",
-  "chat.sendError": "Failed to send, try again."
+  "chat.sendError": "Failed to send, try again.",
+  "voucher.section": "Promotions",
+  "voucher.labelProducts": "Product discount code",
+  "voucher.labelShipping": "Shipping discount code",
+  "voucher.placeholder": "Enter code",
+  "voucher.apply": "Apply",
+  "voucher.remove": "Remove",
+  "voucher.discount": "Save {{amount}}",
+  "voucher.invalid": "Invalid code or not applicable to this order.",
+  "voucher.discountProducts": "Product discount",
+  "voucher.discountShipping": "Shipping discount"
 }

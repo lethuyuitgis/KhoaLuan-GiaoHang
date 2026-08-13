@@ -166,5 +166,15 @@
   "chat.shipper": "배송원",
   "chat.placeholder": "메시지 입력…",
   "chat.send": "보내기",
-  "chat.sendError": "전송 실패, 다시 시도하세요."
+  "chat.sendError": "전송 실패, 다시 시도하세요.",
+  "voucher.section": "프로모션",
+  "voucher.labelProducts": "상품 할인 코드",
+  "voucher.labelShipping": "배송비 할인 코드",
+  "voucher.placeholder": "코드 입력",
+  "voucher.apply": "적용",
+  "voucher.remove": "제거",
+  "voucher.discount": "{{amount}} 할인",
+  "voucher.invalid": "유효하지 않거나 이 주문에 적용할 수 없는 코드입니다.",
+  "voucher.discountProducts": "상품 할인",
+  "voucher.discountShipping": "배송비 할인"
 }
