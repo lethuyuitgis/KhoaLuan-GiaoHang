@@ -180,5 +180,12 @@
   "tracking.noMap": "Không có dữ liệu bản đồ.",
   "tracking.loading": "Đang tải…",
   "tracking.live": "Trực tiếp",
-  "tracking.waiting": "Chờ shipper chia sẻ vị trí"
+  "tracking.waiting": "Chờ shipper chia sẻ vị trí",
+  "rating.title": "Đánh giá shipper",
+  "rating.thanks": "Cảm ơn bạn đã đánh giá!",
+  "rating.starLabel": "{{n}} sao",
+  "rating.commentPlaceholder": "Nhận xét (tuỳ chọn)…",
+  "rating.error": "Gửi đánh giá thất bại (có thể đã đánh giá rồi).",
+  "rating.sending": "Đang gửi…",
+  "rating.submit": "Gửi đánh giá"
 }

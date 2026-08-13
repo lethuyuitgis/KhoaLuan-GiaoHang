@@ -4,6 +4,7 @@ export * from './products';
 export * from './orders';
 export * from './addresses';
 export * from './chat';
+export * from './rating';
 export * from './shippers';
 export * from './assignments';
 export * from './location';

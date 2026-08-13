@@ -180,5 +180,12 @@
   "tracking.noMap": "지도 데이터가 없습니다.",
   "tracking.loading": "로딩 중…",
   "tracking.live": "실시간",
-  "tracking.waiting": "배송원의 위치 공유를 기다리는 중"
+  "tracking.waiting": "배송원의 위치 공유를 기다리는 중",
+  "rating.title": "배송원 평가",
+  "rating.thanks": "평가해 주셔서 감사합니다!",
+  "rating.starLabel": "{{n}}점",
+  "rating.commentPlaceholder": "의견 (선택)…",
+  "rating.error": "제출 실패 (이미 평가했을 수 있음).",
+  "rating.sending": "보내는 중…",
+  "rating.submit": "평가 제출"
 }

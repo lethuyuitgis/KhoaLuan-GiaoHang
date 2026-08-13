@@ -180,5 +180,12 @@
   "tracking.noMap": "地図データがありません。",
   "tracking.loading": "読み込み中…",
   "tracking.live": "ライブ",
-  "tracking.waiting": "配達員の位置共有を待っています"
+  "tracking.waiting": "配達員の位置共有を待っています",
+  "rating.title": "配達員を評価",
+  "rating.thanks": "評価ありがとうございます！",
+  "rating.starLabel": "{{n}} つ星",
+  "rating.commentPlaceholder": "コメント（任意）…",
+  "rating.error": "送信に失敗しました（すでに評価済みの可能性）。",
+  "rating.sending": "送信中…",
+  "rating.submit": "評価を送信"
 }

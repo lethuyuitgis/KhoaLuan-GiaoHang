@@ -180,5 +180,12 @@
   "tracking.noMap": "无地图数据。",
   "tracking.loading": "加载中…",
   "tracking.live": "实时",
-  "tracking.waiting": "等待配送员共享位置"
+  "tracking.waiting": "等待配送员共享位置",
+  "rating.title": "评价配送员",
+  "rating.thanks": "感谢您的评价！",
+  "rating.starLabel": "{{n}} 星",
+  "rating.commentPlaceholder": "评论（可选）…",
+  "rating.error": "提交失败（可能已评价）。",
+  "rating.sending": "提交中…",
+  "rating.submit": "提交评价"
 }

@@ -180,5 +180,12 @@
   "tracking.noMap": "No map data.",
   "tracking.loading": "Loading…",
   "tracking.live": "Live",
-  "tracking.waiting": "Waiting for shipper to share location"
+  "tracking.waiting": "Waiting for shipper to share location",
+  "rating.title": "Rate the shipper",
+  "rating.thanks": "Thanks for your rating!",
+  "rating.starLabel": "{{n}} stars",
+  "rating.commentPlaceholder": "Comment (optional)…",
+  "rating.error": "Failed to submit (you may have already rated).",
+  "rating.sending": "Sending…",
+  "rating.submit": "Submit rating"
 }

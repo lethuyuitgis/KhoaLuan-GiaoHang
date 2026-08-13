@@ -2,6 +2,7 @@ export * from './product';
 export * from './order';
 export * from './address';
 export * from './chat';
+export * from './rating';
 export * from './user';
 export * from './api-error';
 export * from './shipper';

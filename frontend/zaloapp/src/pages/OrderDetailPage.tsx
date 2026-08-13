@@ -6,6 +6,7 @@ import { getOrder, cancelOrder, formatVnd, formatDateTime, type PaymentStatus } 
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 import { OrderChat } from '@/components/OrderChat';
+import { RatingForm } from '@/components/RatingForm';
 import { OrderTrackingMap } from '@/features/tracking/OrderTrackingMap';
 import { useToast } from '@/components/Toast';
 
@@ -239,6 +240,8 @@ export function OrderDetailPage() {
           <p className="text-xs text-brand-600 mt-1.5 leading-relaxed">{t('orderDetail.deliveredHintZalo')}</p>
         </div>
       )}
+
+      {order.status === 'DELIVERED' && <RatingForm orderId={order.id} />}
 
       {CANCELLABLE.has(order.status) && (
         <button
