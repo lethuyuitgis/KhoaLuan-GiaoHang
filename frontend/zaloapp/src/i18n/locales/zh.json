@@ -176,5 +176,9 @@
   "voucher.discount": "减 {{amount}}",
   "voucher.invalid": "代码无效或不适用于此订单。",
   "voucher.discountProducts": "商品折扣",
-  "voucher.discountShipping": "运费折扣"
+  "voucher.discountShipping": "运费折扣",
+  "tracking.noMap": "无地图数据。",
+  "tracking.loading": "加载中…",
+  "tracking.live": "实时",
+  "tracking.waiting": "等待配送员共享位置"
 }

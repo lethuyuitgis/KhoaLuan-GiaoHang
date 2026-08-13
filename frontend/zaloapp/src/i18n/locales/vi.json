@@ -176,5 +176,9 @@
   "voucher.discount": "Giảm {{amount}}",
   "voucher.invalid": "Mã không hợp lệ hoặc không áp dụng được cho đơn này.",
   "voucher.discountProducts": "Giảm tiền hàng",
-  "voucher.discountShipping": "Giảm phí ship"
+  "voucher.discountShipping": "Giảm phí ship",
+  "tracking.noMap": "Không có dữ liệu bản đồ.",
+  "tracking.loading": "Đang tải…",
+  "tracking.live": "Trực tiếp",
+  "tracking.waiting": "Chờ shipper chia sẻ vị trí"
 }

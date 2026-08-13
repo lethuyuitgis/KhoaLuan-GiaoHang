@@ -176,5 +176,9 @@
   "voucher.discount": "Save {{amount}}",
   "voucher.invalid": "Invalid code or not applicable to this order.",
   "voucher.discountProducts": "Product discount",
-  "voucher.discountShipping": "Shipping discount"
+  "voucher.discountShipping": "Shipping discount",
+  "tracking.noMap": "No map data.",
+  "tracking.loading": "Loading…",
+  "tracking.live": "Live",
+  "tracking.waiting": "Waiting for shipper to share location"
 }

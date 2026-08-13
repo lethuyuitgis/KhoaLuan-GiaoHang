@@ -176,5 +176,9 @@
   "voucher.discount": "{{amount}} 割引",
   "voucher.invalid": "コードが無効か、この注文に適用できません。",
   "voucher.discountProducts": "商品割引",
-  "voucher.discountShipping": "送料割引"
+  "voucher.discountShipping": "送料割引",
+  "tracking.noMap": "地図データがありません。",
+  "tracking.loading": "読み込み中…",
+  "tracking.live": "ライブ",
+  "tracking.waiting": "配達員の位置共有を待っています"
 }

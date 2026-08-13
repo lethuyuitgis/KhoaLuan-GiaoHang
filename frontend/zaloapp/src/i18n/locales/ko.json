@@ -176,5 +176,9 @@
   "voucher.discount": "{{amount}} 할인",
   "voucher.invalid": "유효하지 않거나 이 주문에 적용할 수 없는 코드입니다.",
   "voucher.discountProducts": "상품 할인",
-  "voucher.discountShipping": "배송비 할인"
+  "voucher.discountShipping": "배송비 할인",
+  "tracking.noMap": "지도 데이터가 없습니다.",
+  "tracking.loading": "로딩 중…",
+  "tracking.live": "실시간",
+  "tracking.waiting": "배송원의 위치 공유를 기다리는 중"
 }

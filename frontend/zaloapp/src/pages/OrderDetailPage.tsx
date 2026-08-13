@@ -6,6 +6,7 @@ import { getOrder, cancelOrder, formatVnd, formatDateTime, type PaymentStatus } 
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
 import { OrderChat } from '@/components/OrderChat';
+import { OrderTrackingMap } from '@/features/tracking/OrderTrackingMap';
 import { useToast } from '@/components/Toast';
 
 const CANCELLABLE = new Set(['PENDING', 'CONFIRMED']);
@@ -121,6 +122,18 @@ export function OrderDetailPage() {
             {t('status.DELIVERING')}
           </p>
           <p className="text-xs text-brand-600 mt-1.5 leading-relaxed">{t('orderDetail.deliveredHintZalo')}</p>
+        </div>
+      )}
+
+      {order.status === 'DELIVERING' && (
+        <div className="rounded-3xl overflow-hidden shadow-warm bg-white">
+          <OrderTrackingMap
+            orderId={order.id}
+            pickupLat={order.pickupLat}
+            pickupLng={order.pickupLng}
+            deliveryLat={order.deliveryLat}
+            deliveryLng={order.deliveryLng}
+          />
         </div>
       )}
 
