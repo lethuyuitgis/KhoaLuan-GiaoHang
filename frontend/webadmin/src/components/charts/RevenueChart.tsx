@@ -1,34 +1,54 @@
 import {
-  CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts';
+import type { TooltipContentProps } from 'recharts';
 import { formatVnd } from '@shop/shared';
 import type { RevenuePoint } from '@shop/shared';
+import { axisProps, chart, gridProps, TooltipCard, TooltipRow } from './chartTheme';
+
+const fmtAxis = (v: number) =>
+  v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}tr` :
+  v >= 1_000     ? `${(v / 1_000).toFixed(0)}k`     :
+  `${v}`;
+
+// Doanh thu (triệu) và số đơn (đơn vị) khác thang đo → chỉ vẽ doanh thu trên
+// một trục; số đơn hiển thị kèm trong tooltip (tránh trục kép/đường phẳng đáy).
+function RevenueTooltip({ active, payload, label }: Partial<TooltipContentProps<number, string>>) {
+  if (!active || !payload?.length) return null;
+  const p = payload[0].payload as RevenuePoint;
+  return (
+    <TooltipCard title={`Ngày ${String(label)}`}>
+      <TooltipRow color={chart.primary} label="Doanh thu" value={formatVnd(p.revenue)} />
+      <TooltipRow color={chart.inkMuted} label="Số đơn" value={`${p.orderCount} đơn`} />
+    </TooltipCard>
+  );
+}
 
 export function RevenueChart({ data }: { data: RevenuePoint[] }) {
-  const fmtAxis = (v: number) =>
-    v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}tr` :
-    v >= 1_000     ? `${(v / 1_000).toFixed(0)}k`     :
-    `${v}`;
-
   return (
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" tickFormatter={(d: string) => d.slice(5)} />
-          <YAxis tickFormatter={fmtAxis} />
-          <Tooltip
-            formatter={(value, name) =>
-              name === 'revenue'
-                ? [formatVnd(Number(value)), 'Doanh thu']
-                : [String(value), 'Số đơn']
-            }
-            labelFormatter={(label) => `Ngày ${String(label)}`}
+        <AreaChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="revFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={chart.primary} stopOpacity={0.28} />
+              <stop offset="100%" stopColor={chart.primary} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid {...gridProps} />
+          <XAxis dataKey="date" tickFormatter={(d: string) => d.slice(5)} {...axisProps} />
+          <YAxis tickFormatter={fmtAxis} width={44} {...axisProps} />
+          <Tooltip content={<RevenueTooltip />} cursor={{ stroke: chart.inkMuted, strokeDasharray: '4 4' }} />
+          <Area
+            type="monotone"
+            dataKey="revenue"
+            stroke={chart.primary}
+            strokeWidth={2.5}
+            fill="url(#revFill)"
+            dot={false}
+            activeDot={{ r: 5, strokeWidth: 2, stroke: chart.surface }}
           />
-          <Legend formatter={(v) => (v === 'revenue' ? 'Doanh thu' : 'Số đơn')} />
-          <Line type="monotone" dataKey="revenue" stroke="#16a34a" strokeWidth={2} />
-          <Line type="monotone" dataKey="orderCount" stroke="#2563eb" strokeWidth={2} />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
