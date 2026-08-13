@@ -68,8 +68,12 @@ services:
       SHOP_FEE_BASE:    ${SHOP_FEE_BASE:-15000}
       SHOP_FEE_PER_KM:  ${SHOP_FEE_PER_KM:-5000}
       SHOP_FEE_FREE_KM: ${SHOP_FEE_FREE_KM:-1.0}
+      UPLOADS_DIR: /data/uploads
       # JVM container ergonomics
       JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom"
+    volumes:
+      # Ảnh sản phẩm upload từ webadmin — giữ qua các lần rebuild image.
+      - uploads_data:/data/uploads
     # No external port — nginx terminates and proxies to backend:8080.
     expose:
       - "8080"
@@ -141,6 +145,8 @@ services:
 volumes:
   pgdata:
     name: shop_delivery_pgdata
+  uploads_data:
+    name: shop_delivery_uploads
 
 networks:
   shopnet:

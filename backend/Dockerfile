@@ -54,6 +54,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget \
 WORKDIR /app
 COPY --from=builder --chown=app:app /workspace/app/target/delivery-app.jar /app/app.jar
 
+# Ảnh sản phẩm do admin upload — mount volume vào đây (compose: uploads_data).
+# Tạo sẵn + chown để named volume kế thừa quyền ghi cho user app khi khởi tạo.
+RUN mkdir -p /data/uploads && chown -R app:app /data/uploads
+
 USER app
 
 # Spring profile: prod. Reviewer overrides via env if needed.

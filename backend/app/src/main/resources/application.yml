@@ -1,6 +1,10 @@
 spring:
   application:
     name: delivery-app
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   profiles:
     default: dev
   jpa:
@@ -79,3 +83,6 @@ zalo:
 jwt:
   access-ttl: PT15M
   refresh-ttl: P7D
+
+app:
+  uploads-dir: ${UPLOADS_DIR:uploads}

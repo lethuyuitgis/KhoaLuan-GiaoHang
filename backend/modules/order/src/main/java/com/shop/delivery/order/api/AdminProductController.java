@@ -5,6 +5,7 @@ import com.shop.delivery.order.api.dto.ProductResponse;
 import com.shop.delivery.order.api.dto.UpdateProductRequest;
 import com.shop.delivery.order.api.mapper.ProductMapper;
 import com.shop.delivery.order.entity.Product;
+import com.shop.delivery.order.service.ProductImageStorage;
 import com.shop.delivery.order.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -20,8 +21,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/products")
@@ -30,15 +34,25 @@ public class AdminProductController {
 
     private final ProductService service;
     private final ProductMapper mapper;
+    private final ProductImageStorage imageStorage;
 
-    public AdminProductController(ProductService service, ProductMapper mapper) {
+    public AdminProductController(ProductService service, ProductMapper mapper,
+                                  ProductImageStorage imageStorage) {
         this.service = service;
         this.mapper = mapper;
+        this.imageStorage = imageStorage;
     }
 
     @GetMapping
     public Page<ProductResponse> listAll(@PageableDefault(size = 50) Pageable pageable) {
         return service.listAll(pageable).map(mapper::toResponse);
+    }
+
+    /** Upload ảnh sản phẩm — trả về URL để đưa vào imageUrl khi tạo/sửa. */
+    @PostMapping("/images")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, String> uploadImage(@RequestParam("file") MultipartFile file) {
+        return Map.of("url", imageStorage.store(file));
     }
 
     @PostMapping
