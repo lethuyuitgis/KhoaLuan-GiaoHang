@@ -33,7 +33,10 @@ export default function App() {
   return (
     <ErrorBoundary>
       <QueryProvider>
-        <BrowserRouter>
+        {/* basename theo Vite base: '/' khi dev, '/admin/' khi build prod —
+            thiếu nó thì URL /admin/login không khớp route nào, mọi điều hướng
+            chỉ chạy được nhờ rơi vào catch-all + AuthGuard đẩy đi tiếp. */}
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route element={<AuthGuard />}>
