@@ -1,8 +1,24 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line } from 'recharts';
+import {
+  Area, AreaChart, Bar, BarChart, CartesianGrid, LabelList,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from 'recharts';
+import type { TooltipContentProps } from 'recharts';
 import { fetchAdminShipperEarnings, formatVnd } from '@shop/shared';
 import { api } from '@/lib/api';
+import { axisProps, chart, gridProps, TooltipCard, TooltipRow } from '@/components/charts/chartTheme';
+
+const fmtK = (n: number) => `${Math.round(n / 1000)}k`;
+
+function CommissionTooltip({ active, payload, label }: Partial<TooltipContentProps<number, string>>) {
+  if (!active || !payload?.length) return null;
+  return (
+    <TooltipCard title={String(label)}>
+      <TooltipRow color={chart.primary} label="Hoa hồng" value={formatVnd(Number(payload[0].value ?? 0))} />
+    </TooltipCard>
+  );
+}
 
 export function ShipperEarningsPage() {
   const [from, setFrom] = useState(new Date(Date.now() - 7*86400_000).toISOString().slice(0,10));
@@ -49,11 +65,16 @@ export function ShipperEarningsPage() {
             <ResponsiveContainer width="100%" height={260}>
               <BarChart
                 data={byShipper.slice().sort((a,b) => Number(b.commission) - Number(a.commission)).slice(0, 5)}
-                layout="vertical" margin={{ left: 60 }}>
-                <XAxis type="number" tickFormatter={n => `${Math.round(n/1000)}k`} />
-                <YAxis dataKey="groupKey" type="category" width={80} />
-                <Tooltip formatter={(v) => formatVnd(Number(v))} />
-                <Bar dataKey="commission" fill="#f97316" radius={[0,4,4,0]} />
+                layout="vertical" margin={{ top: 4, right: 48, left: 8, bottom: 4 }} barCategoryGap={12}>
+                <CartesianGrid horizontal={false} stroke={chart.grid} />
+                <XAxis type="number" hide />
+                <YAxis dataKey="groupKey" type="category" width={90} {...axisProps} tick={{ fill: chart.inkSoft, fontSize: 12 }} />
+                <Tooltip content={<CommissionTooltip />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} />
+                <Bar dataKey="commission" fill={chart.primary} radius={[0,6,6,0]} maxBarSize={26}>
+                  <LabelList dataKey="commission" position="right" offset={8}
+                    formatter={(v: unknown) => fmtK(Number(v ?? 0))}
+                    style={{ fill: chart.inkSoft, fontSize: 12, fontWeight: 600 }} />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -61,12 +82,20 @@ export function ShipperEarningsPage() {
         <Panel title="Hoa hồng theo ngày">
           {byDay.length === 0 ? <EmptyChart /> : (
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={byDay}>
-                <XAxis dataKey="groupKey" tickFormatter={d => d.slice(5)} />
-                <YAxis tickFormatter={n => `${Math.round(n/1000)}k`} />
-                <Tooltip formatter={(v) => formatVnd(Number(v))} />
-                <Line type="monotone" dataKey="commission" stroke="#f97316" strokeWidth={2} />
-              </LineChart>
+              <AreaChart data={byDay} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="commFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={chart.primary} stopOpacity={0.28} />
+                    <stop offset="100%" stopColor={chart.primary} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid {...gridProps} />
+                <XAxis dataKey="groupKey" tickFormatter={d => d.slice(5)} {...axisProps} />
+                <YAxis tickFormatter={fmtK} width={44} {...axisProps} />
+                <Tooltip content={<CommissionTooltip />} cursor={{ stroke: chart.inkMuted, strokeDasharray: '4 4' }} />
+                <Area type="monotone" dataKey="commission" stroke={chart.primary} strokeWidth={2.5}
+                  fill="url(#commFill)" dot={false} activeDot={{ r: 5, strokeWidth: 2, stroke: chart.surface }} />
+              </AreaChart>
             </ResponsiveContainer>
           )}
         </Panel>
