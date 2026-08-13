@@ -4,6 +4,7 @@ import com.shop.delivery.delivery.domain.LedgerEntryType;
 import com.shop.delivery.delivery.service.CommissionCalculator;
 import com.shop.delivery.delivery.service.ShipperLedgerService;
 import com.shop.delivery.delivery.service.event.OrderDeliveredEvent;
+import com.shop.delivery.order.domain.PaymentStatus;
 import com.shop.delivery.order.entity.Order;
 import com.shop.delivery.order.repository.OrderRepository;
 import com.shop.delivery.order.service.ShopConfigService;
@@ -65,6 +66,12 @@ public class OrderCompletionListener {
         BigDecimal commission = calculator.commission(order.getDeliveryFeeOriginal(), pct);
 
         order.setShipperCommission(commission);
+        // COD: giao xong nghĩa là shipper đã cầm tiền của khách — đơn coi như
+        // đã thanh toán (khoản nợ shop↔shipper theo dõi bằng COD_OWED bên dưới).
+        if ("COD".equalsIgnoreCase(order.getPaymentMethod().name())
+                && order.getPaymentStatus() == PaymentStatus.PENDING) {
+            order.setPaymentStatus(PaymentStatus.SUCCESS);
+        }
         orderRepo.save(order);
 
         ledgerService.append(

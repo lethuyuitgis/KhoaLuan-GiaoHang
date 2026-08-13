@@ -51,6 +51,25 @@ class OrderCompletionListenerIT extends DeliveryListenerTestBase {
             .filter(e -> e.getEntryType() == LedgerEntryType.COD_OWED).findFirst().orElseThrow();
         assertThat(commission.getAmount()).isEqualByComparingTo("24000");
         assertThat(cod.getAmount()).isEqualByComparingTo("-130000");
+
+        // Giao xong COD = shipper đã cầm tiền → đơn phải hiện "Đã thanh toán",
+        // không được treo PENDING mãi trên webadmin.
+        String payStatus = jdbc.queryForObject(
+            "SELECT payment_status FROM orders WHERE id = ?", String.class, orderId);
+        assertThat(payStatus).isEqualTo("SUCCESS");
+    }
+
+    @Test
+    void vnpay_order_delivered_leaves_payment_status_untouched() {
+        // VNPay: trạng thái thanh toán do luồng IPN quyết định, listener không được đụng vào.
+        Long shipperId = seedShipper("90006");
+        UUID orderId = seedOrder(shipperId, "VNPAY", "30000", "30000", "0", "130000");
+        publisher.publish(new OrderDeliveredEvent(
+            UUID.randomUUID(), orderId, "TEST-VNPAY-2", shipperId, 99006L));
+
+        String payStatus = jdbc.queryForObject(
+            "SELECT payment_status FROM orders WHERE id = ?", String.class, orderId);
+        assertThat(payStatus).isEqualTo("PENDING");
     }
 
     @Test
