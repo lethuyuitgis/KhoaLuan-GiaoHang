@@ -130,7 +130,7 @@ export function VoucherFormPage() {
   };
 
   return (
-    <form onSubmit={submit} className="max-w-3xl mx-auto pb-32">
+    <form onSubmit={submit} className="max-w-3xl mx-auto pb-6">
       {/* ─────────── Back link + header ─────────── */}
       <Link to="/vouchers" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-3">
         ← Tất cả voucher
@@ -335,28 +335,27 @@ export function VoucherFormPage() {
         )}
       </div>
 
-      {/* ─────────── Sticky submit bar ─────────── */}
-      <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.04)] z-10">
-        <div className="max-w-3xl mx-auto flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => nav(-1)}
-            className="px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
-          >
-            Huỷ
-          </button>
-          <button
-            type="submit"
-            disabled={create.isPending || update.isPending}
-            className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors shadow-sm inline-flex items-center gap-2"
-          >
-            {(create.isPending || update.isPending) ? (
-              <><Spinner /> Đang lưu…</>
-            ) : (
-              <>{isEdit ? '💾 Lưu thay đổi' : '+ Tạo voucher'}</>
-            )}
-          </button>
-        </div>
+      {/* Submit bar — sticks to the viewport bottom but stays in the form flow (max-w-3xl
+          mx-auto), so it lines up with the fields instead of spanning the whole page. */}
+      <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border-t border-gray-200 bg-white/90 py-4 backdrop-blur-sm">
+        <button
+          type="button"
+          onClick={() => nav(-1)}
+          className="px-5 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-colors"
+        >
+          Huỷ
+        </button>
+        <button
+          type="submit"
+          disabled={create.isPending || update.isPending}
+          className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors shadow-sm inline-flex items-center gap-2"
+        >
+          {(create.isPending || update.isPending) ? (
+            <><Spinner /> Đang lưu…</>
+          ) : (
+            <>{isEdit ? '💾 Lưu thay đổi' : '+ Tạo voucher'}</>
+          )}
+        </button>
       </div>
 
       <style>{`
