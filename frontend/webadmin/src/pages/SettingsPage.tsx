@@ -95,7 +95,7 @@ function SettingsForm({ initial, onSaved }: FormProps) {
     setForm(prev => ({ ...prev, [k]: v }));
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl pb-32">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-3xl pb-6">
       {/* Section 1: Shop info */}
       <Section title="Thông tin shop" subtitle="Hiển thị trên Mini App và header customer">
         <Field label="Tên shop" required>
@@ -224,23 +224,22 @@ function SettingsForm({ initial, onSaved }: FormProps) {
         </p>
       </Section>
 
-      {/* Sticky submit bar */}
-      <div className="fixed bottom-0 left-64 right-0 bg-white border-t border-gray-200 px-6 py-4 shadow-lg z-10">
-        <div className="max-w-3xl flex items-center gap-3">
-          <button type="submit" disabled={mut.isPending}
-            className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl font-semibold transition-colors">
-            {mut.isPending ? 'Đang lưu…' : 'Lưu thay đổi'}
-          </button>
-          {toast && (
-            <div className={`text-sm font-medium px-3 py-2 rounded-lg ${
-              toast.kind === 'ok'
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-              {toast.msg}
-            </div>
-          )}
-        </div>
+      {/* Submit bar — sticks to the bottom of the viewport but stays inside the form flow,
+          so it lines up with the content (max-w-3xl) instead of spanning the whole page. */}
+      <div className="sticky bottom-0 z-10 flex items-center gap-3 border-t border-gray-200 bg-white/90 py-4 backdrop-blur-sm">
+        <button type="submit" disabled={mut.isPending}
+          className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white rounded-xl font-semibold transition-colors">
+          {mut.isPending ? 'Đang lưu…' : 'Lưu thay đổi'}
+        </button>
+        {toast && (
+          <div className={`text-sm font-medium px-3 py-2 rounded-lg ${
+            toast.kind === 'ok'
+              ? 'bg-green-50 text-green-700 border border-green-200'
+              : 'bg-red-50 text-red-700 border border-red-200'
+          }`}>
+            {toast.msg}
+          </div>
+        )}
       </div>
 
       {/* Local Tailwind class shortcut — keep one source of truth for the input
