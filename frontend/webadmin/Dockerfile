@@ -27,7 +27,14 @@ RUN printf '%s\n' \
   '    server_name _;' \
   '    root /usr/share/nginx/html;' \
   '    index index.html;' \
+  '    # Bundle /assets/ có hash trong tên -> cache dài hạn, đổi code là đổi tên file.' \
+  '    location /assets/ {' \
+  '        add_header Cache-Control "public, max-age=31536000, immutable";' \
+  '        try_files $uri =404;' \
+  '    }' \
+  '    # index.html KHONG cache -> deploy xong nguoi dung F5 la thay ban moi ngay.' \
   '    location / {' \
+  '        add_header Cache-Control "no-cache";' \
   '        try_files $uri $uri/ /index.html;' \
   '    }' \
   '    location = /healthz { return 200 "ok\n"; add_header Content-Type text/plain; }' \
