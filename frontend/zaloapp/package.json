@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:zalo": "vite build --base ./",
+    "zalo:login": "zmp login",
+    "zalo:deploy": "zmp deploy -t -e -o dist"
   },
   "dependencies": {
     "@shop/shared": "workspace:*",
@@ -41,6 +44,7 @@
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.0",
     "vite": "^5.4.8",
-    "vitest": "^2"
+    "vitest": "^2",
+    "zmp-cli": "4.0.3"
   }
 }

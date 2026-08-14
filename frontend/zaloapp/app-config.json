@@ -1,0 +1,16 @@
+{
+  "app": {
+    "title": "Shop Giao Hàng",
+    "headerColor": "#ea580c",
+    "textColor": "white",
+    "leftButton": "back",
+    "statusBarType": "normal",
+    "hideAndroidBottomNavigationBar": true,
+    "hideIOSSafeAreaBottom": false
+  },
+  "listSyncRule": {},
+  "template": {},
+  "listCSS": [],
+  "listSyncJS": [],
+  "listAsyncJS": []
+}
