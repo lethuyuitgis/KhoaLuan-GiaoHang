@@ -229,22 +229,29 @@ export function ShipperAssignmentDetailPage() {
             'Đến shop lấy hàng cho đơn này',
             'Gọi khách trước khi đi nếu cần xác nhận địa chỉ',
             'Nhấn "Bắt đầu giao" để thông báo cho khách',
-            'Chia sẻ vị trí trực tiếp trên bot để khách theo dõi',
+            'Bấm "Chỉ đường" để Google Maps dẫn đường tới khách',
           ]}
         />
       )}
 
+      {/* Dẫn đường — Zalo Mini App không có Live Location như Telegram, nên mở
+          Google Maps directions (turn-by-turn) tới địa chỉ khách. Nổi bật khi đang giao. */}
       {assignment.status === 'STARTED' && (
-        <Steps
-          accent="blue"
-          title="Chia sẻ vị trí real-time"
-          steps={[
-            'Quay lại chat với bot',
-            'Bấm biểu tượng 📎 → "Vị trí" → "Chia sẻ vị trí trực tiếp"',
-            'Chọn thời lượng (15 phút / 1 giờ / 8 giờ)',
-            'Khách sẽ thấy vị trí của bạn trên bản đồ realtime',
-          ]}
-        />
+        <a
+          href={`https://www.google.com/maps/dir/?api=1&destination=${assignment.deliveryLat},${assignment.deliveryLng}&travelmode=driving`}
+          target="_blank"
+          rel="noreferrer"
+          className="flex items-center gap-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl shadow-lg shadow-blue-500/25 p-4 text-white active:scale-[0.99] transition"
+        >
+          <span className="shrink-0 w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+            <MapIcon />
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-blue-50/90">Đang giao đơn này</span>
+            <span className="block text-base font-bold leading-tight">Mở Google Maps chỉ đường</span>
+            <span className="block text-xs text-blue-50/80 mt-0.5">Dẫn đường tới khách · {assignment.distanceKm} km</span>
+          </span>
+        </a>
       )}
 
       {assignment.status === 'ACCEPTED' && (
