@@ -18,6 +18,7 @@ export function BottomNav() {
     { to: '/customer/shop',   label: t('nav.home'),   match: p => p === '/customer/shop',                                                              Icon: IconHome },
     { to: '/customer/cart',   label: t('nav.cart'),   match: p => p.startsWith('/customer/cart') || p.startsWith('/customer/checkout'),                Icon: IconCart, badge: itemCount },
     { to: '/customer/orders', label: t('nav.orders'), match: p => p.startsWith('/customer/orders'),                                                    Icon: IconOrders },
+    { to: '/shipper/assignments', label: 'Shipper', match: p => p.startsWith('/shipper'),                                                              Icon: IconShipper },
   ];
 
   return (
@@ -95,6 +96,16 @@ function IconOrders({ active }: { active: boolean }) {
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="4" y="5" width="16" height="16" rx="3" />
       <path d="M8 3v4M16 3v4M4 11h16" />
+    </svg>
+  );
+}
+
+function IconShipper({ active }: { active: boolean }) {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="6" cy="17" r="2.5" />
+      <circle cx="18" cy="17" r="2.5" />
+      <path d="M8.5 17h6l3-8h2M5.5 9H10l3.5 6M12 5h3l1.5 4" />
     </svg>
   );
 }

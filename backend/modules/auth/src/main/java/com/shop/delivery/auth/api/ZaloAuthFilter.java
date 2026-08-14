@@ -14,7 +14,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -60,13 +63,16 @@ public class ZaloAuthFilter extends OncePerRequestFilter {
     private final boolean enabled;
     private final boolean devModeEnabled;
     private final String zaloAppId;
+    private final String zaloAppSecret;
     private final RestClient zaloApi;
 
     public ZaloAuthFilter(TelegramUserRepository userRepo,
                           Environment env,
-                          @Value("${zalo.app-id:}") String zaloAppId) {
+                          @Value("${zalo.app-id:}") String zaloAppId,
+                          @Value("${zalo.app-secret:}") String zaloAppSecret) {
         this.userRepo = userRepo;
         this.zaloAppId = zaloAppId;
+        this.zaloAppSecret = zaloAppSecret;
         this.zaloApi = RestClient.builder().baseUrl("https://graph.zalo.me").build();
         this.devModeEnabled = List.of(env.getActiveProfiles()).contains("dev");
         // Filter is only "active" when an app id is configured. Without one
@@ -134,26 +140,53 @@ public class ZaloAuthFilter extends OncePerRequestFilter {
      * suffix is parsed as a Zalo user id for local testing of the wiring.
      * Format: {@code X-Zalo-Access-Token: dev:9000000001}
      */
+    /** appsecret_proof = HMAC-SHA256(access_token, app_secret) hex. null nếu chưa có app-secret. */
+    private String appSecretProof(String token) {
+        if (zaloAppSecret == null || zaloAppSecret.isBlank()) return null;
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(zaloAppSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] h = mac.doFinal(token.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(h.length * 2);
+            for (byte b : h) sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (Exception e) {
+            log.warn("appsecret_proof compute failed: {}", e.getMessage());
+            return null;
+        }
+    }
+
     private Optional<ZaloUser> verifyTokenWithZalo(String token) {
         // TODO: replace with WebClient call to Zalo OpenAPI.
         // Until ZALO_APP_SECRET is provisioned, accept "dev:<id>" tokens in
         // dev profile only — useful for backend integration tests.
-        if (devModeEnabled && token.startsWith("dev:")) {
-            try {
-                long id = Long.parseLong(token.substring("dev:".length()));
-                log.warn("⚠️  ZaloAuthFilter DEV STUB accepting token dev:{} — DO NOT enable in prod.", id);
-                return Optional.of(new ZaloUser(id, null, null));
-            } catch (NumberFormatException ignored) {
-                return Optional.empty();
+        if (devModeEnabled) {
+            if (token.startsWith("dev:")) {
+                try {
+                    long id = Long.parseLong(token.substring("dev:".length()));
+                    log.warn("⚠️  ZaloAuthFilter DEV STUB accepting token dev:{} — DO NOT enable in prod.", id);
+                    return Optional.of(new ZaloUser(id, null, null));
+                } catch (NumberFormatException ignored) { /* rơi xuống fallback demo */ }
             }
+            // Token Zalo THẬT trong profile dev → bỏ qua verify graph.zalo.me (cần app-secret +
+            // appsecret_proof) để Mini App chạy end-to-end khi test local; gán khách demo seed.
+            log.warn("⚠️  Zalo DEV FALLBACK — không verify token thật, gán khách demo 9000000001. KHÔNG bật ở prod.");
+            return Optional.of(new ZaloUser(9000000001L, null, null));
         }
         // Real verification: GET https://graph.zalo.me/v2.0/me?fields=id,name
         // with the Mini App access token in the `access_token` header. Zalo
         // returns { id, name, error: 0 } on success, or a non-zero error.
         try {
+            // Zalo (giống FB Graph) yêu cầu appsecret_proof = HMAC-SHA256(access_token, app_secret)
+            // khi app bật "require appsecret_proof". Bỏ qua nếu chưa cấu hình app-secret.
+            final String proof = appSecretProof(token);
             @SuppressWarnings("unchecked")
             Map<String, Object> body = zaloApi.get()
-                .uri(uri -> uri.path("/v2.0/me").queryParam("fields", "id,name").build())
+                .uri(uri -> {
+                    uri.path("/v2.0/me").queryParam("fields", "id,name");
+                    if (proof != null) uri.queryParam("appsecret_proof", proof);
+                    return uri.build();
+                })
                 .header("access_token", token)
                 .retrieve()
                 .body(Map.class);

@@ -11,6 +11,8 @@
   "listSyncRule": {},
   "template": {},
   "listCSS": [],
-  "listSyncJS": [],
+  "listSyncJS": [
+    "./assets/app.js"
+  ],
   "listAsyncJS": []
 }

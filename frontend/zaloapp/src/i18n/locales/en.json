@@ -187,5 +187,6 @@
   "rating.commentPlaceholder": "Comment (optional)…",
   "rating.error": "Failed to submit (you may have already rated).",
   "rating.sending": "Sending…",
-  "rating.submit": "Submit rating"
+  "rating.submit": "Submit rating",
+  "rating.already": "You've already rated this order. Thank you!"
 }

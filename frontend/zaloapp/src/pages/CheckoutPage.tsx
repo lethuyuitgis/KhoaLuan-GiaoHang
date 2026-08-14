@@ -127,7 +127,7 @@ export function CheckoutPage() {
         onClick={() => navigate(-1)}
         className="mb-2 text-sm text-brand-500 font-medium active:text-brand-700"
       >
-        ← {t('checkout.back')}
+        {t('checkout.back')}
       </button>
       <h1 className="text-2xl font-bold text-brand-800 mb-5">{t('checkout.title')}</h1>
 

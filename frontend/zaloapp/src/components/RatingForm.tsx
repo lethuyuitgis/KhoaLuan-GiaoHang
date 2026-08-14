@@ -19,11 +19,17 @@ export function RatingForm({ orderId }: { orderId: string }) {
     mutationFn: () => rateOrder(api, orderId, stars, comment.trim() || undefined),
   });
 
-  if (rateMut.isSuccess) {
+  // ALREADY_RATED không phải lỗi — đơn đã được đánh giá trước đó → hiển thị như đã xong.
+  const alreadyRated =
+    (rateMut.error as { response?: { data?: { code?: string } } })?.response?.data?.code === 'ALREADY_RATED';
+
+  if (rateMut.isSuccess || alreadyRated) {
     return (
       <section className="bg-white rounded-3xl shadow-warm p-5 text-center">
         <p className="text-2xl mb-1">🙏</p>
-        <p className="font-semibold text-brand-800">{t('rating.thanks')}</p>
+        <p className="font-semibold text-brand-800">
+          {alreadyRated ? t('rating.already') : t('rating.thanks')}
+        </p>
       </section>
     );
   }
@@ -62,7 +68,7 @@ export function RatingForm({ orderId }: { orderId: string }) {
         data-testid="rating-comment"
       />
 
-      {rateMut.isError && <p className="text-xs text-red-600 mb-2">{t('rating.error')}</p>}
+      {rateMut.isError && !alreadyRated && <p className="text-xs text-red-600 mb-2">{t('rating.error')}</p>}
 
       <button
         type="button"

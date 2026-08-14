@@ -15,8 +15,15 @@ export const DEV_USER_HEADER = 'X-Dev-User-Id';
  * a Zalo Developer Account. Header is silently ignored in non-dev profiles.
  */
 const DEV_FALLBACK_USER_ID = '9000000001';
+/** Shipper seed (telegram_user.id = 9000000105, role SHIPPER, có đơn đang giao để demo). */
+const DEV_SHIPPER_USER_ID = '9000000105';
 
 export function getAuthHeaders(): Record<string, string> {
+  // Khu vực shipper (route #/shipper/…) đăng nhập như shipper seed qua dev-bypass —
+  // Zalo Mini App không có role thật nên demo dùng X-Dev-User-Id (backend dev profile).
+  if (typeof window !== 'undefined' && window.location.hash.includes('/shipper')) {
+    return { [DEV_USER_HEADER]: DEV_SHIPPER_USER_ID };
+  }
   const token = zalo.accessToken();
   if (token) {
     return { [ZALO_TOKEN_HEADER]: token };

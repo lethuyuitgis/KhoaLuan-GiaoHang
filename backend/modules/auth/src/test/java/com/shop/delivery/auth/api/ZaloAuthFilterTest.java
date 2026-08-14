@@ -27,7 +27,7 @@ class ZaloAuthFilterTest {
     private ZaloAuthFilter filter(String appId, String... profiles) {
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles(profiles);
-        return new ZaloAuthFilter(userRepo, env, appId);
+        return new ZaloAuthFilter(userRepo, env, appId, "");
     }
 
     @Test

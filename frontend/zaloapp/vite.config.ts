@@ -14,20 +14,34 @@ export default defineConfig(({ mode }) => ({
       '@': path.resolve(__dirname, './src'),
     },
   },
-  build: {
-    // Split vendor bundles so the initial chunk stays under 500 KB —
-    // same pattern as webadmin/vite.config.ts (zaloapp has no recharts/stomp).
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'query-vendor': ['@tanstack/react-query'],
-          'map-vendor':   ['leaflet', 'react-leaflet'],
-          'i18n-vendor':  ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+  build: mode === 'zalo'
+    ? {
+        // Zalo Mini App build: Zalo không dùng index.html, chỉ nạp asset khai báo
+        // trong app-config.json như script CỔ ĐIỂN → gộp thành 1 bundle IIFE duy
+        // nhất (không ESM, không code-split) thì Zalo mới chạy được.
+        rollupOptions: {
+          output: {
+            format: 'iife',
+            inlineDynamicImports: true,
+            entryFileNames: 'assets/app.js',
+            chunkFileNames: 'assets/app.js',
+            assetFileNames: 'assets/app.[ext]',
+          },
+        },
+      }
+    : {
+        // Web thường: tách vendor để chunk initial < 500 KB.
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+              'query-vendor': ['@tanstack/react-query'],
+              'map-vendor':   ['leaflet', 'react-leaflet'],
+              'i18n-vendor':  ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+            },
+          },
         },
       },
-    },
-  },
   server: {
     port: 5182,
     host: true,

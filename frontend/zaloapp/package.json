@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:zalo": "vite build --base ./",
+    "build:zalo": "vite build --base ./ --mode zalo",
     "zalo:login": "zmp login",
     "zalo:deploy": "zmp deploy -t -e -o dist"
   },
@@ -27,6 +27,7 @@
     "react-i18next": "^17.0.8",
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.27.0",
+    "recharts": "^3.8.1",
     "zmp-sdk": "^2.53.0",
     "zustand": "^4.5.5"
   },

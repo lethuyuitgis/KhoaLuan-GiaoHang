@@ -187,5 +187,6 @@
   "rating.commentPlaceholder": "Nhận xét (tuỳ chọn)…",
   "rating.error": "Gửi đánh giá thất bại (có thể đã đánh giá rồi).",
   "rating.sending": "Đang gửi…",
-  "rating.submit": "Gửi đánh giá"
+  "rating.submit": "Gửi đánh giá",
+  "rating.already": "Bạn đã đánh giá đơn này rồi. Cảm ơn bạn!"
 }

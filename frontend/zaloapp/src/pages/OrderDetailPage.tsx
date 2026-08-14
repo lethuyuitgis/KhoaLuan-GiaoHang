@@ -102,7 +102,7 @@ export function OrderDetailPage() {
         onClick={() => navigate(-1)}
         className="text-sm text-brand-500 font-medium active:text-brand-700"
       >
-        ← {t('orderDetail.back')}
+        {t('orderDetail.back')}
       </button>
 
       <div className="bg-white rounded-3xl shadow-warm p-5 flex justify-between items-start gap-3">
