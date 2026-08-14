@@ -73,12 +73,65 @@ pnpm --filter @shop/zaloapp build
 Backend `dev` profile: gửi header `X-Zalo-Access-Token: dev:9000000001` để mô phỏng
 một khách Zalo đã xác thực (không cần token thật).
 
-## 7. Publish (khi có account) — CHƯA làm
+## 7. Deploy lên Zalo thật (zmp CLI) — toolchain đã dựng sẵn
 
-1. Điền `.env` (mục 4).
-2. Cài `zmp-cli`, thêm `app-config.json` (manifest Zalo), build `.zmp`.
-3. Upload `.zmp` lên **Zalo Mini App Studio** → gửi duyệt.
+### 7.1. Đã có trong repo (commit sẵn)
+- `frontend/zaloapp/app-config.json` — manifest Zalo (title "Shop Giao Hàng", header cam).
+- `zmp-cli` 4.0.3 (devDep) + scripts trong `zaloapp/package.json`:
+  - `build:zalo` = `vite build --base ./` (base **tương đối** để asset chạy trong khung Zalo)
+  - `zalo:login` = `zmp login`
+  - `zalo:deploy` = `zmp deploy -t -e -o dist`
 
-> Các bước mục 7 cần Zalo runtime/toolchain thật để kiểm chứng — báo lại khi có
-> creds để tinh chỉnh (đặc biệt id-namespacing giữa Zalo id và Telegram id trong
-> `telegram_user` nếu chạy song song hai nền tảng trên cùng DB).
+### 7.2. Điểm mấu chốt về toolchain (đã kiểm chứng)
+- **zmp-cli 4.x dùng webpack**, không nuốt được project Vite này → `zmp build` báo
+  *"This is not ZMP project"*. **Cách vòng:** build bằng chính vite của app rồi
+  deploy thư mục đã build qua cờ **`-e/--existing`**:
+  `zmp deploy -t -e -o dist` (đã verify: qua được check project, chỉ chặn ở login).
+- **Backend phải PUBLIC** — app chạy trong Zalo trên điện thoại, không gọi được
+  `localhost`. Test nhanh bằng tunnel:
+  ```bash
+  cloudflared tunnel --url http://localhost:8080   # → https://xxx.trycloudflare.com
+  ```
+- **Build phải nhúng URL backend public** (không phải `/api` tương đối):
+  ```bash
+  cd frontend/zaloapp
+  VITE_API_BASE_URL=https://xxx.trycloudflare.com pnpm build:zalo
+  ```
+
+### 7.3. Login (BẮT BUỘC làm trong Terminal thật — không tự động được)
+`zmp login` cần TTY tương tác; shell script/CI không nhập prompt được.
+```bash
+cd frontend/zaloapp
+npx zmp login
+#  ? Mini App ID:        → dán MINI APP ID (dạng SỐ, lấy ở mini.zalo.me → app → Thông tin)
+#  ? Login Method:       → chọn 1. Login Via QR Code With Zalo App
+#  → Terminal hiện QR    → mở app Zalo trên điện thoại QUÉT QR → xác nhận → "Login success"
+```
+Sau khi "Login success", token lưu vào máy → các lệnh `zmp deploy` sau chạy được
+không cần login lại.
+
+**Bẫy thường gặp — `✖ Login failed! Error: Invalid data`:**
+- Nhập **nhầm Mini App ID bằng secret/app-key** (vd chuỗi kiểu `jBRYTFKvrapx73W8rXVJ`
+  KHÔNG phải Mini App ID — Mini App ID là dãy số). Lấy đúng field "App ID" ở
+  `mini.zalo.me`.
+- Chọn **method 2 (App Access Token)** rồi dán nhầm Mini App ID vào ô token → dùng
+  **method 1 (QR)** cho chắc.
+- **App mới tạo chưa được Zalo duyệt** → phải chờ Zalo xác thực Mini App (~3–5 ngày)
+  mới login/deploy được. Đây là nguyên nhân hay gặp nhất khi mọi field đều đúng mà
+  vẫn "Invalid data".
+
+### 7.4. Deploy → lấy QR bản testing
+```bash
+cd frontend/zaloapp
+npx zmp deploy -t -e -o dist -p -m "mo ta phien ban"
+#  -t testing · -e deploy dist có sẵn · -o dist thư mục build · -p passive (không hỏi)
+#  → in ra LINK + QR bản testing → mở app Zalo quét QR → app chạy trong Zalo thật
+```
+
+### 7.5. Bật auth Zalo thật ở backend (thay dev-bypass)
+Điền `.env` gốc (mục 4) `ZALO_APP_SECRET` + `ZALO_MINI_APP_ID` rồi restart backend;
+`ZaloAuthFilter` sẽ verify access token thật từ `zmp-sdk` qua `graph.zalo.me/v2.0/me`
+(dev-bypass `X-Dev-User-Id` chỉ dùng khi test trên trình duyệt thường).
+
+> Còn để ý: **id-namespacing giữa Zalo id và Telegram id** trong bảng `telegram_user`
+> nếu chạy song song hai nền tảng trên cùng DB (khách Zalo được upsert vào cùng bảng).
