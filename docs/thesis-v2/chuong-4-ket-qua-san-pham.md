@@ -16,7 +16,7 @@ Trong đề tài, Java 17 và Spring Boot 3.4 đóng vai trò xương sống c�
 
 React 18 là thư viện JavaScript xây dựng giao diện người dùng theo mô hình component, hỗ trợ concurrent rendering và hook. Vite 5 là công cụ build và dev-server thế hệ mới dựa trên esbuild và Rollup, cho thời gian khởi động và hot-reload gần như tức thì.
 
-Trong đề tài, React 18 + Vite 5 (với TypeScript 5.6) là nền tảng cho ba ứng dụng frontend: Web Admin cho chủ shop, Telegram Mini App cho khách hàng + shipper, và Zalo Mini App cho khách hàng (mục 4.8) — cả ba dùng chung gói `@shop/shared`. Hệ sinh thái đi kèm gồm: TanStack Query 5 quản lý trạng thái server và cache, Zustand 4 quản lý trạng thái phía client (ví dụ giỏ hàng persist), Tailwind CSS 3 cho styling tiện dụng, Recharts 3 vẽ biểu đồ Dashboard, `@twa-dev/sdk` 7 tương tác Telegram WebApp và react-leaflet + OpenStreetMap cho bản đồ tracking. Cấu hình Vite `manualChunks` tách Recharts thành chunk lazy-load, đưa bundle initial của Web Admin xuống khoảng 121 KB gzipped.
+Trong đề tài, React 18 + Vite 5 (với TypeScript 5.6) là nền tảng cho ba ứng dụng frontend: Web Admin cho chủ shop, Telegram Mini App cho khách hàng + shipper, và Zalo Mini App cho khách hàng + shipper (mục 4.8) — cả ba dùng chung gói `@shop/shared`. Hệ sinh thái đi kèm gồm: TanStack Query 5 quản lý trạng thái server và cache, Zustand 4 quản lý trạng thái phía client (ví dụ giỏ hàng persist), Tailwind CSS 3 cho styling tiện dụng, Recharts 3 vẽ biểu đồ Dashboard, `@twa-dev/sdk` 7 tương tác Telegram WebApp và react-leaflet + OpenStreetMap cho bản đồ tracking. Cấu hình Vite `manualChunks` tách Recharts thành chunk lazy-load, đưa bundle initial của Web Admin xuống khoảng 121 KB gzipped.
 
 ### 4.1.3. PostgreSQL 16 và Flyway
 
@@ -321,16 +321,24 @@ Hướng ưu tiên hàng đầu ở phần Hướng phát triển — *mở rộ
 - **Theo dõi shipper**: thay STOMP bằng poll `GET /api/orders/{id}/location` mỗi 5 giây.
 - **Chat ẩn danh**: khách Zalo nhắn qua REST (`POST /api/orders/{id}/chat`); backend phát `CustomerChatSentEvent` để module `notification` relay sang **bot Telegram của shipper**, giữ nguyên tính ẩn danh — một luồng chat *xuyên nền tảng* Zalo ↔ Telegram.
 - **Đánh giá**: khách Zalo chấm sao qua `POST /api/orders/{id}/rating` (thay vì FSM bot).
+- **Dẫn đường cho shipper**: Zalo Mini App không có cơ chế *Live Location* native như Telegram, nên ở khu vực shipper, việc chia sẻ vị trí realtime được thay bằng **liên kết Google Maps Directions** (`travelmode=driving`) mở dẫn đường turn-by-turn tới địa chỉ khách — không phát sinh thêm dịch vụ backend.
 
-Nhờ tách bạch domain/transport và dùng chung gói `@shop/shared` (kiểu dữ liệu + API helper), ứng dụng Zalo đạt **parity đầy đủ luồng khách** (đặt món, giỏ hàng, thanh toán, lưu địa chỉ + autocomplete, mã giảm giá, theo dõi bản đồ, chat, đánh giá) mà chỉ phát sinh một endpoint mới (chat khách) và hai lớp backend (`CustomerChatController`, `CustomerChatNotifier`). Việc đăng ký Zalo Official Account + xuất bản `.zmp` nằm ngoài phạm vi khoá luận (cần phê duyệt ~1–2 tuần của Zalo); phần mã tích hợp thật đã được chuẩn bị sẵn theo cơ chế *gated* — kích hoạt khi điền credential.
+Nhờ tách bạch domain/transport và dùng chung gói `@shop/shared` (kiểu dữ liệu + API helper), ứng dụng Zalo đạt **parity đầy đủ cả luồng khách lẫn luồng shipper**: luồng khách (đặt món, giỏ hàng, thanh toán, lưu địa chỉ + autocomplete, mã giảm giá, theo dõi bản đồ, chat, đánh giá) chỉ phát sinh một endpoint mới (chat khách) và hai lớp backend (`CustomerChatController`, `CustomerChatNotifier`); luồng shipper (danh sách phân công, chi tiết đơn, thu nhập, ví, hồ sơ) được **port trọn vẹn từ Telegram Mini App**, chỉ gỡ phần phụ thuộc Bot/Live Location và thay bằng dẫn đường Google Maps như trên — tái dùng cùng REST API `/api/shipper/*` với backend Telegram. Ứng dụng đã được **triển khai bản testing chạy trên Zalo thật** (qua `zmp deploy`, mở bằng mã QR trong app Zalo); riêng khâu xuất bản công khai cho mọi người dùng còn cần Zalo phê duyệt (~1–2 tuần) nên nằm ngoài phạm vi khoá luận.
 
-Về giao diện, Zalo Mini App tái sử dụng nguyên vẹn hệ thống thiết kế của Mini App khách hàng nhưng chạy trong khung Zalo (tiêu đề *"Shop Giao Hàng • Zalo"*). Ba màn tiêu biểu dưới đây được chụp trực tiếp từ ứng dụng `frontend/zaloapp` đang chạy với cùng backend và bộ dữ liệu seed.
+Về giao diện, Zalo Mini App tái sử dụng nguyên vẹn hệ thống thiết kế của Mini App khách hàng nhưng chạy trong khung Zalo (tiêu đề *"Shop Giao Hàng • Zalo"*). Năm màn tiêu biểu dưới đây — ba màn khách và hai màn shipper — được chụp trực tiếp từ ứng dụng `frontend/zaloapp` đang chạy với cùng backend và bộ dữ liệu seed.
 
 | Giao diện | Mô tả |
 |:---:|:---|
 | ![](screenshots/zalo-01-catalog.png){width="4.3cm"} | **Hình 4.17 — Danh mục sản phẩm (Zalo).** Trang danh mục hiển thị sản phẩm kèm ảnh, tên, giá, banner khuyến mãi và bộ lọc theo nhóm hàng — dùng lại hoàn toàn các thành phần giao diện của Telegram Mini App qua gói `@shop/shared`, chỉ khác lớp xác thực (`zmp-sdk` thay cho `initData`). |
 | ![](screenshots/zalo-02-orders.png){width="4.3cm"} | **Hình 4.18 — Lịch sử đơn hàng (Zalo).** Danh sách đơn của khách kèm trạng thái, phương thức thanh toán và tổng tiền; dữ liệu lấy qua cùng REST API `GET /api/orders` với backend Telegram. |
 | ![](screenshots/zalo-03-order-detail.png){width="4.3cm"} | **Hình 4.19 — Chi tiết đơn (Zalo).** Trang chi tiết hiển thị món hàng, địa chỉ giao, thanh toán và trạng thái. Do Zalo không có kênh Bot/WebSocket, việc theo dõi vị trí dùng REST polling và luồng **chat/đánh giá được hiện thực xuyên nền tảng** (khách Zalo ↔ bot Telegram của shipper). |
+
+Ngoài luồng khách, khu vực **shipper** cũng đã hiện diện trên Zalo (tab thứ tư ở thanh điều hướng dưới), tái dùng nguyên vẹn giao diện của Mini App shipper Telegram. Hai màn dưới đây minh hoạ điểm khác biệt nền tảng đáng chú ý nhất — thay *Live Location* của Telegram bằng dẫn đường Google Maps.
+
+| Giao diện | Mô tả |
+|:---:|:---|
+| ![](screenshots/zalo-04-ship-assignments.png){width="4.3cm"} | **Hình 4.20 — Danh sách phân công của shipper (Zalo).** Trang liệt kê các đơn đang giao kèm trạng thái, địa chỉ, danh sách món, khoảng cách, tiền thu hộ (COD) và thu nhập dự kiến — dữ liệu lấy qua cùng REST API `/api/shipper/assignments` với backend Telegram; không có Bot nên toàn bộ thao tác chuyển trạng thái diễn ra ngay trong Mini App. |
+| ![](screenshots/zalo-05-ship-detail.png){width="4.3cm"} | **Hình 4.21 — Chi tiết phân công của shipper (Zalo).** Trang hiển thị tiền thu hộ, món hàng, liên hệ khách (nút gọi), địa chỉ giao và thu nhập. Vì Zalo không có *Telegram Live Location*, khối chia sẻ vị trí realtime được thay bằng thẻ **"Mở Google Maps chỉ đường"** — dẫn đường turn-by-turn tới địa chỉ khách mà không cần thêm dịch vụ backend. |
 
 # KẾT LUẬN
 
@@ -356,7 +364,7 @@ Về giao diện, Zalo Mini App tái sử dụng nguyên vẹn hệ thống thi�
 
 Về mặt kỹ thuật, đề tài đem lại các đóng góp chính: (i) **mô hình triển khai lai trên nền tảng Telegram** dùng đồng thời ba kênh (Mini App, Bot, Web Admin) phân vai theo thiết bị; (ii) **theo dõi GPS realtime bằng Telegram Live Location native** với độ trễ end-to-end dưới ba giây, tiết kiệm khoảng 80% công sức so với tự lập trình GPS streaming; (iii) **kiến trúc Modular Monolith với tám bounded context** giao tiếp qua Spring Application Events `@TransactionalEventListener(AFTER_COMMIT)`; (iv) **tích hợp VNPay với IPN-as-source-of-truth** kèm các đảm bảo cụ thể (constant-time hash comparison, idempotent IPN, JSONB audit trail bắt buộc, `Propagation.REQUIRES_NEW`); và (v) **mô hình bảo mật defense-in-depth gồm mười một lớp** đối phó song song, mỗi lớp có regression test khoá.
 
-Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở và mở rộng sang Zalo Mini App), hệ thống cung cấp **46 REST endpoint**, được kiểm thử qua **491 test (369 backend gồm 314 unit và 55 integration, cộng 122 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **18 ảnh chụp giao diện** thực tế (gồm ba màn Zalo Mini App) cùng một hình tái dựng bốn luồng hội thoại Bot Telegram. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
+Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện các tính năng còn dang dở và mở rộng sang Zalo Mini App), hệ thống cung cấp **46 REST endpoint**, được kiểm thử qua **491 test (369 backend gồm 314 unit và 55 integration, cộng 122 frontend)** với tỉ lệ build xanh 100% trên mỗi commit ở nhánh `main`; quản lý schema bằng **mười bảy Flyway migration (V1–V17)**; đóng gói bằng **Docker Compose năm container** với quy trình deploy ba lệnh; và minh hoạ bằng **20 ảnh chụp giao diện** thực tế (gồm năm màn Zalo Mini App: ba màn khách và hai màn shipper) cùng một hình tái dựng bốn luồng hội thoại Bot Telegram. Về quy trình, đề tài minh hoạ phương pháp phát triển có kỷ luật với mười pha, mỗi pha sáu bước Research → Plan → Plan-check → Execute → Code-review → Fix, sinh ra hơn 152 commit nguyên tử; hai vòng review giúp phát hiện năm lỗi nghiêm trọng trước khi merge và mười hai blocker trước khi chạm code. Bảng KL.2 tổng hợp các chỉ số định lượng.
 
 **Bảng KL.2. Tổng hợp các chỉ số định lượng kết quả đạt được**
 
@@ -375,7 +383,7 @@ Về số liệu định lượng (tính đến sau giai đoạn hoàn thiện c
 | Tỉ lệ build xanh trên mỗi commit ở `main` | 100% |
 | Số trang Mini App / Web Admin | 13 / 13 |
 | Số Dockerfile / container Docker Compose | 3 / 5 |
-| Số ảnh chụp giao diện trong báo cáo | 15 |
+| Số ảnh chụp giao diện trong báo cáo | 20 |
 
 Về mặt thực tiễn, hệ thống lấp vào khoảng trống định vị giữa các nền tảng tổng hợp (chi phí cao, mất hoa hồng 20–25%, mất kiểm soát dữ liệu) và shop tự xây ứng dụng native (chi phí phát triển và vận hành lớn). Với chi phí vận hành chỉ khoảng mười đô-la Mỹ mỗi tháng cho một VPS, hệ thống có thể phục vụ ngay các shop F&B, tạp hoá quy mô nhỏ và vừa (50–500 đơn/ngày, 1–10 shipper nội bộ) muốn tự chủ về dữ liệu và quy trình giao hàng, trong khi khách và shipper không phải cài thêm ứng dụng nào ngoài Telegram sẵn có.
 
