@@ -1,5 +1,12 @@
+# Project name tách biệt hoàn toàn với prod (docker-compose.yml chạy ở project "infra").
+# LƯU Ý: trước đây cả hai file cùng đặt service tên "postgres" + cùng project mặc định
+# "infra" (theo tên thư mục), nên `docker compose up` file này sẽ recreate/xoá postgres
+# của file kia và ngược lại (làm sập DB đang chạy). Đặt project riêng + đổi tên service
+# thành "postgres-dev" để prod và dev chạy song song, không đụng nhau.
+name: shop-delivery-dev
+
 services:
-  postgres:
+  postgres-dev:
     image: postgres:16-alpine
     container_name: shop_delivery_postgres_dev
     restart: unless-stopped
