@@ -26,12 +26,15 @@ public interface ShipperLedgerRepository extends JpaRepository<ShipperLedgerEntr
     boolean existsByOrderIdAndEntryType(UUID orderId, LedgerEntryType entryType);
 
     @Query(value = """
-        SELECT shipper_id::text AS group_key,
-               COUNT(*) FILTER (WHERE entry_type='COMMISSION') AS orders_count,
-               COALESCE(SUM(amount) FILTER (WHERE entry_type='COMMISSION'), 0) AS commission
-        FROM shipper_ledger
-        WHERE created_at BETWEEN :from AND :to
-        GROUP BY shipper_id ORDER BY shipper_id
+        SELECT COALESCE(NULLIF(TRIM(CONCAT(u.first_name, ' ', COALESCE(u.last_name, ''))), ''),
+                        'Shipper #' || l.shipper_id::text) AS group_key,
+               COUNT(*) FILTER (WHERE l.entry_type='COMMISSION') AS orders_count,
+               COALESCE(SUM(l.amount) FILTER (WHERE l.entry_type='COMMISSION'), 0) AS commission
+        FROM shipper_ledger l
+        JOIN telegram_user u ON u.id = l.shipper_id
+        WHERE l.created_at BETWEEN :from AND :to
+        GROUP BY l.shipper_id, u.first_name, u.last_name
+        ORDER BY commission DESC
     """, nativeQuery = true)
     List<Object[]> aggregateByShipper(@Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to);
 
