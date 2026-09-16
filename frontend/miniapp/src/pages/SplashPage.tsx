@@ -23,15 +23,15 @@ export function SplashPage() {
     retry: 0,
   });
 
+  const isShipper = !!data?.roles.includes('SHIPPER');
+
   useEffect(() => {
-    if (data) {
-      if (data.roles.includes('SHIPPER')) {
-        navigate('/shipper/earnings', { replace: true });
-      } else {
-        navigate('/customer/shop', { replace: true });
-      }
+    // Khách thường → vào shop luôn. Shipper (kiêm khách) KHÔNG ép vào UI shipper
+    // nữa — hiện màn chọn "Đặt hàng / Đi giao" bên dưới để vẫn đặt hàng được.
+    if (data && !isShipper) {
+      navigate('/customer/shop', { replace: true });
     }
-  }, [data, navigate]);
+  }, [data, isShipper, navigate]);
 
   // Out-of-Telegram dev landing — also doubles as the brand splash.
   if (!tg.isInTelegram()) {
@@ -92,6 +92,39 @@ export function SplashPage() {
         </div>
         <h2 className="text-xl font-bold mb-2">{t('splash.authFailed')}</h2>
         <p className="text-sm text-brand-500">{t('splash.authFailedHint')}</p>
+      </div>
+    );
+  }
+
+  // Shipper (kiêm khách): chọn vào khu nào — vẫn đặt hàng được như khách.
+  if (isShipper) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-brand-800 via-brand-700 to-brand-600 text-cream-50">
+        <div className="flex-1 px-6 pt-20 pb-6 text-center flex flex-col items-center justify-center">
+          {shop?.logoUrl ? (
+            <img src={shop.logoUrl} alt={brandName} className="w-20 h-20 mb-4 rounded-2xl object-contain bg-white/10 p-2" />
+          ) : (
+            <div className="text-6xl mb-4" aria-hidden="true">🛵</div>
+          )}
+          <h1 className="text-3xl font-extrabold leading-tight">{brandName}</h1>
+          <p className="text-sm text-brand-100 mt-2">Bạn muốn làm gì hôm nay?</p>
+        </div>
+        <div className="px-5 pb-10 space-y-3">
+          <button
+            type="button"
+            onClick={() => navigate('/customer/shop')}
+            className="w-full py-4 bg-cream-50 text-brand-700 rounded-2xl font-bold shadow-warm-lg active:scale-95 transition flex items-center justify-center gap-2"
+          >
+            🛍️ Đặt hàng
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/shipper/assignments')}
+            className="w-full py-4 bg-white/10 backdrop-blur text-cream-50 rounded-2xl font-semibold border border-white/25 active:scale-95 transition flex items-center justify-center gap-2"
+          >
+            🛵 Đi giao (Shipper)
+          </button>
+        </div>
       </div>
     );
   }
