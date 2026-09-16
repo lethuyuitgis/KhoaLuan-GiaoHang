@@ -54,3 +54,16 @@ export async function rateCustomer(
   );
   return data;
 }
+
+// ── Trạng thái online/offline của shipper (tự bật/tắt nhận đơn) ──
+import type { ShipperStatus } from '../types';
+
+export async function getShipperStatus(client: AxiosInstance): Promise<ShipperStatus> {
+  const { data } = await client.get<ShipperStatus>('/api/shipper/me/status');
+  return data;
+}
+
+export async function setShipperStatus(client: AxiosInstance, online: boolean): Promise<ShipperStatus> {
+  const { data } = await client.post<ShipperStatus>('/api/shipper/me/status', { online });
+  return data;
+}

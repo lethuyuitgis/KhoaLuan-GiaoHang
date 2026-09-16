@@ -97,6 +97,21 @@ public class ShipperProfileService {
     }
 
     /**
+     * Shipper tự bật/tắt nhận đơn: online → AVAILABLE, offline → OFFLINE.
+     * Chặn khi đang BUSY (đang giao) để không bỏ dở đơn.
+     */
+    @Transactional
+    public ShipperProfile setAvailability(Long userId, boolean online) {
+        ShipperProfile p = findById(userId);
+        if (p.getCurrentState() == ShipperState.BUSY) {
+            throw new ValidationException("SHIPPER_BUSY",
+                "Bạn đang giao đơn — hoàn tất đơn hiện tại trước khi đổi trạng thái");
+        }
+        p.setCurrentState(online ? ShipperState.AVAILABLE : ShipperState.OFFLINE);
+        return profileRepo.save(p);
+    }
+
+    /**
      * Bot-driven shipper registration: the user finished the FSM in Telegram,
      * so we insert {@code user_role(SHIPPER, PENDING)} + a {@code shipper_profile}
      * row, then publish {@link ShipperRegisteredEvent} for the notification

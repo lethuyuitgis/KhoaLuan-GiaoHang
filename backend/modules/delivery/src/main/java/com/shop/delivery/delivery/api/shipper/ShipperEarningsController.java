@@ -8,15 +8,20 @@ import com.shop.delivery.delivery.api.shipper.dto.DailyEarning;
 import com.shop.delivery.delivery.api.shipper.dto.EarningsSummary;
 import com.shop.delivery.delivery.api.shipper.dto.LedgerRow;
 import com.shop.delivery.delivery.api.shipper.dto.ShipperSelfProfile;
+import com.shop.delivery.delivery.api.shipper.dto.ShipperStatusRequest;
+import com.shop.delivery.delivery.api.shipper.dto.ShipperStatusResponse;
 import com.shop.delivery.delivery.domain.LedgerEntryType;
 import com.shop.delivery.delivery.entity.ShipperLedgerEntry;
 import com.shop.delivery.delivery.entity.ShipperProfile;
 import com.shop.delivery.delivery.repository.ShipperProfileRepository;
 import com.shop.delivery.delivery.service.ShipperLedgerService;
+import com.shop.delivery.delivery.service.ShipperProfileService;
 import com.shop.delivery.shared.exception.AuthenticationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,14 +36,35 @@ public class ShipperEarningsController {
 
     private final ShipperLedgerService ledger;
     private final ShipperProfileRepository profileRepo;
+    private final ShipperProfileService profileService;
     private final RoleResolver roleResolver;
 
     public ShipperEarningsController(ShipperLedgerService ledger,
                                      ShipperProfileRepository profileRepo,
+                                     ShipperProfileService profileService,
                                      RoleResolver roleResolver) {
         this.ledger = ledger;
         this.profileRepo = profileRepo;
+        this.profileService = profileService;
         this.roleResolver = roleResolver;
+    }
+
+    /** Trạng thái nhận đơn hiện tại (để hiện đúng vị trí nút gạt). */
+    @GetMapping("/status")
+    public ShipperStatusResponse getStatus(@CurrentUser TelegramUser user) {
+        requireShipper(user);
+        ShipperProfile p = profileRepo.findById(user.getId())
+            .orElseThrow(() -> new AuthenticationException("NOT_SHIPPER", "Bạn không phải shipper"));
+        return ShipperStatusResponse.of(p.getCurrentState());
+    }
+
+    /** Shipper tự bật/tắt nhận đơn (AVAILABLE ⇄ OFFLINE). Chặn khi đang giao (BUSY). */
+    @PostMapping("/status")
+    public ShipperStatusResponse setStatus(@CurrentUser TelegramUser user,
+                                           @RequestBody ShipperStatusRequest req) {
+        requireShipper(user);
+        ShipperProfile p = profileService.setAvailability(user.getId(), req.online());
+        return ShipperStatusResponse.of(p.getCurrentState());
     }
 
     @GetMapping("/earnings/summary")

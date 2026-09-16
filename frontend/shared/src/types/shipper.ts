@@ -41,3 +41,10 @@ export interface ShipperCandidateResponse {
   distanceKm: number | null;
   lastLocationAt: string | null;
 }
+
+/** Trạng thái nhận đơn của shipper — trả từ GET/POST /api/shipper/me/status. */
+export interface ShipperStatus {
+  state: ShipperState;
+  online: boolean;
+  busy: boolean;
+}

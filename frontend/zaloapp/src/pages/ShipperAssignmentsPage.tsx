@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
   listMyAssignments, acceptAssignment, rejectAssignment,
+  getShipperStatus, setShipperStatus,
   formatVnd, formatRelative, type AssignmentResponse
 } from '@shop/shared';
 import { api } from '@/lib/api';
@@ -35,6 +36,20 @@ export function ShipperAssignmentsPage() {
   const { data: assignments, isLoading, error } = useQuery({
     queryKey: ['shipper', 'assignments'],
     queryFn: () => listMyAssignments(api),
+  });
+
+  const { data: status } = useQuery({
+    queryKey: ['shipper', 'status'],
+    queryFn: () => getShipperStatus(api),
+  });
+
+  const statusMut = useMutation({
+    mutationFn: (online: boolean) => setShipperStatus(api, online),
+    onSuccess: (s) => {
+      toast.success(s.online ? 'Đã BẬT nhận đơn' : 'Đã tắt — đang nghỉ');
+      qc.invalidateQueries({ queryKey: ['shipper', 'status'] });
+    },
+    onError: showError,
   });
 
   const acceptMut = useMutation({
@@ -80,6 +95,33 @@ export function ShipperAssignmentsPage() {
               : 'Chưa có đơn mới'}
         </p>
       </header>
+
+      {/* Nút gạt bật/tắt nhận đơn — trước đây không có nên shipper luôn "ngoại tuyến". */}
+      <button
+        onClick={() => { if (!status?.busy) statusMut.mutate(!status?.online); }}
+        disabled={statusMut.isPending || status?.busy}
+        className={
+          'w-full flex items-center justify-between rounded-2xl px-4 py-3 border transition active:scale-[0.99] ' +
+          (status?.busy ? 'bg-purple-50 border-purple-200'
+            : status?.online ? 'bg-emerald-50 border-emerald-200'
+            : 'bg-gray-50 border-gray-200')
+        }
+      >
+        <span className="flex items-center gap-2.5 text-left">
+          <span className={'w-2.5 h-2.5 rounded-full ' + (status?.busy ? 'bg-purple-500' : status?.online ? 'bg-emerald-500' : 'bg-gray-400')} />
+          <span>
+            <span className="block text-sm font-semibold text-gray-800">
+              {status?.busy ? 'Đang giao đơn' : status?.online ? 'Đang nhận đơn' : 'Đang nghỉ'}
+            </span>
+            <span className="block text-[11px] text-gray-500">
+              {status?.busy ? 'Hoàn tất đơn để đổi trạng thái' : status?.online ? 'Shop có thể gán đơn cho bạn' : 'Bật để nhận đơn từ shop'}
+            </span>
+          </span>
+        </span>
+        <span className={'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition ' + ((status?.online || status?.busy) ? 'bg-emerald-500' : 'bg-gray-300')}>
+          <span className={'inline-block h-5 w-5 transform rounded-full bg-white shadow transition ' + ((status?.online || status?.busy) ? 'translate-x-5' : 'translate-x-0.5')} />
+        </span>
+      </button>
 
       {isLoading && (
         <div className="space-y-3">
