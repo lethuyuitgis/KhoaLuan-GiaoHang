@@ -20,7 +20,13 @@ api.interceptors.response.use(
   resp => resp,
   async (error: AxiosError) => {
     const original = error.config as any;
-    if (error.response?.status === 401 && original && !original._retry) {
+    // Backend trả 403 (không phải 401) cho JWT hết hạn/thiếu ở admin chain →
+    // phải refresh cả khi 403, nếu không access-token hết hạn (15') là kẹt 403.
+    const status = error.response?.status;
+    const isAuthExpired = status === 401 || status === 403;
+    // Đừng thử refresh cho chính endpoint refresh (tránh lặp).
+    const isRefreshCall = typeof original?.url === 'string' && original.url.includes('/auth/refresh');
+    if (isAuthExpired && original && !original._retry && !isRefreshCall) {
       const auth = useAuthStore.getState().auth;
       if (!auth?.refreshToken) {
         useAuthStore.getState().logout();
@@ -36,7 +42,11 @@ api.interceptors.response.use(
             )
             .then(r => {
               const newAt = r.data.accessToken;
-              useAuthStore.getState().updateAccessToken(newAt);
+              // Cập nhật CẢ refreshToken mới (backend có xoay token) — nếu chỉ giữ
+              // accessToken thì lần refresh sau dùng refreshToken cũ đã bị vô hiệu → 403.
+              const cur = useAuthStore.getState().auth;
+              if (cur) useAuthStore.getState().setAuth({ ...cur, accessToken: newAt, refreshToken: r.data.refreshToken });
+              else useAuthStore.getState().updateAccessToken(newAt);
               return newAt;
             })
             .finally(() => { refreshInFlight = null; });
