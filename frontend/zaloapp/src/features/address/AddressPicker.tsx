@@ -4,6 +4,10 @@ import { useTranslation } from 'react-i18next';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@/styles/leaflet-overrides.css';
+// Icon bundle local (Vite) — KHÔNG unpkg/github (webview Zalo chặn domain ngoài).
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import type { SavedAddress } from '@shop/shared';
 import {
   createRateLimiter,
@@ -15,21 +19,24 @@ import {
   type NominatimResult,
 } from './nominatim';
 
-// Fix default marker icons (Vite + Leaflet)
+// Fix default marker icons (bundled)
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 
-const pinIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+// Tile bản đồ proxy qua domain mình (Zalo chạy trên origin khác → cần URL tuyệt đối).
+const OSM_BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/osm';
+const OSM_TILES = `${OSM_BASE}/tiles/{z}/{x}/{y}.png`;
+
+// Pin xanh vẽ bằng SVG inline (không tải ảnh ngoài).
+const pinIcon = L.divIcon({
+  className: 'address-pin-marker',
+  html:
+    '<svg width="30" height="42" viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M12 0C5.37 0 0 5.37 0 12c0 9 12 24 12 24s12-15 12-24C24 5.37 18.63 0 12 0z" fill="#2563eb"/>' +
+    '<circle cx="12" cy="12" r="5" fill="#fff"/></svg>',
+  iconSize: [30, 42],
+  iconAnchor: [15, 42],
+  popupAnchor: [0, -38],
 });
 
 const DEFAULT_LAT = 21.0285;
@@ -239,7 +246,7 @@ export function AddressPicker({ address, lat, lng, onChange, error, savedAddress
         >
           <TileLayer
             attribution='&copy; OpenStreetMap'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            url={OSM_TILES}
           />
           {hasPin && (
             <Marker

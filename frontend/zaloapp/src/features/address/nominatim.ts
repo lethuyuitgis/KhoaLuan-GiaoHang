@@ -21,8 +21,11 @@ export interface NominatimResult {
   countryCode?: string;
 }
 
-const NOMINATIM_SEARCH = 'https://nominatim.openstreetmap.org/search';
-const NOMINATIM_REVERSE = 'https://nominatim.openstreetmap.org/reverse';
+// Proxy qua domain mình (/osm/*) — webview Zalo chặn domain ngoài + Nominatim
+// cấm request thiếu User-Agent. Zalo chạy origin khác → dùng URL TUYỆT ĐỐI từ API base.
+const OSM_BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/osm';
+const NOMINATIM_SEARCH = OSM_BASE + '/search';
+const NOMINATIM_REVERSE = OSM_BASE + '/reverse';
 
 /**
  * Forward geocoding. Returns at most `limit` results inside Vietnam.

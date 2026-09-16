@@ -5,18 +5,24 @@ import L from 'leaflet';
 import { useLiveLocation } from './use-live-location';
 import 'leaflet/dist/leaflet.css';
 import '@/styles/leaflet-overrides.css';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-});
+L.Icon.Default.mergeOptions({ iconRetinaUrl: markerIcon2x, iconUrl: markerIcon, shadowUrl: markerShadow });
 
-const mk = (color: string) => new L.Icon({
-  iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
-  iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+// Tile proxy tuyệt đối (Zalo origin khác) + pin màu SVG inline (không ảnh ngoài).
+const OSM_BASE = (import.meta.env.VITE_API_BASE_URL || '') + '/osm';
+const OSM_TILES = `${OSM_BASE}/tiles/{z}/{x}/{y}.png`;
+const HEX: Record<string, string> = { green: '#16a34a', red: '#dc2626', blue: '#2563eb' };
+const mk = (color: string) => L.divIcon({
+  className: 'track-pin-marker',
+  html:
+    `<svg width="28" height="40" viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg">` +
+    `<path d="M12 0C5.37 0 0 5.37 0 12c0 9 12 24 12 24s12-15 12-24C24 5.37 18.63 0 12 0z" fill="${HEX[color] ?? '#2563eb'}"/>` +
+    `<circle cx="12" cy="12" r="5" fill="#fff"/></svg>`,
+  iconSize: [28, 40], iconAnchor: [14, 40], popupAnchor: [0, -36],
 });
 const shopIcon = mk('green');
 const shipperIcon = mk('red');
@@ -62,7 +68,7 @@ export function OrderTrackingMap({
       <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
         <TileLayer
           attribution='&copy; OpenStreetMap'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          url={OSM_TILES}
         />
         <Marker position={pickup} icon={shopIcon} />
         <Marker position={destination} icon={destIcon} />
