@@ -17,6 +17,7 @@ import com.shop.delivery.shared.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import com.shop.delivery.order.entity.ShopConfig;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,6 +31,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +61,14 @@ class OrderServiceTest {
         shopProps.getFee().setFreeKm(BigDecimal.ZERO);
 
         distance = new DistanceCalculator();
-        fee = new FeeCalculator(shopProps);
+        // FeeCalculator đọc phí từ shop_config (DB) — mock trả cùng giá trị với shopProps.
+        ShopConfig feeCfg = new ShopConfig();
+        feeCfg.setFeeBase(new BigDecimal("15000"));
+        feeCfg.setFeePerKm(new BigDecimal("5000"));
+        feeCfg.setFreeKm(BigDecimal.ZERO);
+        ShopConfigService shopConfigSvc = mock(ShopConfigService.class);
+        when(shopConfigSvc.currentConfig()).thenReturn(feeCfg);
+        fee = new FeeCalculator(shopConfigSvc, shopProps);
         sm = new OrderStateMachine();
         codeGen = new OrderCodeGenerator();
 

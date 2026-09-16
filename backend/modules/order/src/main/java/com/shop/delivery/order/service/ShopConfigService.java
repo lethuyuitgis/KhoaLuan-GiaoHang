@@ -27,6 +27,16 @@ public class ShopConfigService {
         return toResponse(loadOrThrow());
     }
 
+    /**
+     * Bản ghi cấu hình shop hiện tại (singleton) đọc trực tiếp từ DB — để FeeCalculator
+     * và tính khoảng cách dùng phí/toạ độ pickup LIVE (admin chỉnh Settings là ăn ngay),
+     * không còn phụ thuộc env cố định lúc khởi động.
+     */
+    @Transactional(readOnly = true)
+    public ShopConfig currentConfig() {
+        return loadOrThrow();
+    }
+
     @Transactional
     public ShopConfigResponse updateConfig(UpdateShopConfigRequest req) {
         ShopConfig c = loadOrThrow();

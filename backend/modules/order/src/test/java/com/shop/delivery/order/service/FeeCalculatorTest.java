@@ -1,27 +1,33 @@
 package com.shop.delivery.order.service;
 
 import com.shop.delivery.order.config.ShopConfigProperties;
+import com.shop.delivery.order.entity.ShopConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class FeeCalculatorTest {
 
     FeeCalculator calc;
-    ShopConfigProperties.Fee fee;
 
     @BeforeEach
     void setup() {
-        fee = new ShopConfigProperties.Fee();
-        fee.setBase(new BigDecimal("15000"));
-        fee.setPerKm(new BigDecimal("5000"));
-        fee.setFreeKm(new BigDecimal("1.0"));
+        // FeeCalculator giờ đọc phí LIVE từ shop_config (DB) qua ShopConfigService.
+        ShopConfig cfg = new ShopConfig();
+        cfg.setFeeBase(new BigDecimal("15000"));
+        cfg.setFeePerKm(new BigDecimal("5000"));
+        cfg.setFreeKm(new BigDecimal("1.0"));
+        ShopConfigService svc = mock(ShopConfigService.class);
+        when(svc.currentConfig()).thenReturn(cfg);
+
         ShopConfigProperties props = new ShopConfigProperties();
-        props.setFee(fee);
-        calc = new FeeCalculator(props);
+        props.setFee(new ShopConfigProperties.Fee());   // fallback (không dùng khi DB có)
+        calc = new FeeCalculator(svc, props);
     }
 
     @Test
