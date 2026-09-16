@@ -69,6 +69,9 @@ services:
       SHOP_FEE_PER_KM:  ${SHOP_FEE_PER_KM:-5000}
       SHOP_FEE_FREE_KM: ${SHOP_FEE_FREE_KM:-1.0}
       UPLOADS_DIR: /data/uploads
+      # Demo mode: chấp nhận header X-Dev-User-Id (impersonate user ĐÃ TỒN TẠI) để
+      # demo web trong trình duyệt không cần Telegram. Mặc định TẮT; bật = APP_DEMO_MODE=true.
+      APP_DEMO_MODE: ${APP_DEMO_MODE:-false}
       # JVM container ergonomics
       JAVA_OPTS: "-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom"
     volumes:

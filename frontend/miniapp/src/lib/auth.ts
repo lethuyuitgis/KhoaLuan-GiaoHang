@@ -27,10 +27,8 @@ export function getAuthHeaders(): Record<string, string> {
   if (initData) {
     return { [INIT_DATA_HEADER]: initData };
   }
-  // Browser-only mode: ride the backend dev-bypass so cart/checkout/orders still work.
-  // In prod the backend ignores this header (dev profile only).
-  if (import.meta.env.DEV) {
-    return { [DEV_USER_HEADER]: getDevUserId() };
-  }
-  return {};
+  // Ngoài Telegram (mở web trong trình duyệt): gửi X-Dev-User-Id để demo đặt hàng được.
+  // Backend CHỈ chấp nhận header này khi bật demo/dev (app.demo-mode) và chỉ map sang
+  // user ĐÃ TỒN TẠI; prod thật (demo off) thì header bị bỏ qua → an toàn.
+  return { [DEV_USER_HEADER]: getDevUserId() };
 }

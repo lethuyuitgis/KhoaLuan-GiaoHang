@@ -40,19 +40,23 @@ public class TelegramAuthFilter extends OncePerRequestFilter {
     private final TelegramInitDataVerifier verifier;
     private final TelegramUserService userService;
     private final TelegramUserRepository userRepo;
-    private final boolean devModeEnabled;
+    /** Chấp nhận header X-Dev-User-Id (impersonate user ĐÃ TỒN TẠI) — bật khi dev profile
+     *  HOẶC app.demo-mode=true (cho demo web trong trình duyệt trên server công khai). */
+    private final boolean bypassEnabled;
 
     public TelegramAuthFilter(TelegramInitDataVerifier verifier,
                               TelegramUserService userService,
                               TelegramUserRepository userRepo,
-                              Environment env) {
+                              Environment env,
+                              @org.springframework.beans.factory.annotation.Value("${app.demo-mode:false}") boolean demoMode) {
         this.verifier = verifier;
         this.userService = userService;
         this.userRepo = userRepo;
-        this.devModeEnabled = List.of(env.getActiveProfiles()).contains("dev");
-        if (devModeEnabled) {
-            log.warn("⚠️  TelegramAuthFilter: DEV BYPASS ENABLED — accepting X-Dev-User-Id header. "
-                + "DO NOT enable the 'dev' profile in production.");
+        boolean devProfile = List.of(env.getActiveProfiles()).contains("dev");
+        this.bypassEnabled = devProfile || demoMode;
+        if (this.bypassEnabled) {
+            log.warn("⚠️  TelegramAuthFilter: X-Dev-User-Id BYPASS ENABLED (devProfile={}, demoMode={}) — "
+                + "chỉ dùng cho demo/dev, KHÔNG bật ở prod thật.", devProfile, demoMode);
         }
     }
 
@@ -77,7 +81,7 @@ public class TelegramAuthFilter extends OncePerRequestFilter {
                     log.warn("Auth upsert failed for userId={}: {}", verified.userId(), ex.getMessage());
                 }
             });
-        } else if (devModeEnabled) {
+        } else if (bypassEnabled) {
             String devUserId = request.getHeader(HEADER_DEV_USER_ID);
             if (devUserId != null && !devUserId.isBlank()) {
                 try {
