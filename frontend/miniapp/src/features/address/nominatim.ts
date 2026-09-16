@@ -38,7 +38,7 @@ export async function searchAddress(
   const trimmed = query.trim();
   if (trimmed.length < 3) return [];
 
-  const url = new URL(NOMINATIM_SEARCH);
+  const url = new URL(NOMINATIM_SEARCH, window.location.origin);
   url.searchParams.set('q', trimmed);
   url.searchParams.set('format', 'jsonv2');
   url.searchParams.set('addressdetails', '1');
@@ -63,7 +63,7 @@ export async function reverseGeocode(
   lng: number,
   options: { signal?: AbortSignal } = {},
 ): Promise<NominatimResult | null> {
-  const url = new URL(NOMINATIM_REVERSE);
+  const url = new URL(NOMINATIM_REVERSE, window.location.origin);
   url.searchParams.set('lat', String(lat));
   url.searchParams.set('lon', String(lng));
   url.searchParams.set('format', 'jsonv2');
