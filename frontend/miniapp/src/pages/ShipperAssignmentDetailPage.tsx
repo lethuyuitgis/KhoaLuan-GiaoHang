@@ -116,7 +116,7 @@ export function ShipperAssignmentDetailPage() {
   const mustCollect = assignment.paymentMethod === 'COD' && assignment.paymentStatus !== 'SUCCESS';
 
   return (
-    <div className="px-4 pt-4 pb-40 space-y-3">
+    <div className="px-4 pt-4 pb-48 space-y-3">
       <button onClick={() => navigate(-1)} className="text-sm text-gray-500 active:text-gray-700">
         ← Quay lại
       </button>
@@ -253,8 +253,8 @@ export function ShipperAssignmentDetailPage() {
       {assignment.status === 'ACCEPTED' && (
         <button
           onClick={() => startMut.mutate()}
-          disabled={startMut.isPending}
-          className="fixed bottom-20 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
+          disabled={startMut.isPending || startMut.isSuccess}
+          className="fixed bottom-[calc(5rem_+_env(safe-area-inset-bottom))] z-50 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
         >
           {startMut.isPending ? 'Đang xử lý…' : '🚀 Bắt đầu giao'}
         </button>
@@ -263,8 +263,8 @@ export function ShipperAssignmentDetailPage() {
       {assignment.status === 'STARTED' && (
         <button
           onClick={() => completeMut.mutate()}
-          disabled={completeMut.isPending}
-          className="fixed bottom-20 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
+          disabled={completeMut.isPending || completeMut.isSuccess}
+          className="fixed bottom-[calc(5rem_+_env(safe-area-inset-bottom))] z-50 left-4 right-4 max-w-md mx-auto bg-emerald-600 text-white rounded-2xl py-3.5 px-4 font-semibold shadow-xl shadow-emerald-500/30 active:scale-[0.98] transition disabled:bg-gray-300 disabled:shadow-none"
         >
           {completeMut.isPending ? 'Đang xử lý…' : '✅ Đã giao xong'}
         </button>

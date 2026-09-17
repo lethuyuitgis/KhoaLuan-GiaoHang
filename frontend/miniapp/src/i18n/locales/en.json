@@ -159,5 +159,13 @@
   "lang.ja": "日本語",
   "lang.zh": "中文",
   "address.saved": "Saved",
-  "address.deleteSaved": "Delete saved address"
+  "address.deleteSaved": "Delete saved address",
+  "rating.title": "Rate shipper",
+  "rating.thanks": "Thanks for your rating!",
+  "rating.starLabel": "{{n}} star(s)",
+  "rating.commentPlaceholder": "Comment (optional)…",
+  "rating.error": "Failed to submit rating (maybe already rated).",
+  "rating.sending": "Sending…",
+  "rating.submit": "Submit rating",
+  "rating.already": "You've already rated this order. Thank you!"
 }

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getOrder, cancelOrder, formatVnd, formatDateTime, type PaymentStatus } from '@shop/shared';
 import { api } from '@/lib/api';
 import { OrderStatusBadge } from '@/components/OrderStatusBadge';
+import { RatingForm } from '@/components/RatingForm';
 import { OrderTrackingMap } from '@/features/tracking/OrderTrackingMap';
 import { tg } from '@/lib/telegram';
 import { useToast } from '@/components/Toast';
@@ -224,19 +225,15 @@ export function OrderDetailPage() {
 
       {/* Delivered banner */}
       {order.status === 'DELIVERED' && (
-        <div className="rounded-3xl bg-gradient-to-br from-brand-100 to-cream-200 p-5 shadow-warm">
+        <>
           <p className="font-bold text-brand-800 flex items-center gap-2">
             <span aria-hidden="true">⭐</span>
             {t('orderDetail.delivered')}
           </p>
-          <p className="text-xs text-brand-600 mt-1.5 leading-relaxed">{t('orderDetail.deliveredHint')}</p>
-          <button
-            type="button"
-            className="mt-3 px-5 py-2.5 rounded-full bg-brand-700 text-cream-50 text-sm font-semibold shadow-warm active:scale-95 transition"
-          >
-            {t('orderDetail.rateShipper')}
-          </button>
-        </div>
+          {/* Đánh giá ngay trong app (sao 1–5 + nhận xét) — trước đây nút "Đánh giá
+              shipper" không có onClick nên bấm không làm gì. */}
+          <RatingForm orderId={order.id} />
+        </>
       )}
 
       {CANCELLABLE.has(order.status) && (

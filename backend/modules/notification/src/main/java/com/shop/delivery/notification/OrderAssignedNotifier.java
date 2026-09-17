@@ -1,5 +1,6 @@
 package com.shop.delivery.notification;
 
+import com.shop.delivery.bot.config.BotProperties;
 import com.shop.delivery.bot.fsm.ChatStates;
 import com.shop.delivery.bot.sender.BotSender;
 import com.shop.delivery.delivery.repository.RatingRepository;
@@ -16,6 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.webapp.WebAppInfo;
 
 import java.util.List;
 
@@ -31,13 +33,16 @@ public class OrderAssignedNotifier {
     private final BotSender bot;
     private final RatingPromptBuilder ratingPromptBuilder;
     private final RatingRepository ratingRepo;
+    private final BotProperties botProps;
 
     public OrderAssignedNotifier(BotSender bot,
                                  RatingPromptBuilder ratingPromptBuilder,
-                                 RatingRepository ratingRepo) {
+                                 RatingRepository ratingRepo,
+                                 BotProperties botProps) {
         this.bot = bot;
         this.ratingPromptBuilder = ratingPromptBuilder;
         this.ratingRepo = ratingRepo;
+        this.botProps = botProps;
     }
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -71,22 +76,43 @@ public class OrderAssignedNotifier {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onOrderAccepted(OrderAcceptedEvent e) {
-        // Offer both parties a one-tap entry into anonymous chat for this delivery.
-        bot.execute(withChatButton(e.shipperId(), e.assignmentId(),
+        // Shipper: nút MỞ MINI APP (bắt đầu giao) + Chat. Khách: chỉ nút Chat.
+        bot.execute(withOpenAppAndChat(e.shipperId(), e.assignmentId(),
             "✅ Bạn đã nhận đơn " + e.orderCode() + ". Mở Mini App để bắt đầu giao."));
         bot.execute(withChatButton(e.customerId(), e.assignmentId(),
             "🚴 Shipper đã nhận đơn " + e.orderCode() + ". Đơn sắp được giao."));
     }
 
-    private SendMessage withChatButton(Long chatId, java.util.UUID assignmentId, String text) {
-        InlineKeyboardButton chatBtn = InlineKeyboardButton.builder()
+    private InlineKeyboardButton chatButton(java.util.UUID assignmentId) {
+        return InlineKeyboardButton.builder()
             .text("💬 Chat")
             .callbackData(ChatStates.CALLBACK_CHAT_OPEN + assignmentId)
             .build();
+    }
+
+    private SendMessage withChatButton(Long chatId, java.util.UUID assignmentId, String text) {
         return SendMessage.builder()
             .chatId(chatId)
             .text(text)
-            .replyMarkup(InlineKeyboardMarkup.builder().keyboard(List.of(List.of(chatBtn))).build())
+            .replyMarkup(InlineKeyboardMarkup.builder().keyboard(List.of(List.of(chatButton(assignmentId)))).build())
+            .build();
+    }
+
+    /** Tin cho shipper sau khi nhận đơn: nút web_app MỞ MINI APP (giao đơn) + nút Chat. */
+    private SendMessage withOpenAppAndChat(Long chatId, java.util.UUID assignmentId, String text) {
+        java.util.List<java.util.List<InlineKeyboardButton>> rows = new java.util.ArrayList<>();
+        String miniappUrl = botProps.getMiniappUrl();
+        if (miniappUrl != null && !miniappUrl.isBlank()) {
+            rows.add(List.of(InlineKeyboardButton.builder()
+                .text("🛵 Mở Mini App giao đơn")
+                .webApp(new WebAppInfo(miniappUrl))
+                .build()));
+        }
+        rows.add(List.of(chatButton(assignmentId)));
+        return SendMessage.builder()
+            .chatId(chatId)
+            .text(text)
+            .replyMarkup(InlineKeyboardMarkup.builder().keyboard(rows).build())
             .build();
     }
 
